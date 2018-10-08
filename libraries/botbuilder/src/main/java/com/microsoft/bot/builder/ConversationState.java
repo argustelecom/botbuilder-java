@@ -1,49 +1,40 @@
-package com.microsoft.bot.builder;
+package Microsoft.Bot.Builder;
 
-import com.microsoft.bot.builder.TurnContext;
+// Copyright (c) Microsoft Corporation. All rights reserved.
+// Licensed under the MIT License.
 
-import java.util.function.Supplier;
 
-/**
- * Handles persistence of a conversation state object using the conversation ID as part of the key.
- * @param TState The type of the conversation state object.
- */
-public class ConversationState<TState> extends BotState<TState>
+/** 
+ Handles persistence of a conversation state object using the conversation ID as part of the key.
+*/
+public class ConversationState extends BotState
 {
-    /**
-     * The key to use to read and write this conversation state object to storage.
-     */
-    //
-    // Note: Hard coded to maintain compatibility with C#
-    // "ConversationState:{typeof(ConversationState<TState>).Namespace}.{typeof(ConversationState<TState>).Name}"
-    public static String PropertyName() {
-      return String.format("ConversationState:Microsoft.Bot.Builder.Core.Extensions.ConversationState`1");
-    }
+	/** 
+	 Initializes a new instance of the <see cref="ConversationState"/> class.
+	 
+	 @param storage The storage provider to use.
+	*/
+	public ConversationState(IStorage storage)
+	{
+		super(storage, "ConversationState");
+	}
 
-    /**
-     * Creates a new {@link ConversationState{TState}} object.
-     * @param storage The storage provider to use.
-     * @param settings The state persistance options to use.
-     */
-    public ConversationState(Storage storage, Supplier<? extends TState> ctor) {
-        this(storage, null, ctor);
-    }
-
-    public ConversationState(Storage storage, StateSettings settings, Supplier<? extends TState> ctor)  {
-        super(storage, PropertyName(),
-                (context) -> {
-                    return String.format("conversation/%s/%s", context.getActivity().channelId(), context.getActivity().conversation().id());
-                },
-                ctor,
-                settings);
-    }
-
-    /**
-     * Gets the conversation state object from turn context.
-     * @param context The context object for this turn.
-     * @return The coversation state object.
-     */
-    public static <TState> TState Get(TurnContext context) throws IllegalArgumentException {
-        return context.getServices().Get(PropertyName());
-    }
+	/** 
+	 Gets the key to use when reading and writing state to and from storage.
+	 
+	 @param turnContext The context object for this turn.
+	 @return The storage key.
+	*/
+	@Override
+	protected String GetStorageKey(ITurnContext turnContext)
+	{
+//C# TO JAVA CONVERTER TODO TASK: There is no equivalent to implicit typing in Java unless the Java 10 inferred typing option is selected:
+//C# TO JAVA CONVERTER TODO TASK: Throw expressions are not converted by C# to Java Converter:
+//ORIGINAL LINE: var channelId = turnContext.Activity.ChannelId ?? throw new ArgumentNullException("invalid activity-missing channelId");
+		var channelId = ((turnContext.getActivity().ChannelId) != null) ? turnContext.getActivity().ChannelId : throw new NullPointerException("invalid activity-missing channelId");
+//C# TO JAVA CONVERTER TODO TASK: Throw expressions are not converted by C# to Java Converter:
+//ORIGINAL LINE: var conversationId = turnContext.Activity.Conversation == null ? null : turnContext.Activity.Conversation.Id ?? throw new ArgumentNullException("invalid activity-missing Conversation.Id");
+		boolean conversationId = turnContext.getActivity().Conversation == null ? null : ((turnContext.getActivity().Conversation.Id) != null) ? turnContext.getActivity().Conversation.Id : throw new NullPointerException("invalid activity-missing Conversation.Id");
+		return String.format("%1$s/conversations/%2$s", channelId, conversationId);
+	}
 }

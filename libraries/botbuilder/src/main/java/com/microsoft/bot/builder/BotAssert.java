@@ -1,99 +1,101 @@
+package Microsoft.Bot.Builder;
+
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License.
-package com.microsoft.bot.builder;
 
-import com.microsoft.bot.schema.ActivityImpl;
-import com.microsoft.bot.schema.models.Activity;
-import com.microsoft.bot.schema.models.ConversationReference;
 
-import java.util.ArrayList;
-
-/**
- * Provides methods for debugging Bot Builder code.
- */
+/** 
+ Provides methods for debugging Bot Builder code.
+*/
 public class BotAssert
 {
-    /**
-     * Checks that an activity object is not {@code null}.
-     * @param activity The activity object.
-     * @throws NullPointerException 
-     * {@code activity} is {@code null}.
-     */
-    public static void ActivityNotNull(ActivityImpl activity)
-    {
-        if (activity == null)
-            throw new IllegalArgumentException ("Activity");
-    }
+	/** 
+	 Checks that an activity object is not <c>null</c>.
+	 
+	 @param activity The activity object.
+	 @exception ArgumentNullException
+	 <paramref name="activity"/> is <c>null</c>.
+	*/
+	public static void ActivityNotNull(IActivity activity)
+	{
+		if (activity == null)
+		{
+			throw new NullPointerException("activity");
+		}
+	}
 
-    /**
-     * Checks that an activity object is not {@code null}.
-     * @param activity The activity object.
-     * @throws NullPointerException 
-     * {@code activity} is {@code null}.
-     */
-    public static void ActivityNotNull(Activity activity)
-    {
-        if (activity == null)
-            throw new IllegalArgumentException ("Activity");
-    }
+	/** 
+	 Checks that a context object is not <c>null</c>.
+	 
+	 @param turnContext The context object.
+	 @exception ArgumentNullException
+	 <paramref name="turnContext"/> is <c>null</c>.
+	*/
+	public static void ContextNotNull(ITurnContext turnContext)
+	{
+		if (turnContext == null)
+		{
+			throw new NullPointerException("turnContext");
+		}
+	}
 
-    /**
-     * Checks that a context object is not {@code null}.
-     * @param context The context object.
-     * @throws NullPointerException 
-     * {@code context} is {@code null}.
-     */
-    public static void ContextNotNull(TurnContext context)
-    {
-        if (context == null)
-            throw new IllegalArgumentException ("TurnContext");
-    }
+	/** 
+	 Checks that a conversation reference object is not <c>null</c>.
+	 
+	 @param reference The conversation reference object.
+	 @exception ArgumentNullException
+	 <paramref name="reference"/> is <c>null</c>.
+	*/
+	public static void ConversationReferenceNotNull(ConversationReference reference)
+	{
+		if (reference == null)
+		{
+			throw new NullPointerException("reference");
+		}
+	}
 
-    /**
-     * Checks that a conversation reference object is not {@code null}.
-     * @param reference The conversation reference object.
-     * @throws NullPointerException 
-     * {@code reference} is {@code null}.
-     */
-    public static void ConversationReferenceNotNull(ConversationReference reference)
-    {
-        if (reference == null)
-            throw new IllegalArgumentException ("ConversationReference");
-    }
+	/** 
+	 Checks that an activity collection is not <c>null</c>.
+	 
+	 @param activities The activities.
+	 @exception ArgumentNullException
+	 <paramref name="activities"/> is <c>null</c>.
+	*/
+	public static void ActivityListNotNull(java.lang.Iterable<Activity> activities)
+	{
+		if (activities == null)
+		{
+			throw new NullPointerException("activities");
+		}
+	}
 
-    /**
-     * Checks that an activity collection is not {@code null}.
-     * @param activities The activities.
-     * @throws NullPointerException 
-     * {@code activities} is {@code null}.
-     */
-    public static void ActivityListNotNull(ArrayList<Activity> activities)
-    {
-        if (activities == null)
-            throw new NullPointerException("List<Activity>");
-    }
+	/** 
+	 Checks that a middleware object is not <c>null</c>.
+	 
+	 @param middleware The middleware object.
+	 @exception ArgumentNullException
+	 <paramref name="middleware"/> is <c>null</c>.
+	*/
+	public static void MiddlewareNotNull(IMiddleware middleware)
+	{
+		if (middleware == null)
+		{
+			throw new NullPointerException("middleware");
+		}
+	}
 
-    /**
-     * Checks that a middleware object is not {@code null}.
-     * @param middleware The middleware object.
-     * @throws NullPointerException 
-     * {@code middleware} is {@code null}.
-     */
-    public static void MiddlewareNotNull(Middleware middleware)
-    {
-        if (middleware == null)
-            throw new NullPointerException("Middleware");
-    }
-
-    /**
-     * Checks that a middleware collection is not {@code null}.
-     * @param middleware The middleware.
-     * @throws NullPointerException 
-     * {@code middleware} is {@code null}.
-     */
-    public static void MiddlewareNotNull(ArrayList<Middleware> middleware)
-    {
-        if (middleware == null)
-            throw new NullPointerException("List<Middleware>");
-    }
+	/** 
+	 Checks that a middleware collection is not <c>null</c>.
+	 
+	 @param middleware The middleware.
+	 @exception ArgumentNullException
+	 <paramref name="middleware"/> is <c>null</c>.
+	*/
+	public static void MiddlewareNotNull(java.lang.Iterable<IMiddleware> middleware)
+	{
+		if (middleware == null)
+		{
+			throw new NullPointerException("middleware");
+		}
+	}
 }
