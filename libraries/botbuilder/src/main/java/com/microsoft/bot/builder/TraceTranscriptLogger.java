@@ -1,4 +1,4 @@
-package Microsoft.Bot.Builder;
+package com.microsoft.bot.builder;
 
 import Newtonsoft.Json.*;
 
@@ -19,7 +19,7 @@ public class TraceTranscriptLogger implements ITranscriptLogger
 	 @param activity The activity to transcribe.
 	 @return A task that represents the work queued to execute.
 	*/
-	public final Task LogActivityAsync(IActivity activity)
+	public final void LogActivityAsync(IActivity activity)
 	{
 		BotAssert.ActivityNotNull(activity);
 		Trace.TraceInformation(JsonConvert.SerializeObject(activity, serializationSettings));

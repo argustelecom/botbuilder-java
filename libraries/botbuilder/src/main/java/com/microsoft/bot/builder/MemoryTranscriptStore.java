@@ -1,6 +1,9 @@
-package Microsoft.Bot.Builder;
+package com.microsoft.bot.builder;
+
+import com.microsoft.bot.schema.models.Activity;
 
 import java.util.*;
+import java.util.concurrent.CompletableFuture;
 
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License.
@@ -15,7 +18,7 @@ import java.util.*;
 */
 public class MemoryTranscriptStore implements ITranscriptStore
 {
-	private HashMap<String, HashMap<String, ArrayList<IActivity>>> _channels = new HashMap<String, HashMap<String, ArrayList<IActivity>>>();
+	private HashMap<String, HashMap<String, ArrayList<Activity>>> _channels = new HashMap<String, HashMap<String, ArrayList<Activity>>>();
 
 	/** 
 	 Logs an activity to the transcript.
@@ -23,7 +26,7 @@ public class MemoryTranscriptStore implements ITranscriptStore
 	 @param activity The activity to log.
 	 @return A task that represents the work queued to execute.
 	*/
-	public final Task LogActivityAsync(IActivity activity)
+	public final void LogActivityAsync(Activity activity)
 	{
 		if (activity == null)
 		{
@@ -33,18 +36,18 @@ public class MemoryTranscriptStore implements ITranscriptStore
 		synchronized (_channels)
 		{
 			TValue channel;
-			if (!(_channels.containsKey(activity.ChannelId) ? (channel = _channels.get(activity.ChannelId)) == channel : false))
+			if (!(_channels.containsKey(activity.channelId()) ? (channel = _channels.get(activity.channelId())) == channel : false))
 			{
-				channel = new HashMap<String, ArrayList<IActivity>>();
-				_channels.put(activity.ChannelId, channel);
+				channel = new HashMap<String, ArrayList<Activity>>();
+				_channels.put(activity.channelId(), channel);
 			}
 
 			Object transcript;
 //C# TO JAVA CONVERTER TODO TASK: The following method call contained an unresolved 'out' keyword - these cannot be converted using the 'OutObject' helper class unless the method is within the code being modified:
 			if (!channel.TryGetValue(activity.Conversation.Id, out transcript))
 			{
-				transcript = new ArrayList<IActivity>();
-				channel[activity.Conversation.Id] = transcript;
+				transcript = new ArrayList<Activity>();
+				channel[activity.conversation().id()] = transcript;
 			}
 
 			transcript.Add(activity);
@@ -64,19 +67,19 @@ public class MemoryTranscriptStore implements ITranscriptStore
 	 If the task completes successfully, the result contains the matching activities.
 	*/
 
-	public final Task<PagedResult<IActivity>> GetTranscriptActivitiesAsync(String channelId, String conversationId, String continuationToken)
+	public final CompletableFuture<PagedResult<Activity>> GetTranscriptActivitiesAsync(String channelId, String conversationId, String continuationToken)
 	{
 		return GetTranscriptActivitiesAsync(channelId, conversationId, continuationToken, null);
 	}
 
-	public final Task<PagedResult<IActivity>> GetTranscriptActivitiesAsync(String channelId, String conversationId)
+	public final CompletableFuture<PagedResult<Activity>> GetTranscriptActivitiesAsync(String channelId, String conversationId)
 	{
 		return GetTranscriptActivitiesAsync(channelId, conversationId, null, null);
 	}
 
 //C# TO JAVA CONVERTER NOTE: Java does not support optional parameters. Overloaded method(s) are created above:
-//ORIGINAL LINE: public Task<PagedResult<IActivity>> GetTranscriptActivitiesAsync(string channelId, string conversationId, string continuationToken = null, DateTimeOffset startDate = default(DateTimeOffset))
-	public final Task<PagedResult<IActivity>> GetTranscriptActivitiesAsync(String channelId, String conversationId, String continuationToken, DateTimeOffset startDate)
+//ORIGINAL LINE: public CompletableFuture<PagedResult<Activity>> GetTranscriptActivitiesAsync(string channelId, string conversationId, string continuationToken = null, DateTimeOffset startDate = default(DateTimeOffset))
+	public final CompletableFuture<PagedResult<Activity>> GetTranscriptActivitiesAsync(String channelId, String conversationId, String continuationToken, DateTimeOffset startDate)
 	{
 		if (channelId == null)
 		{
@@ -88,13 +91,13 @@ public class MemoryTranscriptStore implements ITranscriptStore
 			throw new NullPointerException(String.format("missing %1$s", "conversationId"));
 		}
 
-		PagedResult<IActivity> pagedResult = new PagedResult<IActivity>();
+		PagedResult<Activity> pagedResult = new PagedResult<Activity>();
 		synchronized (_channels)
 		{
-			HashMap<String, ArrayList<IActivity>> channel;
+			HashMap<String, ArrayList<Activity>> channel;
 			if (_channels.containsKey(channelId) ? (channel = _channels.get(channelId)) == channel : false)
 			{
-				ArrayList<IActivity> transcript;
+				ArrayList<Activity> transcript;
 				if (channel.containsKey(conversationId) ? (transcript = channel.get(conversationId)) == transcript : false)
 				{
 					if (continuationToken != null)
@@ -131,7 +134,7 @@ public class MemoryTranscriptStore implements ITranscriptStore
 	 @param conversationId The ID of the conversation to delete.
 	 @return A task that represents the work queued to execute.
 	*/
-	public final Task DeleteTranscriptAsync(String channelId, String conversationId)
+	public final void DeleteTranscriptAsync(String channelId, String conversationId)
 	{
 		if (channelId == null)
 		{
@@ -167,14 +170,14 @@ public class MemoryTranscriptStore implements ITranscriptStore
 	 
 	*/
 
-	public final Task<PagedResult<TranscriptInfo>> ListTranscriptsAsync(String channelId)
+	public final CompletableFuture<PagedResult<TranscriptInfo>> ListTranscriptsAsync(String channelId)
 	{
 		return ListTranscriptsAsync(channelId, null);
 	}
 
 //C# TO JAVA CONVERTER NOTE: Java does not support optional parameters. Overloaded method(s) are created above:
-//ORIGINAL LINE: public Task<PagedResult<TranscriptInfo>> ListTranscriptsAsync(string channelId, string continuationToken = null)
-	public final Task<PagedResult<TranscriptInfo>> ListTranscriptsAsync(String channelId, String continuationToken)
+//ORIGINAL LINE: public CompletableFuture<PagedResult<TranscriptInfo>> ListTranscriptsAsync(string channelId, string continuationToken = null)
+	public final CompletableFuture<PagedResult<TranscriptInfo>> ListTranscriptsAsync(String channelId, String continuationToken)
 	{
 		if (channelId == null)
 		{

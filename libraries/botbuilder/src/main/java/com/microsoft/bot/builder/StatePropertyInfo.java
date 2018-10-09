@@ -1,4 +1,4 @@
-package Microsoft.Bot.Builder;
+package com.microsoft.bot.builder;
 
 // Copyright (c) Microsoft. All rights reserved.
 // Licensed under the MIT license.
@@ -6,7 +6,7 @@ package Microsoft.Bot.Builder;
 /** 
  This is metadata about the property including policy info.
 */
-public interface IStatePropertyInfo
+public interface StatePropertyInfo
 {
 	/** 
 	 Gets the name of the property.

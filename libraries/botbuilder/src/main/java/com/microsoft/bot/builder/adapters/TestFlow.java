@@ -1,4 +1,4 @@
-package Microsoft.Bot.Builder.Adapters;
+package com.microsoft.bot.builder.adapters;
 
 import Microsoft.Bot.Builder.*;
 import java.time.*;
@@ -13,7 +13,7 @@ import java.time.*;
 public class TestFlow
 {
 	private TestAdapter _adapter;
-	private Task _testTask;
+	private void _testTask;
 	private BotCallbackHandler _callback;
 
 	/** 
@@ -33,7 +33,7 @@ public class TestFlow
 	public TestFlow(TestAdapter adapter, BotCallbackHandler callback)
 	{
 		_adapter = adapter;
-		_callback = (ITurnContext turnContext, CancellationToken cancellationToken) -> callback.invoke(turnContext, cancellationToken);
+		_callback = (TurnContext turnContext) -> callback.invoke(turnContext, cancellationToken);
 		_testTask = (_testTask != null) ? _testTask : Task.CompletedTask;
 	}
 
@@ -47,7 +47,7 @@ public class TestFlow
 	public TestFlow(Task testTask, TestFlow flow)
 	{
 		_testTask = (testTask != null) ? testTask : Task.CompletedTask;
-		_callback = (ITurnContext turnContext, CancellationToken cancellationToken) -> flow._callback.invoke(turnContext, cancellationToken);
+		_callback = (TurnContext turnContext) -> flow._callback.invoke(turnContext, cancellationToken);
 		_adapter = flow._adapter;
 	}
 
@@ -70,7 +70,7 @@ public class TestFlow
 	 checks the responses from the bot based on the activiies described in the
 	 current test flow.
 	*/
-	public final Task StartTestAsync()
+	public final void StartTestAsync()
 	{
 		return _testTask;
 	}
@@ -91,7 +91,7 @@ public class TestFlow
 
 		return new TestFlow(_testTask.ContinueWith((task) ->
 		{
-					// NOTE: we need to .Wait() on the original Task to properly observe any exceptions that might have occurred
+					// NOTE: we need to .Wait() on the original void to properly observe any exceptions that might have occurred
 					// and to have them propagate correctly up through the chain to whomever is waiting on the parent task
 					// The following StackOverflow answer provides some more details on why you want to do this:
 					// https://stackoverflow.com/questions/11904821/proper-way-to-use-continuewith-for-tasks/11906865#11906865
@@ -239,21 +239,21 @@ public class TestFlow
 	 This method does not modify the original <see cref="TestFlow"/> object.
 	*/
 
-	public final TestFlow AssertReply(Action<IActivity> validateActivity, String description)
+	public final TestFlow AssertReply(Action<Activity> validateActivity, String description)
 	{
 		return AssertReply(validateActivity, description, 3000);
 	}
 
-	public final TestFlow AssertReply(Action<IActivity> validateActivity)
+	public final TestFlow AssertReply(Action<Activity> validateActivity)
 	{
 		return AssertReply(validateActivity, null, 3000);
 	}
 
 //C# TO JAVA CONVERTER TODO TASK: Java annotations will not correspond to .NET attributes:
-//ORIGINAL LINE: public TestFlow AssertReply(Action<IActivity> validateActivity, [CallerMemberName] string description = null, uint timeout = 3000)
+//ORIGINAL LINE: public TestFlow AssertReply(Action<Activity> validateActivity, [CallerMemberName] string description = null, uint timeout = 3000)
 //C# TO JAVA CONVERTER NOTE: Java does not support optional parameters. Overloaded method(s) are created above:
 //C# TO JAVA CONVERTER WARNING: Unsigned integer types have no direct equivalent in Java:
-	public final TestFlow AssertReply(tangible.Action1Param<IActivity> validateActivity, String description, int timeout)
+	public final TestFlow AssertReply(tangible.Action1Param<Activity> validateActivity, String description, int timeout)
 	{
 		return new TestFlow(_testTask.ContinueWith((task) ->
 		{
@@ -369,20 +369,20 @@ public class TestFlow
 	 @exception Exception The bot did not respond as expected.
 	*/
 
-	public final TestFlow Test(String userSays, Action<IActivity> validateActivity, String description)
+	public final TestFlow Test(String userSays, Action<Activity> validateActivity, String description)
 	{
 		return Test(userSays, validateActivity, description, 3000);
 	}
 
-	public final TestFlow Test(String userSays, Action<IActivity> validateActivity)
+	public final TestFlow Test(String userSays, Action<Activity> validateActivity)
 	{
 		return Test(userSays, validateActivity, null, 3000);
 	}
 
 //C# TO JAVA CONVERTER NOTE: Java does not support optional parameters. Overloaded method(s) are created above:
-//ORIGINAL LINE: public TestFlow Test(string userSays, Action<IActivity> validateActivity, string description = null, uint timeout = 3000)
+//ORIGINAL LINE: public TestFlow Test(string userSays, Action<Activity> validateActivity, string description = null, uint timeout = 3000)
 //C# TO JAVA CONVERTER WARNING: Unsigned integer types have no direct equivalent in Java:
-	public final TestFlow Test(String userSays, tangible.Action1Param<IActivity> validateActivity, String description, int timeout)
+	public final TestFlow Test(String userSays, tangible.Action1Param<Activity> validateActivity, String description, int timeout)
 	{
 		if (validateActivity == null)
 		{
@@ -406,21 +406,21 @@ public class TestFlow
 	 @exception Exception The bot did not respond as expected.
 	*/
 
-	public final TestFlow Test(java.lang.Iterable<IActivity> activities, String description)
+	public final TestFlow Test(java.lang.Iterable<Activity> activities, String description)
 	{
 		return Test(activities, description, 3000);
 	}
 
-	public final TestFlow Test(java.lang.Iterable<IActivity> activities)
+	public final TestFlow Test(java.lang.Iterable<Activity> activities)
 	{
 		return Test(activities, null, 3000);
 	}
 
 //C# TO JAVA CONVERTER TODO TASK: Java annotations will not correspond to .NET attributes:
-//ORIGINAL LINE: public TestFlow Test(IEnumerable<IActivity> activities, [CallerMemberName] string description = null, uint timeout = 3000)
+//ORIGINAL LINE: public TestFlow Test(IEnumerable<Activity> activities, [CallerMemberName] string description = null, uint timeout = 3000)
 //C# TO JAVA CONVERTER NOTE: Java does not support optional parameters. Overloaded method(s) are created above:
 //C# TO JAVA CONVERTER WARNING: Unsigned integer types have no direct equivalent in Java:
-	public final TestFlow Test(java.lang.Iterable<IActivity> activities, String description, int timeout)
+	public final TestFlow Test(java.lang.Iterable<Activity> activities, String description, int timeout)
 	{
 		if (activities == null)
 		{
@@ -449,21 +449,21 @@ public class TestFlow
 	 @exception Exception The bot did not respond as expected.
 	*/
 
-	public final TestFlow Test(java.lang.Iterable<IActivity> activities, ValidateReply validateReply, String description)
+	public final TestFlow Test(java.lang.Iterable<Activity> activities, ValidateReply validateReply, String description)
 	{
 		return Test(activities, validateReply, description, 3000);
 	}
 
-	public final TestFlow Test(java.lang.Iterable<IActivity> activities, ValidateReply validateReply)
+	public final TestFlow Test(java.lang.Iterable<Activity> activities, ValidateReply validateReply)
 	{
 		return Test(activities, validateReply, null, 3000);
 	}
 
 //C# TO JAVA CONVERTER TODO TASK: Java annotations will not correspond to .NET attributes:
-//ORIGINAL LINE: public TestFlow Test(IEnumerable<IActivity> activities, ValidateReply validateReply, [CallerMemberName] string description = null, uint timeout = 3000)
+//ORIGINAL LINE: public TestFlow Test(IEnumerable<Activity> activities, ValidateReply validateReply, [CallerMemberName] string description = null, uint timeout = 3000)
 //C# TO JAVA CONVERTER NOTE: Java does not support optional parameters. Overloaded method(s) are created above:
 //C# TO JAVA CONVERTER WARNING: Unsigned integer types have no direct equivalent in Java:
-	public final TestFlow Test(java.lang.Iterable<IActivity> activities, ValidateReply validateReply, String description, int timeout)
+	public final TestFlow Test(java.lang.Iterable<Activity> activities, ValidateReply validateReply, String description, int timeout)
 	{
 		if (activities == null)
 		{

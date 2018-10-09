@@ -1,4 +1,4 @@
-package Microsoft.Bot.Builder;
+package com.microsoft.bot.builder;
 
 import java.util.*;
 
@@ -434,12 +434,12 @@ public final class MessageFactory
 //ORIGINAL LINE: public static IMessageActivity ContentUrl(string url, string contentType, string name = null, string text = null, string ssml = null, string inputHint = null)
 	public static IMessageActivity ContentUrl(String url, String contentType, String name, String text, String ssml, String inputHint)
 	{
-		if (tangible.StringHelper.isNullOrWhiteSpace(url))
+		if (StringUtils.isBlank(url))
 		{
 			throw new NullPointerException("url");
 		}
 
-		if (tangible.StringHelper.isNullOrWhiteSpace(contentType))
+		if (StringUtils.isBlank(contentType))
 		{
 			throw new NullPointerException("contentType");
 		}
@@ -447,7 +447,7 @@ public final class MessageFactory
 		Attachment a = new Attachment();
 		a.setContentType(contentType);
 		a.ContentUrl = url;
-		a.setName(!tangible.StringHelper.isNullOrWhiteSpace(name) ? name : "");
+		a.setName(!StringUtils.isBlank(name) ? name : "");
 
 		return AttachmentActivity(AttachmentLayoutTypes.List, new ArrayList<Attachment>(Arrays.asList(a)), text, ssml, inputHint);
 	}
@@ -502,8 +502,8 @@ public final class MessageFactory
 	{
 		// Note: we must put NULL in the fields, as the clients will happily render
 		// an empty string, which is not the behavior people expect to see.
-		ma.Text = !tangible.StringHelper.isNullOrWhiteSpace(text) ? text : null;
-		ma.Speak = !tangible.StringHelper.isNullOrWhiteSpace(ssml) ? ssml : null;
+		ma.Text = !StringUtils.isBlank(text) ? text : null;
+		ma.Speak = !StringUtils.isBlank(ssml) ? ssml : null;
 		ma.InputHint = (inputHint != null) ? inputHint : InputHints.AcceptingInput;
 	}
 }

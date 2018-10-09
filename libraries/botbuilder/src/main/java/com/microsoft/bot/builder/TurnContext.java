@@ -1,4 +1,6 @@
-package Microsoft.Bot.Builder;
+package com.microsoft.bot.builder;
+
+import com.microsoft.bot.schema.models.Activity;
 
 import java.util.*;
 import java.io.*;
@@ -13,10 +15,10 @@ import java.io.*;
  Context provides information needed to process an incoming activity.
  The context object is created by a <see cref="BotAdapter"/> and persists for the
  length of the turn.
- {@link IBot}
- {@link IMiddleware}
+ {@link Bot}
+ {@link Middleware}
 */
-public class TurnContext implements ITurnContext, Closeable
+public class TurnContextImpl implements TurnContext, Closeable
 {
 	private final List<SendActivitiesHandler> _onSendActivities = new ArrayList<SendActivitiesHandler>();
 	private final List<UpdateActivityHandler> _onUpdateActivity = new ArrayList<UpdateActivityHandler>();
@@ -70,10 +72,10 @@ public class TurnContext implements ITurnContext, Closeable
 	 
 	 <value>The activity associated with this turn.</value>
 	*/
-	private Activity Activity;
+	private Activity _activity;
 	public final Activity getActivity()
 	{
-		return Activity;
+		return _activity;
 	}
 
 	/** 
@@ -104,7 +106,7 @@ public class TurnContext implements ITurnContext, Closeable
 	 added to the context object.
 	 
 	*/
-	public final ITurnContext OnSendActivities(SendActivitiesHandler handler)
+	public final TurnContext OnSendActivities(SendActivitiesHandler handler)
 	{
 		if (handler == null)
 		{
@@ -121,12 +123,12 @@ public class TurnContext implements ITurnContext, Closeable
 	 @param handler The handler to add to the context object.
 	 @return The updated context object.
 	 @exception ArgumentNullException <paramref name="handler"/> is <c>null</c>.
-	 When the context's <see cref="UpdateActivityAsync(IActivity, CancellationToken)"/> is called,
+	 When the context's <see cref="UpdateActivity(IActivity, CancellationToken)"/> is called,
 	 the adapter calls the registered handlers in the order in which they were
 	 added to the context object.
 	 
 	*/
-	public final ITurnContext OnUpdateActivity(UpdateActivityHandler handler)
+	public final TurnContext OnUpdateActivity(UpdateActivityHandler handler)
 	{
 		if (handler == null)
 		{
@@ -143,13 +145,13 @@ public class TurnContext implements ITurnContext, Closeable
 	 @param handler The handler to add to the context object.
 	 @return The updated context object.
 	 @exception ArgumentNullException <paramref name="handler"/> is <c>null</c>.
-	 When the context's <see cref="DeleteActivityAsync(ConversationReference, CancellationToken)"/>
-	 or <see cref="DeleteActivityAsync(string, CancellationToken)"/> is called,
+	 When the context's <see cref="DeleteActivity(ConversationReference, CancellationToken)"/>
+	 or <see cref="DeleteActivity(string, CancellationToken)"/> is called,
 	 the adapter calls the registered handlers in the order in which they were
 	 added to the context object.
 	 
 	*/
-	public final ITurnContext OnDeleteActivity(DeleteActivityHandler handler)
+	public final TurnContext OnDeleteActivity(DeleteActivityHandler handler)
 	{
 		if (handler == null)
 		{
@@ -185,27 +187,27 @@ public class TurnContext implements ITurnContext, Closeable
 	 
 	*/
 
-	public final Task<ResourceResponse> SendActivityAsync(String textReplyToSend, String speak, String inputHint)
+	public final CompletableFuture<ResourceResponse> SendActivityAsync(String textReplyToSend, String speak, String inputHint)
 	{
 		return SendActivityAsync(textReplyToSend, speak, inputHint, null);
 	}
 
-	public final Task<ResourceResponse> SendActivityAsync(String textReplyToSend, String speak)
+	public final CompletableFuture<ResourceResponse> SendActivityAsync(String textReplyToSend, String speak)
 	{
 		return SendActivityAsync(textReplyToSend, speak, null, null);
 	}
 
-	public final Task<ResourceResponse> SendActivityAsync(String textReplyToSend)
+	public final CompletableFuture<ResourceResponse> SendActivityAsync(String textReplyToSend)
 	{
 		return SendActivityAsync(textReplyToSend, null, null, null);
 	}
 
 //C# TO JAVA CONVERTER TODO TASK: There is no equivalent in Java to the 'async' keyword:
-//ORIGINAL LINE: public async Task<ResourceResponse> SendActivityAsync(string textReplyToSend, string speak = null, string inputHint = null, CancellationToken cancellationToken = default(CancellationToken))
+//ORIGINAL LINE: public async CompletableFuture<ResourceResponse> SendActivityAsync(string textReplyToSend, string speak = null, string inputHint = null, CancellationToken cancellationToken = default(CancellationToken))
 //C# TO JAVA CONVERTER NOTE: Java does not support optional parameters. Overloaded method(s) are created above:
-	public final Task<ResourceResponse> SendActivityAsync(String textReplyToSend, String speak, String inputHint, CancellationToken cancellationToken)
+	public final CompletableFuture<ResourceResponse> SendActivityAsync(String textReplyToSend, String speak, String inputHint)
 	{
-		if (tangible.StringHelper.isNullOrWhiteSpace(textReplyToSend))
+		if (StringUtils.isBlank(textReplyToSend))
 		{
 			throw new NullPointerException("textReplyToSend");
 		}
@@ -213,18 +215,18 @@ public class TurnContext implements ITurnContext, Closeable
 		Activity activityToSend = new Activity(ActivityTypes.Message);
 		activityToSend.Text = textReplyToSend;
 
-		if (!tangible.StringHelper.isNullOrEmpty(speak))
+		if (!StringUtils.isBlank(speak))
 		{
 			activityToSend.Speak = speak;
 		}
 
-		if (!tangible.StringHelper.isNullOrEmpty(inputHint))
+		if (!StringUtils.isBlank(inputHint))
 		{
 			activityToSend.InputHint = inputHint;
 		}
 
 //C# TO JAVA CONVERTER TODO TASK: There is no equivalent to 'await' in Java:
-		return await SendActivityAsync(activityToSend, cancellationToken).ConfigureAwait(false);
+		return await SendActivityAsync(activityToSend, cancellationToken);
 	}
 
 	/** 
@@ -239,20 +241,20 @@ public class TurnContext implements ITurnContext, Closeable
 	 channel assigned to the activity.
 	*/
 
-	public final Task<ResourceResponse> SendActivityAsync(IActivity activity)
+	public final CompletableFuture<ResourceResponse> SendActivityAsync(IActivity activity)
 	{
 		return SendActivityAsync(activity, null);
 	}
 
 //C# TO JAVA CONVERTER TODO TASK: There is no equivalent in Java to the 'async' keyword:
-//ORIGINAL LINE: public async Task<ResourceResponse> SendActivityAsync(IActivity activity, CancellationToken cancellationToken = default(CancellationToken))
+//ORIGINAL LINE: public async CompletableFuture<ResourceResponse> SendActivityAsync(IActivity activity, CancellationToken cancellationToken = default(CancellationToken))
 //C# TO JAVA CONVERTER NOTE: Java does not support optional parameters. Overloaded method(s) are created above:
-	public final Task<ResourceResponse> SendActivityAsync(IActivity activity, CancellationToken cancellationToken)
+	public final CompletableFuture<ResourceResponse> SendActivityAsync(IActivity activity)
 	{
 		BotAssert.ActivityNotNull(activity);
 
 //C# TO JAVA CONVERTER TODO TASK: There is no equivalent to 'await' in Java:
-		ResourceResponse[] responses = await SendActivitiesAsync(new IActivity[] {activity}, cancellationToken).ConfigureAwait(false);
+		ResourceResponse[] responses = await SendActivitiesAsync(new IActivity[] {activity}, cancellationToken);
 		if (responses == null || responses.length == 0)
 		{
 			// It's possible an interceptor prevented the activity from having been sent.
@@ -276,14 +278,14 @@ public class TurnContext implements ITurnContext, Closeable
 	 the receiving channel assigned to the activities.
 	*/
 
-	public final Task<ResourceResponse[]> SendActivitiesAsync(IActivity[] activities)
+	public final CompletableFuture<ResourceResponse[]> SendActivitiesAsync(IActivity[] activities)
 	{
 		return SendActivitiesAsync(activities, null);
 	}
 
 //C# TO JAVA CONVERTER NOTE: Java does not support optional parameters. Overloaded method(s) are created above:
-//ORIGINAL LINE: public Task<ResourceResponse[]> SendActivitiesAsync(IActivity[] activities, CancellationToken cancellationToken = default(CancellationToken))
-	public final Task<ResourceResponse[]> SendActivitiesAsync(IActivity[] activities, CancellationToken cancellationToken)
+//ORIGINAL LINE: public CompletableFuture<ResourceResponse[]> SendActivitiesAsync(IActivity[] activities, CancellationToken cancellationToken = default(CancellationToken))
+	public final CompletableFuture<ResourceResponse[]> SendActivitiesAsync(IActivity[] activities)
 	{
 		if (activities == null)
 		{
@@ -318,7 +320,7 @@ public class TurnContext implements ITurnContext, Closeable
 		return SendActivitiesThroughCallbackPipeline();
 
 //C# TO JAVA CONVERTER TODO TASK: Local functions are not converted by C# to Java Converter:
-//		Task<ResourceResponse[]> SendActivitiesThroughCallbackPipeline(int nextCallbackIndex = 0)
+//		CompletableFuture<ResourceResponse[]> SendActivitiesThroughCallbackPipeline(int nextCallbackIndex = 0)
 //			{
 //				// If we've executed the last callback, we now send straight to the adapter
 //				if (nextCallbackIndex == _onSendActivities.Count)
@@ -330,12 +332,12 @@ public class TurnContext implements ITurnContext, Closeable
 //			}
 
 //C# TO JAVA CONVERTER TODO TASK: Local functions are not converted by C# to Java Converter:
-//		async Task<ResourceResponse[]> SendActivitiesThroughAdapter()
+//		async CompletableFuture<ResourceResponse[]> SendActivitiesThroughAdapter()
 //			{
 //				// Send from the list which may have been manipulated via the event handlers.
 //				// Note that 'responses' was captured from the root of the call, and will be
 //				// returned to the original caller.
-//				var responses = await Adapter.SendActivitiesAsync(this, bufferedActivities.ToArray(), cancellationToken).ConfigureAwait(false);
+//				var responses = await Adapter.SendActivitiesAsync(this, bufferedActivities.ToArray(), cancellationToken);
 //				var sentNonTraceActivity = false;
 //
 //				for (var index = 0; index < responses.Length; index++)
@@ -373,26 +375,26 @@ public class TurnContext implements ITurnContext, Closeable
 	 of the activity to replace.</p>
 	*/
 
-	public final Task<ResourceResponse> UpdateActivityAsync(IActivity activity)
+	public final CompletableFuture<ResourceResponse> UpdateActivityAsync(IActivity activity)
 	{
 		return UpdateActivityAsync(activity, null);
 	}
 
 //C# TO JAVA CONVERTER TODO TASK: There is no equivalent in Java to the 'async' keyword:
-//ORIGINAL LINE: public async Task<ResourceResponse> UpdateActivityAsync(IActivity activity, CancellationToken cancellationToken = default(CancellationToken))
+//ORIGINAL LINE: public async CompletableFuture<ResourceResponse> UpdateActivity(IActivity activity, CancellationToken cancellationToken = default(CancellationToken))
 //C# TO JAVA CONVERTER NOTE: Java does not support optional parameters. Overloaded method(s) are created above:
-	public final Task<ResourceResponse> UpdateActivityAsync(IActivity activity, CancellationToken cancellationToken)
+	public final CompletableFuture<ResourceResponse> UpdateActivityAsync(IActivity activity)
 	{
 		Activity a = (Activity)activity;
 
 //C# TO JAVA CONVERTER TODO TASK: Local functions are not converted by C# to Java Converter:
-//		async Task<ResourceResponse> ActuallyUpdateStuff()
+//		async CompletableFuture<ResourceResponse> ActuallyUpdateStuff()
 //			{
-//				return await Adapter.UpdateActivityAsync(this, a, cancellationToken).ConfigureAwait(false);
+//				return await Adapter.UpdateActivity(this, a, cancellationToken);
 //			}
 
 //C# TO JAVA CONVERTER TODO TASK: There is no equivalent to 'await' in Java:
-		return await UpdateActivityInternalAsync(a, _onUpdateActivity, ActuallyUpdateStuff, cancellationToken).ConfigureAwait(false);
+		return await UpdateActivityInternalAsync(a, _onUpdateActivity, ActuallyUpdateStuff, cancellationToken);
 	}
 
 	/** 
@@ -405,17 +407,17 @@ public class TurnContext implements ITurnContext, Closeable
 	 The HTTP operation failed and the response contained additional information.
 	*/
 
-	public final Task DeleteActivityAsync(String activityId)
+	public final void DeleteActivityAsync(String activityId)
 	{
 		return DeleteActivityAsync(activityId, null);
 	}
 
 //C# TO JAVA CONVERTER TODO TASK: There is no equivalent in Java to the 'async' keyword:
-//ORIGINAL LINE: public async Task DeleteActivityAsync(string activityId, CancellationToken cancellationToken = default(CancellationToken))
+//ORIGINAL LINE: public async void DeleteActivity(string activityId, CancellationToken cancellationToken = default(CancellationToken))
 //C# TO JAVA CONVERTER NOTE: Java does not support optional parameters. Overloaded method(s) are created above:
-	public final Task DeleteActivityAsync(String activityId, CancellationToken cancellationToken)
+	public final void DeleteActivityAsync(String activityId)
 	{
-		if (tangible.StringHelper.isNullOrWhiteSpace(activityId))
+		if (StringUtils.isBlank(activityId))
 		{
 			throw new NullPointerException("activityId");
 		}
@@ -425,13 +427,13 @@ public class TurnContext implements ITurnContext, Closeable
 		cr.ActivityId = activityId;
 
 //C# TO JAVA CONVERTER TODO TASK: Local functions are not converted by C# to Java Converter:
-//		async Task ActuallyDeleteStuff()
+//		async void ActuallyDeleteStuff()
 //			{
-//				await Adapter.DeleteActivityAsync(this, cr, cancellationToken).ConfigureAwait(false);
+//				await Adapter.DeleteActivity(this, cr, cancellationToken);
 //			}
 
 //C# TO JAVA CONVERTER TODO TASK: There is no equivalent to 'await' in Java:
-		await DeleteActivityInternalAsync(cr, _onDeleteActivity, ActuallyDeleteStuff, cancellationToken).ConfigureAwait(false);
+		await DeleteActivityInternalAsync(cr, _onDeleteActivity, ActuallyDeleteStuff, cancellationToken);
 	}
 
 	/** 
@@ -446,15 +448,15 @@ public class TurnContext implements ITurnContext, Closeable
 	 indicates the activity in the conversation to delete.
 	*/
 
-	public final Task DeleteActivityAsync(ConversationReference conversationReference)
+	public final void DeleteActivityAsync(ConversationReference conversationReference)
 	{
 		return DeleteActivityAsync(conversationReference, null);
 	}
 
 //C# TO JAVA CONVERTER TODO TASK: There is no equivalent in Java to the 'async' keyword:
-//ORIGINAL LINE: public async Task DeleteActivityAsync(ConversationReference conversationReference, CancellationToken cancellationToken = default(CancellationToken))
+//ORIGINAL LINE: public async void DeleteActivity(ConversationReference conversationReference, CancellationToken cancellationToken = default(CancellationToken))
 //C# TO JAVA CONVERTER NOTE: Java does not support optional parameters. Overloaded method(s) are created above:
-	public final Task DeleteActivityAsync(ConversationReference conversationReference, CancellationToken cancellationToken)
+	public final void DeleteActivityAsync(ConversationReference conversationReference)
 	{
 		if (conversationReference == null)
 		{
@@ -462,13 +464,13 @@ public class TurnContext implements ITurnContext, Closeable
 		}
 
 //C# TO JAVA CONVERTER TODO TASK: Local functions are not converted by C# to Java Converter:
-//		async Task ActuallyDeleteStuff()
+//		async void ActuallyDeleteStuff()
 //			{
-//				await Adapter.DeleteActivityAsync(this, conversationReference, cancellationToken).ConfigureAwait(false);
+//				await Adapter.DeleteActivity(this, conversationReference, cancellationToken);
 //			}
 
 //C# TO JAVA CONVERTER TODO TASK: There is no equivalent to 'await' in Java:
-		await DeleteActivityInternalAsync(conversationReference, _onDeleteActivity, ActuallyDeleteStuff, cancellationToken).ConfigureAwait(false);
+		await DeleteActivityInternalAsync(conversationReference, _onDeleteActivity, ActuallyDeleteStuff, cancellationToken);
 	}
 
 	/** 
@@ -480,8 +482,8 @@ public class TurnContext implements ITurnContext, Closeable
 	}
 
 //C# TO JAVA CONVERTER TODO TASK: There is no equivalent in Java to the 'async' keyword:
-//ORIGINAL LINE: private async Task<ResourceResponse> UpdateActivityInternalAsync(Activity activity, IEnumerable<UpdateActivityHandler> updateHandlers, Func<Task<ResourceResponse>> callAtBottom, CancellationToken cancellationToken)
-	private Task<ResourceResponse> UpdateActivityInternalAsync(Activity activity, java.lang.Iterable<UpdateActivityHandler> updateHandlers, tangible.Func0Param<Task<ResourceResponse>> callAtBottom, CancellationToken cancellationToken)
+//ORIGINAL LINE: private async CompletableFuture<ResourceResponse> UpdateActivityInternalAsync(Activity activity, IEnumerable<UpdateActivityHandler> updateHandlers, Func<CompletableFuture<ResourceResponse>> callAtBottom)
+	private CompletableFuture<ResourceResponse> UpdateActivityInternalAsync(Activity activity, java.lang.Iterable<UpdateActivityHandler> updateHandlers, tangible.Func0Param<CompletableFuture<ResourceResponse>> callAtBottom)
 	{
 		BotAssert.ActivityNotNull(activity);
 		if (updateHandlers == null)
@@ -495,7 +497,7 @@ public class TurnContext implements ITurnContext, Closeable
 			if (callAtBottom != null)
 			{
 //C# TO JAVA CONVERTER TODO TASK: There is no equivalent to 'await' in Java:
-				return await callAtBottom.invoke().ConfigureAwait(false);
+				return await callAtBottom.invoke();
 			}
 
 			return null;
@@ -503,12 +505,12 @@ public class TurnContext implements ITurnContext, Closeable
 
 		// Default to "No more Middleware after this".
 //C# TO JAVA CONVERTER TODO TASK: Local functions are not converted by C# to Java Converter:
-//		async Task<ResourceResponse> Next()
+//		async CompletableFuture<ResourceResponse> Next()
 //			{
 //				// Remove the first item from the list of middleware to call,
 //				// so that the next call just has the remaining items to worry about.
 //				IEnumerable<UpdateActivityHandler> remaining = updateHandlers.Skip(1);
-//				var result = await UpdateActivityInternalAsync(activity, remaining, callAtBottom, cancellationToken).ConfigureAwait(false);
+//				var result = await UpdateActivityInternalAsync(activity, remaining, callAtBottom, cancellationToken);
 //				activity.Id = result.Id;
 //				return result;
 //			}
@@ -516,12 +518,12 @@ public class TurnContext implements ITurnContext, Closeable
 		// Grab the current middleware, which is the 1st element in the array, and execute it
 		UpdateActivityHandler toCall = updateHandlers.First();
 //C# TO JAVA CONVERTER TODO TASK: There is no equivalent to 'await' in Java:
-		return await toCall.invoke(this, activity, Next).ConfigureAwait(false);
+		return await toCall.invoke(this, activity, Next);
 	}
 
 //C# TO JAVA CONVERTER TODO TASK: There is no equivalent in Java to the 'async' keyword:
-//ORIGINAL LINE: private async Task DeleteActivityInternalAsync(ConversationReference cr, IEnumerable<DeleteActivityHandler> updateHandlers, Func<Task> callAtBottom, CancellationToken cancellationToken)
-	private Task DeleteActivityInternalAsync(ConversationReference cr, java.lang.Iterable<DeleteActivityHandler> updateHandlers, tangible.Func0Param<Task> callAtBottom, CancellationToken cancellationToken)
+//ORIGINAL LINE: private async void DeleteActivityInternalAsync(ConversationReference cr, IEnumerable<DeleteActivityHandler> updateHandlers, Func<Task> callAtBottom)
+	private void DeleteActivityInternalAsync(ConversationReference cr, java.lang.Iterable<DeleteActivityHandler> updateHandlers, tangible.Func0Param<Task> callAtBottom)
 	{
 		BotAssert.ConversationReferenceNotNull(cr);
 
@@ -536,7 +538,7 @@ public class TurnContext implements ITurnContext, Closeable
 			if (callAtBottom != null)
 			{
 //C# TO JAVA CONVERTER TODO TASK: There is no equivalent to 'await' in Java:
-				await callAtBottom.invoke().ConfigureAwait(false);
+				await callAtBottom.invoke();
 			}
 
 			return;
@@ -544,17 +546,17 @@ public class TurnContext implements ITurnContext, Closeable
 
 		// Default to "No more Middleware after this".
 //C# TO JAVA CONVERTER TODO TASK: Local functions are not converted by C# to Java Converter:
-//		async Task Next()
+//		async void Next()
 //			{
 //				// Remove the first item from the list of middleware to call,
 //				// so that the next call just has the remaining items to worry about.
 //				IEnumerable<DeleteActivityHandler> remaining = updateHandlers.Skip(1);
-//				await DeleteActivityInternalAsync(cr, remaining, callAtBottom, cancellationToken).ConfigureAwait(false);
+//				await DeleteActivityInternalAsync(cr, remaining, callAtBottom, cancellationToken);
 //			}
 
 		// Grab the current middleware, which is the 1st element in the array, and execute it.
 		DeleteActivityHandler toCall = updateHandlers.First();
 //C# TO JAVA CONVERTER TODO TASK: There is no equivalent to 'await' in Java:
-		await toCall.invoke(this, cr, Next).ConfigureAwait(false);
+		await toCall.invoke(this, cr, Next);
 	}
 }

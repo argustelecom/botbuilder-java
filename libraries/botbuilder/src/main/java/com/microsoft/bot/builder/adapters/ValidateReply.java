@@ -1,4 +1,4 @@
-package Microsoft.Bot.Builder.Adapters;
+package com.microsoft.bot.builder.adapters;
 
 import Microsoft.Bot.Builder.*;
 import java.time.*;

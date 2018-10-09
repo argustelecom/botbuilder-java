@@ -93,7 +93,7 @@ public class OAuthConnectorTest extends OAuthTestBase  {
         }
 
         @Test
-public async Task GetUserToken_ShouldReturnNullOnInvalidConnectionString() throws URISyntaxException {
+public async void GetUserToken_ShouldReturnNullOnInvalidConnectionString() throws URISyntaxException {
         await UseOAuthClientFor(async client =>
         {
         var token = await client.GetUserTokenAsync("default-user", "mygithubconnection1", "");
@@ -102,7 +102,7 @@ public async Task GetUserToken_ShouldReturnNullOnInvalidConnectionString() throw
         }
 
         // @Test - Disabled due to bug in service
-        //public async Task GetSignInLinkAsync_ShouldReturnValidUrl()
+        //public async void GetSignInLinkAsync_ShouldReturnValidUrl()
         //{
         //    var activity = new Activity()
         //    {
@@ -120,26 +120,26 @@ public async Task GetUserToken_ShouldReturnNullOnInvalidConnectionString() throw
         //}
 
         @Test
-public async Task SignOutUser_ShouldThrowOnEmptyUserId() throws URISyntaxException {
+public async void SignOutUser_ShouldThrowOnEmptyUserId() throws URISyntaxException {
         var client = new OAuthClient(mockConnectorClient, "https://localhost");
         await Assert.ThrowsAsync<ArgumentNullException>(() => client.SignOutUserAsync("", "mockConnection"));
         }
 
         @Test
-public async Task SignOutUser_ShouldThrowOnEmptyConnectionName() throws URISyntaxException {
+public async void SignOutUser_ShouldThrowOnEmptyConnectionName() throws URISyntaxException {
         var client = new OAuthClient(mockConnectorClient, "https://localhost");
         await Assert.ThrowsAsync<ArgumentNullException>(() => client.SignOutUserAsync("userid", ""));
         }
 
         @Test
-public async Task GetSigninLink_ShouldThrowOnEmptyConnectionName() throws URISyntaxException {
+public async void GetSigninLink_ShouldThrowOnEmptyConnectionName() throws URISyntaxException {
         var activity = new Activity();
         var client = new OAuthClient(mockConnectorClient, "https://localhost");
         await Assert.ThrowsAsync<ArgumentNullException>(() => client.GetSignInLinkAsync(activity, ""));
         }
 
         @Test
-public async Task GetSigninLink_ShouldThrowOnNullActivity() throws URISyntaxException {
+public async void GetSigninLink_ShouldThrowOnNullActivity() throws URISyntaxException {
         var client = new OAuthClient(mockConnectorClient, "https://localhost");
         await Assert.ThrowsAsync<ArgumentNullException>(() => client.GetSignInLinkAsync(null, "mockConnection"));
         }

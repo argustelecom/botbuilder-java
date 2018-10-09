@@ -1,6 +1,4 @@
-package Microsoft.Bot.Builder.Adapters;
-
-import Microsoft.Bot.Builder.*;
+package com.microsoft.bot.builder.adapters;
 import java.util.*;
 import java.time.*;
 
@@ -97,7 +95,7 @@ public class TestAdapter extends BotAdapter
 	 
 	*/
 //C# TO JAVA CONVERTER WARNING: There is no Java equivalent to C#'s shadowing via the 'new' keyword:
-//ORIGINAL LINE: public new TestAdapter Use(IMiddleware middleware)
+//ORIGINAL LINE: public new TestAdapter Use(Middleware middleware)
 	public final TestAdapter Use(IMiddleware middleware)
 	{
 		super.Use(middleware);
@@ -109,20 +107,19 @@ public class TestAdapter extends BotAdapter
 	 
 	 @param activity The activity to process.
 	 @param callback The bot logic to invoke.
-	 @param cancellationToken A cancellation token that can be used by other objects
-	 or threads to receive notice of cancellation.
+
 	 @return A task that represents the work queued to execute.
 	*/
 
-	public final Task ProcessActivityAsync(Activity activity, BotCallbackHandler callback)
+	public final void ProcessActivityAsync(Activity activity, BotCallbackHandler callback)
 	{
 		return ProcessActivityAsync(activity, callback, null);
 	}
 
 //C# TO JAVA CONVERTER TODO TASK: There is no equivalent in Java to the 'async' keyword:
-//ORIGINAL LINE: public async Task ProcessActivityAsync(Activity activity, BotCallbackHandler callback, CancellationToken cancellationToken = default(CancellationToken))
+//ORIGINAL LINE: public async void ProcessActivityAsync(Activity activity, BotCallbackHandler callback, CancellationToken cancellationToken = default(CancellationToken))
 //C# TO JAVA CONVERTER NOTE: Java does not support optional parameters. Overloaded method(s) are created above:
-	public final Task ProcessActivityAsync(Activity activity, BotCallbackHandler callback, CancellationToken cancellationToken)
+	public final void ProcessActivityAsync(Activity activity, BotCallbackHandler callback)
 	{
 		synchronized (_conversationLock)
 		{
@@ -149,7 +146,7 @@ public class TestAdapter extends BotAdapter
 		try (TurnContext context = new TurnContext(this, activity))
 		{
 //C# TO JAVA CONVERTER TODO TASK: There is no equivalent to 'await' in Java:
-			await RunPipelineAsync(context, callback, cancellationToken).ConfigureAwait(false);
+			await RunPipelineAsync(context, callback, cancellationToken);
 		}
 	}
 
@@ -158,8 +155,7 @@ public class TestAdapter extends BotAdapter
 	 
 	 @param turnContext The context object for the turn.
 	 @param activities The activities to send.
-	 @param cancellationToken A cancellation token that can be used by other objects
-	 or threads to receive notice of cancellation.
+
 	 @return A task that represents the work queued to execute.
 	 If the activities are successfully sent, the task result contains
 	 an array of <see cref="ResourceResponse"/> objects containing the IDs that
@@ -167,9 +163,9 @@ public class TestAdapter extends BotAdapter
 	 {@link ITurnContext.OnSendActivities(SendActivitiesHandler)}
 	*/
 //C# TO JAVA CONVERTER TODO TASK: There is no equivalent in Java to the 'async' keyword:
-//ORIGINAL LINE: public async override Task<ResourceResponse[]> SendActivitiesAsync(ITurnContext turnContext, Activity[] activities, CancellationToken cancellationToken)
+//ORIGINAL LINE: public async override CompletableFuture<ResourceResponse[]> SendActivitiesAsync(TurnContext turnContext, Activity[] activities)
 	@Override
-	public Task<ResourceResponse[]> SendActivitiesAsync(ITurnContext turnContext, Activity[] activities, CancellationToken cancellationToken)
+	public CompletableFuture<ResourceResponse[]> SendActivitiesAsync(TurnContext turnContext, Activity[] activities)
 	{
 		if (turnContext == null)
 		{
@@ -195,7 +191,7 @@ public class TestAdapter extends BotAdapter
 		{
 			Activity activity = activities[index];
 
-			if (tangible.StringHelper.isNullOrEmpty(activity.Id))
+			if (StringUtils.isBlank(activity.Id))
 			{
 				activity.Id = UUID.NewGuid().toString("n");
 			}
@@ -214,7 +210,7 @@ public class TestAdapter extends BotAdapter
 				int delayMs = (int)activity.Value;
 
 //C# TO JAVA CONVERTER TODO TASK: There is no equivalent to 'await' in Java:
-				await Task.Delay(delayMs).ConfigureAwait(false);
+				await Task.Delay(delayMs);
 			}
 			else if (activity.Type == ActivityTypes.Trace)
 			{
@@ -245,8 +241,7 @@ public class TestAdapter extends BotAdapter
 	 
 	 @param turnContext The context object for the turn.
 	 @param activity New replacement activity.
-	 @param cancellationToken A cancellation token that can be used by other objects
-	 or threads to receive notice of cancellation.
+
 	 @return A task that represents the work queued to execute.
 	 If the activity is successfully sent, the task result contains
 	 a <see cref="ResourceResponse"/> object containing the ID that the receiving
@@ -256,7 +251,7 @@ public class TestAdapter extends BotAdapter
 	 {@link ITurnContext.OnUpdateActivity(UpdateActivityHandler)}
 	*/
 	@Override
-	public Task<ResourceResponse> UpdateActivityAsync(ITurnContext turnContext, Activity activity, CancellationToken cancellationToken)
+	public CompletableFuture<ResourceResponse> UpdateActivityAsync(TurnContext turnContext, Activity activity)
 	{
 		synchronized (_activeQueueLock)
 		{
@@ -285,15 +280,14 @@ public class TestAdapter extends BotAdapter
 	 
 	 @param turnContext The context object for the turn.
 	 @param reference Conversation reference for the activity to delete.
-	 @param cancellationToken A cancellation token that can be used by other objects
-	 or threads to receive notice of cancellation.
+
 	 @return A task that represents the work queued to execute.
 	 The <see cref="ConversationReference.ActivityId"/> of the conversation
 	 reference identifies the activity to delete.
 	 {@link ITurnContext.OnDeleteActivity(DeleteActivityHandler)}
 	*/
 	@Override
-	public Task DeleteActivityAsync(ITurnContext turnContext, ConversationReference reference, CancellationToken cancellationToken)
+	public void DeleteActivityAsync(TurnContext turnContext, ConversationReference reference)
 	{
 		synchronized (_activeQueueLock)
 		{
@@ -322,12 +316,11 @@ public class TestAdapter extends BotAdapter
 	 
 	 @param channelId The ID of the channel.
 	 @param callback The bot logic to call when the conversation is created.
-	 @param cancellationToken A cancellation token that can be used by other objects
-	 or threads to receive notice of cancellation.
+
 	 @return A task that represents the work queued to execute.
 	 This resets the <see cref="ActiveQueue"/>, and does not maintain multiple converstion queues.
 	*/
-	public final Task CreateConversationAsync(String channelId, BotCallbackHandler callback, CancellationToken cancellationToken)
+	public final void CreateConversationAsync(String channelId, BotCallbackHandler callback)
 	{
 		getActiveQueue().clear();
 //C# TO JAVA CONVERTER TODO TASK: There is no equivalent to implicit typing in Java unless the Java 10 inferred typing option is selected:
@@ -396,7 +389,7 @@ public class TestAdapter extends BotAdapter
 	 @return A task that represents the work queued to execute.
 	 {@link TestFlow.Send(string)}
 	*/
-	public final Task SendTextToBotAsync(String userSays, BotCallbackHandler callback, CancellationToken cancellationToken)
+	public final void SendTextToBotAsync(String userSays, BotCallbackHandler callback)
 	{
 		return ProcessActivityAsync(MakeActivity(userSays), callback, cancellationToken);
 	}

@@ -1,4 +1,4 @@
-package Microsoft.Bot.Builder;
+package com.microsoft.bot.builder;
 
 import java.util.*;
 
@@ -58,29 +58,28 @@ public class BotStateSet
 	 
 	 @param turnContext turn context.
 	 @param force should data be forced into cache.
-	 @param cancellationToken A cancellation token that can be used by other objects
-	 or threads to receive notice of cancellation.
+
 	 @return A task that represents the work queued to execute.
 	*/
 
-	public final Task LoadAllAsync(ITurnContext turnContext, boolean force)
+	public final void LoadAllAsync(TurnContext turnContext, boolean force)
 	{
 		return LoadAllAsync(turnContext, force, null);
 	}
 
-	public final Task LoadAllAsync(ITurnContext turnContext)
+	public final void LoadAllAsync(TurnContext turnContext)
 	{
 		return LoadAllAsync(turnContext, false, null);
 	}
 
 //C# TO JAVA CONVERTER TODO TASK: There is no equivalent in Java to the 'async' keyword:
-//ORIGINAL LINE: public async Task LoadAllAsync(ITurnContext turnContext, bool force = false, CancellationToken cancellationToken = default(CancellationToken))
+//ORIGINAL LINE: public async void LoadAllAsync(TurnContext turnContext, bool force = false, CancellationToken cancellationToken = default(CancellationToken))
 //C# TO JAVA CONVERTER NOTE: Java does not support optional parameters. Overloaded method(s) are created above:
-	public final Task LoadAllAsync(ITurnContext turnContext, boolean force, CancellationToken cancellationToken)
+	public final void LoadAllAsync(TurnContext turnContext, boolean force)
 	{
 		ArrayList<Object> tasks = this.getBotStates().Select(bs -> bs.LoadAsync(turnContext, force, cancellationToken)).ToList();
 //C# TO JAVA CONVERTER TODO TASK: There is no equivalent to 'await' in Java:
-		await Task.WhenAll(tasks).ConfigureAwait(false);
+		await Task.WhenAll(tasks);
 	}
 
 	/** 
@@ -88,28 +87,27 @@ public class BotStateSet
 	 
 	 @param turnContext turn context.
 	 @param force should data be forced to save even if no change were detected.
-	 @param cancellationToken A cancellation token that can be used by other objects
-	 or threads to receive notice of cancellation.
+
 	 @return A task that represents the work queued to execute.
 	*/
 
-	public final Task SaveAllChangesAsync(ITurnContext turnContext, boolean force)
+	public final void SaveAllChangesAsync(TurnContext turnContext, boolean force)
 	{
 		return SaveAllChangesAsync(turnContext, force, null);
 	}
 
-	public final Task SaveAllChangesAsync(ITurnContext turnContext)
+	public final void SaveAllChangesAsync(TurnContext turnContext)
 	{
 		return SaveAllChangesAsync(turnContext, false, null);
 	}
 
 //C# TO JAVA CONVERTER TODO TASK: There is no equivalent in Java to the 'async' keyword:
-//ORIGINAL LINE: public async Task SaveAllChangesAsync(ITurnContext turnContext, bool force = false, CancellationToken cancellationToken = default(CancellationToken))
+//ORIGINAL LINE: public async void SaveAllChangesAsync(TurnContext turnContext, bool force = false, CancellationToken cancellationToken = default(CancellationToken))
 //C# TO JAVA CONVERTER NOTE: Java does not support optional parameters. Overloaded method(s) are created above:
-	public final Task SaveAllChangesAsync(ITurnContext turnContext, boolean force, CancellationToken cancellationToken)
+	public final void SaveAllChangesAsync(TurnContext turnContext, boolean force)
 	{
 		ArrayList<Object> tasks = this.getBotStates().Select(bs -> bs.SaveChangesAsync(turnContext, force, cancellationToken)).ToList();
 //C# TO JAVA CONVERTER TODO TASK: There is no equivalent to 'await' in Java:
-		await Task.WhenAll(tasks).ConfigureAwait(false);
+		await Task.WhenAll(tasks);
 	}
 }

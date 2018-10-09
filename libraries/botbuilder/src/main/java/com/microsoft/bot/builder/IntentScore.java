@@ -1,4 +1,4 @@
-package Microsoft.Bot.Builder;
+package com.microsoft.bot.builder;
 
 import Newtonsoft.Json.*;
 import java.util.*;

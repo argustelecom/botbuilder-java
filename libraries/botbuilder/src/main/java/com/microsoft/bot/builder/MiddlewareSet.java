@@ -1,4 +1,4 @@
-package Microsoft.Bot.Builder;
+package com.microsoft.bot.builder;
 
 import java.util.*;
 
@@ -7,20 +7,20 @@ import java.util.*;
 
 
 /** 
- Contains an ordered set of <see cref="IMiddleware"/>.
+ Contains an ordered set of <see cref="Middleware"/>.
 */
-public class MiddlewareSet implements IMiddleware
+public class MiddlewareSet implements Middleware
 {
-	private final List<IMiddleware> _middleware = new ArrayList<IMiddleware>();
+	private final List<Middleware> _middleware = new ArrayList<Middleware>();
 
 	/** 
 	 Adds a middleware object to the end of the set.
 	 
 	 @param middleware The middleware to add.
 	 @return The updated middleware set.
-	 <see cref="BotAdapter.Use(IMiddleware)"/>
+	 <see cref="BotAdapter.Use(Middleware)"/>
 	*/
-	public final MiddlewareSet Use(IMiddleware middleware)
+	public final MiddlewareSet Use(Middleware middleware)
 	{
 		BotAssert.MiddlewareNotNull(middleware);
 		_middleware.add(middleware);
@@ -32,18 +32,17 @@ public class MiddlewareSet implements IMiddleware
 	 
 	 @param turnContext The context object for this turn.
 	 @param next The delegate to call to continue the bot middleware pipeline.
-	 @param cancellationToken A cancellation token that can be used by other objects
-	 or threads to receive notice of cancellation.
+
 	 @return A task that represents the work queued to execute.
 	*/
 //C# TO JAVA CONVERTER TODO TASK: There is no equivalent in Java to the 'async' keyword:
-//ORIGINAL LINE: public async Task OnTurnAsync(ITurnContext turnContext, NextDelegate next, CancellationToken cancellationToken)
-	public final Task OnTurnAsync(ITurnContext turnContext, NextDelegate next, CancellationToken cancellationToken)
+//ORIGINAL LINE: public async void OnTurnAsync(TurnContext turnContext, NextDelegate next)
+	public final void OnTurnAsync(TurnContext turnContext, NextDelegate next)
 	{
 //C# TO JAVA CONVERTER TODO TASK: There is no equivalent to 'await' in Java:
-		await ReceiveActivityInternalAsync(turnContext, null, 0, cancellationToken).ConfigureAwait(false);
+		await ReceiveActivityInternalAsync(turnContext, null, 0, cancellationToken);
 //C# TO JAVA CONVERTER TODO TASK: There is no equivalent to 'await' in Java:
-		await next.invoke(cancellationToken).ConfigureAwait(false);
+		await next.invoke(cancellationToken);
 	}
 
 	/** 
@@ -51,19 +50,18 @@ public class MiddlewareSet implements IMiddleware
 	 
 	 @param turnContext The context object for the turn.
 	 @param callback The delegate to call when the set finishes processing the activity.
-	 @param cancellationToken A cancellation token that can be used by other objects
-	 or threads to receive notice of cancellation.
+
 	 @return A task that represents the work queued to execute.
 	*/
 //C# TO JAVA CONVERTER TODO TASK: There is no equivalent in Java to the 'async' keyword:
-//ORIGINAL LINE: public async Task ReceiveActivityWithStatusAsync(ITurnContext turnContext, BotCallbackHandler callback, CancellationToken cancellationToken)
-	public final Task ReceiveActivityWithStatusAsync(ITurnContext turnContext, BotCallbackHandler callback, CancellationToken cancellationToken)
+//ORIGINAL LINE: public async void ReceiveActivityWithStatusAsync(TurnContext turnContext, BotCallbackHandler callback)
+	public final void ReceiveActivityWithStatusAsync(TurnContext turnContext, BotCallbackHandler callback)
 	{
 //C# TO JAVA CONVERTER TODO TASK: There is no equivalent to 'await' in Java:
-		await ReceiveActivityInternalAsync(turnContext, callback, 0, cancellationToken).ConfigureAwait(false);
+		await ReceiveActivityInternalAsync(turnContext, callback, 0, cancellationToken);
 	}
 
-	private Task ReceiveActivityInternalAsync(ITurnContext turnContext, BotCallbackHandler callback, int nextMiddlewareIndex, CancellationToken cancellationToken)
+	private void ReceiveActivityInternalAsync(TurnContext turnContext, BotCallbackHandler callback, int nextMiddlewareIndex)
 	{
 		// Check if we're at the end of the middleware list yet
 		if (nextMiddlewareIndex == _middleware.size())
@@ -82,7 +80,7 @@ public class MiddlewareSet implements IMiddleware
 		}
 
 		// Get the next piece of middleware
-		IMiddleware nextMiddleware = _middleware.get(nextMiddlewareIndex);
+		Middleware nextMiddleware = _middleware.get(nextMiddlewareIndex);
 
 		// Execute the next middleware passing a closure that will recurse back into this method at the next piece of middlware as the NextDelegate
 		return nextMiddleware.OnTurnAsync(turnContext, (ct) -> ReceiveActivityInternalAsync(turnContext, callback, nextMiddlewareIndex + 1, ct), cancellationToken);

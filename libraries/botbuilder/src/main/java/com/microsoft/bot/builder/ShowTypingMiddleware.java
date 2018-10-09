@@ -1,4 +1,4 @@
-package Microsoft.Bot.Builder;
+package com.microsoft.bot.builder;
 
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License.
@@ -11,7 +11,7 @@ package Microsoft.Bot.Builder;
  also in milliseconds which determines how often another typing activity is sent. Typing activities
  will continue to be sent until your bot sends another message back to the user.
 */
-public class ShowTypingMiddleware implements IMiddleware
+public class ShowTypingMiddleware implements Middleware
 {
 	private TimeSpan _delay = new TimeSpan();
 	private TimeSpan _period = new TimeSpan();
@@ -56,8 +56,7 @@ public class ShowTypingMiddleware implements IMiddleware
 	 
 	 @param turnContext The context object for this turn.
 	 @param next The delegate to call to continue the bot middleware pipeline.
-	 @param cancellationToken A cancellation token that can be used by other objects
-	 or threads to receive notice of cancellation.
+
 	 @return A task that represents the work queued to execute.
 	 Spawns a thread that sends the periodic typing activities until the turn ends.
 	 
@@ -65,8 +64,8 @@ public class ShowTypingMiddleware implements IMiddleware
 	 {@link Bot.Schema.IActivity}
 	*/
 //C# TO JAVA CONVERTER TODO TASK: There is no equivalent in Java to the 'async' keyword:
-//ORIGINAL LINE: public async Task OnTurnAsync(ITurnContext turnContext, NextDelegate next, CancellationToken cancellationToken)
-	public final Task OnTurnAsync(ITurnContext turnContext, NextDelegate next, CancellationToken cancellationToken)
+//ORIGINAL LINE: public async void OnTurnAsync(TurnContext turnContext, NextDelegate next)
+	public final void OnTurnAsync(TurnContext turnContext, NextDelegate next)
 	{
 		CancellationTokenSource cts = null;
 		try
@@ -82,7 +81,7 @@ public class ShowTypingMiddleware implements IMiddleware
 			}
 
 //C# TO JAVA CONVERTER TODO TASK: There is no equivalent to 'await' in Java:
-			await next.invoke(cancellationToken).ConfigureAwait(false);
+			await next.invoke(cancellationToken);
 		}
 		finally
 		{
@@ -94,25 +93,25 @@ public class ShowTypingMiddleware implements IMiddleware
 	}
 
 //C# TO JAVA CONVERTER TODO TASK: There is no equivalent in Java to the 'async' keyword:
-//ORIGINAL LINE: private static async Task SendTypingAsync(ITurnContext turnContext, TimeSpan delay, TimeSpan period, CancellationToken cancellationToken)
-	private static Task SendTypingAsync(ITurnContext turnContext, TimeSpan delay, TimeSpan period, CancellationToken cancellationToken)
+//ORIGINAL LINE: private static async void SendTypingAsync(TurnContext turnContext, TimeSpan delay, TimeSpan period)
+	private static void SendTypingAsync(TurnContext turnContext, TimeSpan delay, TimeSpan period)
 	{
 		try
 		{
 //C# TO JAVA CONVERTER TODO TASK: There is no equivalent to 'await' in Java:
-			await Task.Delay(delay, cancellationToken).ConfigureAwait(false);
+			await Task.Delay(delay, cancellationToken);
 
 			while (!cancellationToken.IsCancellationRequested)
 			{
 				if (!cancellationToken.IsCancellationRequested)
 				{
 //C# TO JAVA CONVERTER TODO TASK: There is no equivalent to 'await' in Java:
-					await SendTypingActivityAsync(turnContext, cancellationToken).ConfigureAwait(false);
+					await SendTypingActivityAsync(turnContext, cancellationToken);
 				}
 
 				// if we happen to cancel when in the delay we will get a TaskCanceledException
 //C# TO JAVA CONVERTER TODO TASK: There is no equivalent to 'await' in Java:
-				await Task.Delay(period, cancellationToken).ConfigureAwait(false);
+				await Task.Delay(period, cancellationToken);
 			}
 		}
 		catch (TaskCanceledException e)
@@ -122,8 +121,8 @@ public class ShowTypingMiddleware implements IMiddleware
 	}
 
 //C# TO JAVA CONVERTER TODO TASK: There is no equivalent in Java to the 'async' keyword:
-//ORIGINAL LINE: private static async Task SendTypingActivityAsync(ITurnContext turnContext, CancellationToken cancellationToken)
-	private static Task SendTypingActivityAsync(ITurnContext turnContext, CancellationToken cancellationToken)
+//ORIGINAL LINE: private static async void SendTypingActivityAsync(TurnContext turnContext)
+	private static void SendTypingActivityAsync(TurnContext turnContext)
 	{
 		// create a TypingActivity, associate it with the conversation and send immediately
 		Activity typingActivity = new Activity();
@@ -138,6 +137,6 @@ public class ShowTypingMiddleware implements IMiddleware
 
 		// make sure to send the Activity directly on the Adapter rather than via the TurnContext
 //C# TO JAVA CONVERTER TODO TASK: There is no equivalent to 'await' in Java:
-		await turnContext.getAdapter().SendActivitiesAsync(turnContext, new Activity[] {typingActivity}, cancellationToken).ConfigureAwait(false);
+		await turnContext.getAdapter().SendActivitiesAsync(turnContext, new Activity[] {typingActivity}, cancellationToken);
 	}
 }

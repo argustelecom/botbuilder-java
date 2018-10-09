@@ -45,6 +45,22 @@ public class ConversationReferenceHelper {
         msg.withRecipient(user);
         return (ActivityImpl) msg;
     }
+
+    public static Activity GetContinuationActivity(ConversationReference reference)
+    {
+        Activity activity = new ActivityImpl();
+        activity.withType(ActivityTypes.EVENT);
+        activity.withName("ContinueConversation");
+        activity.withId(UUID.randomUUID().toString());
+        activity.withChannelId(reference.channelId());
+        activity.withServiceUrl(reference.serviceUrl());
+        activity.withConversation(reference.conversation());
+        activity.withRecipient(reference.bot());
+        activity.withFrom(reference.user());
+        activity.withRelatesTo(reference);
+        return (Activity)activity;
+
+    }
 }
 
 

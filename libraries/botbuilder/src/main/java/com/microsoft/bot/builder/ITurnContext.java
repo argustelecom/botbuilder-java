@@ -1,15 +1,21 @@
-package Microsoft.Bot.Builder;
+package com.microsoft.bot.builder;
 
-/** 
+import com.microsoft.bot.schema.models.Activity;
+import com.microsoft.bot.schema.models.ConversationReference;
+import com.microsoft.bot.schema.models.ResourceResponse;
+
+import java.util.concurrent.CompletableFuture;
+
+/**
  Provides context for a turn of a bot.
  
  Context provides information needed to process an incoming activity.
  The context object is created by a <see cref="BotAdapter"/> and persists for the
  length of the turn.
- {@link IBot}
- {@link IMiddleware}
+ {@link Bot}
+ {@link Middleware}
 */
-public interface ITurnContext
+public interface TurnContext
 {
 	/** 
 	 Gets the bot adapter that created this context object.
@@ -61,18 +67,15 @@ public interface ITurnContext
 	 Speech Synthesis Markup Language (SSML) format.</p>
 	 
 	 {@link OnSendActivities(SendActivitiesHandler)}
-	 {@link SendActivityAsync(IActivity, CancellationToken)}
-	 {@link SendActivitiesAsync(IActivity[], CancellationToken)}
-	 {@link UpdateActivityAsync(IActivity, CancellationToken)}
-	 {@link DeleteActivityAsync(ConversationReference, CancellationToken)}
+	 {@link SendActivityAsync(IActivity )}
+	 {@link SendActivitiesAsync(IActivity[] )}
+	 {@link UpdateActivityAsync(IActivity )}
+	 {@link DeleteActivityAsync(ConversationReference )}
 	*/
 
-	Task<ResourceResponse> SendActivityAsync(String textReplyToSend, String speak, String inputHint);
-	Task<ResourceResponse> SendActivityAsync(String textReplyToSend, String speak);
-	Task<ResourceResponse> SendActivityAsync(String textReplyToSend);
-//C# TO JAVA CONVERTER NOTE: Java does not support optional parameters. Overloaded method(s) are created above:
-//ORIGINAL LINE: Task<ResourceResponse> SendActivityAsync(string textReplyToSend, string speak = null, string inputHint = InputHints.AcceptingInput, CancellationToken cancellationToken = default(CancellationToken));
-	Task<ResourceResponse> SendActivityAsync(String textReplyToSend, String speak, String inputHint, CancellationToken cancellationToken);
+	CompletableFuture<ResourceResponse> SendActivityAsync(String textReplyToSend, String speak, String inputHint);
+	CompletableFuture<ResourceResponse> SendActivityAsync(String textReplyToSend, String speak);
+	CompletableFuture<ResourceResponse> SendActivityAsync(String textReplyToSend);
 
 	/** 
 	 Sends an activity to the sender of the incoming activity.
@@ -84,16 +87,13 @@ public interface ITurnContext
 	 a <see cref="ResourceResponse"/> object containing the ID that the receiving
 	 channel assigned to the activity.
 	 {@link OnSendActivities(SendActivitiesHandler)}
-	 {@link SendActivityAsync(string, string, string, CancellationToken)}
-	 {@link SendActivitiesAsync(IActivity[], CancellationToken)}
-	 {@link UpdateActivityAsync(IActivity, CancellationToken)}
-	 {@link DeleteActivityAsync(ConversationReference, CancellationToken)}
+	 {@link SendActivityAsync(string, string, string )}
+	 {@link SendActivitiesAsync(IActivity[] )}
+	 {@link UpdateActivityAsync(IActivity )}
+	 {@link DeleteActivityAsync(ConversationReference )}
 	*/
 
-	Task<ResourceResponse> SendActivityAsync(IActivity activity);
-//C# TO JAVA CONVERTER NOTE: Java does not support optional parameters. Overloaded method(s) are created above:
-//ORIGINAL LINE: Task<ResourceResponse> SendActivityAsync(IActivity activity, CancellationToken cancellationToken = default(CancellationToken));
-	Task<ResourceResponse> SendActivityAsync(IActivity activity, CancellationToken cancellationToken);
+	CompletableFuture<ResourceResponse> SendActivityAsync(Activity activity);
 
 	/** 
 	 Sends a set of activities to the sender of the incoming activity.
@@ -105,16 +105,13 @@ public interface ITurnContext
 	 an array of <see cref="ResourceResponse"/> objects containing the IDs that
 	 the receiving channel assigned to the activities.
 	 {@link OnSendActivities(SendActivitiesHandler)}
-	 {@link SendActivityAsync(string, string, string, CancellationToken)}
-	 {@link SendActivityAsync(IActivity, CancellationToken)}
-	 {@link UpdateActivityAsync(IActivity, CancellationToken)}
-	 {@link DeleteActivityAsync(ConversationReference, CancellationToken)}
+	 {@link SendActivityAsync(string, string, string )}
+	 {@link SendActivityAsync(IActivity )}
+	 {@link UpdateActivityAsync(IActivity )}
+	 {@link DeleteActivityAsync(ConversationReference )}
 	*/
 
-	Task<ResourceResponse[]> SendActivitiesAsync(IActivity[] activities);
-//C# TO JAVA CONVERTER NOTE: Java does not support optional parameters. Overloaded method(s) are created above:
-//ORIGINAL LINE: Task<ResourceResponse[]> SendActivitiesAsync(IActivity[] activities, CancellationToken cancellationToken = default(CancellationToken));
-	Task<ResourceResponse[]> SendActivitiesAsync(IActivity[] activities, CancellationToken cancellationToken);
+	CompletableFuture<ResourceResponse[]> SendActivitiesAsync(Activity[] activities);
 
 	/** 
 	 Replaces an existing activity.
@@ -129,14 +126,11 @@ public interface ITurnContext
 	 of the activity to replace.</p>
 	 <p>Not all channels support this operation. Channels that don't, may throw an exception.</p>
 	 {@link OnUpdateActivity(UpdateActivityHandler)}
-	 {@link SendActivitiesAsync(IActivity[], CancellationToken)}
-	 {@link DeleteActivityAsync(ConversationReference, CancellationToken)}
+	 {@link SendActivitiesAsync(IActivity[] )}
+	 {@link DeleteActivityAsync(ConversationReference )}
 	*/
 
-	Task<ResourceResponse> UpdateActivityAsync(IActivity activity);
-//C# TO JAVA CONVERTER NOTE: Java does not support optional parameters. Overloaded method(s) are created above:
-//ORIGINAL LINE: Task<ResourceResponse> UpdateActivityAsync(IActivity activity, CancellationToken cancellationToken = default(CancellationToken));
-	Task<ResourceResponse> UpdateActivityAsync(IActivity activity, CancellationToken cancellationToken);
+	CompletableFuture<ResourceResponse> UpdateActivityAsync(Activity activity);
 
 	/** 
 	 Deletes an existing activity.
@@ -146,15 +140,12 @@ public interface ITurnContext
 	 @return A task that represents the work queued to execute.
 	 Not all channels support this operation. Channels that don't, may throw an exception.
 	 {@link OnDeleteActivity(DeleteActivityHandler)}
-	 {@link DeleteActivityAsync(ConversationReference, CancellationToken)}
-	 {@link SendActivitiesAsync(IActivity[], CancellationToken)}
-	 {@link UpdateActivityAsync(IActivity, CancellationToken)}
+	 {@link DeleteActivityAsync(ConversationReference )}
+	 {@link SendActivitiesAsync(IActivity[] )}
+	 {@link UpdateActivityAsync(IActivity )}
 	*/
 
-	Task DeleteActivityAsync(String activityId);
-//C# TO JAVA CONVERTER NOTE: Java does not support optional parameters. Overloaded method(s) are created above:
-//ORIGINAL LINE: Task DeleteActivityAsync(string activityId, CancellationToken cancellationToken = default(CancellationToken));
-	Task DeleteActivityAsync(String activityId, CancellationToken cancellationToken);
+	CompletableFuture DeleteActivityAsync(String activityId);
 
 	/** 
 	 Deletes an existing activity.
@@ -166,15 +157,12 @@ public interface ITurnContext
 	 indicates the activity in the conversation to delete.
 	 <p>Not all channels support this operation. Channels that don't, may throw an exception.</p>
 	 {@link OnDeleteActivity(DeleteActivityHandler)}
-	 {@link DeleteActivityAsync(string, CancellationToken)}
-	 {@link SendActivitiesAsync(IActivity[], CancellationToken)}
-	 {@link UpdateActivityAsync(IActivity, CancellationToken)}
+	 {@link DeleteActivityAsync(string )}
+	 {@link SendActivitiesAsync(IActivity[] )}
+	 {@link UpdateActivityAsync(IActivity )}
 	*/
 
-	Task DeleteActivityAsync(ConversationReference conversationReference);
-//C# TO JAVA CONVERTER NOTE: Java does not support optional parameters. Overloaded method(s) are created above:
-//ORIGINAL LINE: Task DeleteActivityAsync(ConversationReference conversationReference, CancellationToken cancellationToken = default(CancellationToken));
-	Task DeleteActivityAsync(ConversationReference conversationReference, CancellationToken cancellationToken);
+	CompletableFuture DeleteActivityAsync(ConversationReference conversationReference);
 
 	/** 
 	 Adds a response handler for send activity operations.
@@ -186,30 +174,30 @@ public interface ITurnContext
 	 the adapter calls the registered handlers in the order in which they were
 	 added to the context object.
 	 
-	 {@link SendActivityAsync(string, string, string, CancellationToken)}
-	 {@link SendActivityAsync(IActivity, CancellationToken)}
-	 {@link SendActivitiesAsync(IActivity[], CancellationToken)}
+	 {@link SendActivityAsync(string, string, string )}
+	 {@link SendActivityAsync(IActivity )}
+	 {@link SendActivitiesAsync(IActivity[] )}
 	 {@link SendActivitiesHandler}
 	 {@link OnUpdateActivity(UpdateActivityHandler)}
 	 {@link OnDeleteActivity(DeleteActivityHandler)}
 	*/
-	ITurnContext OnSendActivities(SendActivitiesHandler handler);
+	TurnContext OnSendActivities(SendActivitiesHandler handler);
 
 	/** 
 	 Adds a response handler for update activity operations.
 	 
 	 @param handler The handler to add to the context object.
 	 @return The updated context object.
-	 When the context's <see cref="UpdateActivityAsync(IActivity, CancellationToken)"/> is called,
+	 When the context's <see cref="UpdateActivity(IActivity, CancellationToken)"/> is called,
 	 the adapter calls the registered handlers in the order in which they were
 	 added to the context object.
 	 
-	 {@link UpdateActivityAsync(IActivity, CancellationToken)}
+	 {@link UpdateActivityAsync(IActivity )}
 	 {@link UpdateActivityHandler}
 	 {@link OnSendActivities(SendActivitiesHandler)}
 	 {@link OnDeleteActivity(DeleteActivityHandler)}
 	*/
-	ITurnContext OnUpdateActivity(UpdateActivityHandler handler);
+	TurnContext OnUpdateActivity(UpdateActivityHandler handler);
 
 	/** 
 	 Adds a response handler for delete activity operations.
@@ -217,15 +205,15 @@ public interface ITurnContext
 	 @param handler The handler to add to the context object.
 	 @return The updated context object.
 	 @exception ArgumentNullException <paramref name="handler"/> is <c>null</c>.
-	 When the context's <see cref="DeleteActivityAsync(string, CancellationToken)"/> is called,
+	 When the context's <see cref="DeleteActivity(string, CancellationToken)"/> is called,
 	 the adapter calls the registered handlers in the order in which they were
 	 added to the context object.
 	 
-	 {@link DeleteActivityAsync(ConversationReference, CancellationToken)}
-	 {@link DeleteActivityAsync(string, CancellationToken)}
+	 {@link DeleteActivityAsync(ConversationReference )}
+	 {@link DeleteActivityAsync(string )}
 	 {@link DeleteActivityHandler}
 	 {@link OnSendActivities(SendActivitiesHandler)}
 	 {@link OnUpdateActivity(UpdateActivityHandler)}
 	*/
-	ITurnContext OnDeleteActivity(DeleteActivityHandler handler);
+	TurnContext OnDeleteActivity(DeleteActivityHandler handler);
 }

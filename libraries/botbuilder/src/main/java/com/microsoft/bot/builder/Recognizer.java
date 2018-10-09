@@ -1,13 +1,15 @@
-package Microsoft.Bot.Builder;
+package com.microsoft.bot.builder;
 
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License.
 
 
-/** 
+import java.util.concurrent.CompletableFuture;
+
+/**
  Interface for Recognizers.
 */
-public interface IRecognizer
+public interface Recognizer
 {
 	/** 
 	 Runs an utterance through a recognizer and returns a generic recognizer result.
@@ -16,7 +18,7 @@ public interface IRecognizer
 	 @param cancellationToken Cancellation token.
 	 @return Analysis of utterance.
 	*/
-	Task<RecognizerResult> RecognizeAsync(ITurnContext turnContext, CancellationToken cancellationToken);
+	CompletableFuture<RecognizerResult> RecognizeAsync(TurnContext turnContext);
 
 	/** 
 	 Runs an utterance through a recognizer and returns a strongly-typed recognizer result.
@@ -27,6 +29,6 @@ public interface IRecognizer
 	 @return Analysis of utterance.
 	*/
 //C# TO JAVA CONVERTER TODO TASK: The C# 'new()' constraint has no equivalent in Java:
-//ORIGINAL LINE: Task<T> RecognizeAsync<T>(ITurnContext turnContext, CancellationToken cancellationToken) where T : IRecognizerConvert, new();
-	<T extends IRecognizerConvert> Task<T> RecognizeAsync(ITurnContext turnContext, CancellationToken cancellationToken);
+//ORIGINAL LINE: CompletableFuture<T> RecognizeAsync<T>(TurnContext turnContext) where T : RecognizerConvert, new();
+	<T extends RecognizerConvert> CompletableFuture<T> RecognizeAsync(TurnContext turnContext);
 }

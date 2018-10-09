@@ -1,4 +1,4 @@
-package Microsoft.Bot.Builder;
+package com.microsoft.bot.builder;
 
 /** 
  A method that can participate in update activity events for the current turn.
@@ -25,5 +25,5 @@ package Microsoft.Bot.Builder;
 @FunctionalInterface
 public interface UpdateActivityHandler
 {
-	Task<ResourceResponse> invoke(ITurnContext turnContext, Activity activity, Func<Task<ResourceResponse>> next);
+	CompletableFuture<ResourceResponse> invoke(TurnContext turnContext, Activity activity, Func<CompletableFuture<ResourceResponse>> next);
 }

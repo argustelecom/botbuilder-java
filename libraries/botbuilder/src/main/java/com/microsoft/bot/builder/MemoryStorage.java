@@ -1,4 +1,4 @@
-package Microsoft.Bot.Builder;
+package com.microsoft.bot.builder;
 
 import Newtonsoft.Json.*;
 import Newtonsoft.Json.Linq.*;
@@ -41,13 +41,12 @@ public class MemoryStorage implements IStorage
 	 Deletes storage items from storage.
 	 
 	 @param keys keys of the <see cref="IStoreItem"/> objects to delete.
-	 @param cancellationToken A cancellation token that can be used by other objects
-	 or threads to receive notice of cancellation.
+
 	 @return A task that represents the work queued to execute.
-	 {@link ReadAsync(string[], CancellationToken)}
-	 {@link WriteAsync(IDictionary{string, object}, CancellationToken)}
+	 {@link ReadAsync(string[] )}
+	 {@link WriteAsync(IDictionary{string, object} )}
 	*/
-	public final Task DeleteAsync(String[] keys, CancellationToken cancellationToken)
+	public final void DeleteAsync(String[] keys)
 	{
 		synchronized (_syncroot)
 		{
@@ -64,15 +63,14 @@ public class MemoryStorage implements IStorage
 	 Reads storage items from storage.
 	 
 	 @param keys keys of the <see cref="IStoreItem"/> objects to read.
-	 @param cancellationToken A cancellation token that can be used by other objects
-	 or threads to receive notice of cancellation.
+
 	 @return A task that represents the work queued to execute.
 	 If the activities are successfully sent, the task result contains
 	 the items read, indexed by key.
-	 {@link DeleteAsync(string[], CancellationToken)}
-	 {@link WriteAsync(IDictionary{string, object}, CancellationToken)}
+	 {@link DeleteAsync(string[] )}
+	 {@link WriteAsync(IDictionary{string, object} )}
 	*/
-	public final Task<Map<String, Object>> ReadAsync(String[] keys, CancellationToken cancellationToken)
+	public final CompletableFuture<Map<String, Object>> ReadAsync(String[] keys)
 	{
 		HashMap<String, Object> storeItems = new HashMap<String, Object>(keys.length);
 		synchronized (_syncroot)
@@ -97,13 +95,12 @@ public class MemoryStorage implements IStorage
 	 Writes storage items to storage.
 	 
 	 @param changes The items to write, indexed by key.
-	 @param cancellationToken A cancellation token that can be used by other objects
-	 or threads to receive notice of cancellation.
+
 	 @return A task that represents the work queued to execute.
-	 {@link DeleteAsync(string[], CancellationToken)}
-	 {@link ReadAsync(string[], CancellationToken)}
+	 {@link DeleteAsync(string[] )}
+	 {@link ReadAsync(string[] )}
 	*/
-	public final Task WriteAsync(Map<String, Object> changes, CancellationToken cancellationToken)
+	public final void WriteAsync(Map<String, Object> changes)
 	{
 		synchronized (_syncroot)
 		{

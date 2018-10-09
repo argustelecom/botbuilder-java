@@ -1,31 +1,25 @@
 package com.microsoft.bot.connector.authentication;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.microsoft.bot.connector.UserAgent;
 import com.microsoft.bot.connector.implementation.ConnectorClientImpl;
+import com.microsoft.bot.schema.AadResourceUrls;
 import com.microsoft.bot.schema.TokenExchangeState;
-import com.microsoft.bot.schema.models.Activity;
-import com.microsoft.bot.schema.models.ConversationReference;
-import com.microsoft.bot.schema.models.TokenResponse;
+import com.microsoft.bot.schema.TokenStatus;
+import com.microsoft.bot.schema.models.*;
 import com.microsoft.rest.ServiceClient;
-import okhttp3.OkHttpClient;
-import okhttp3.Request;
-import okhttp3.RequestBody;
-import okhttp3.Response;
+import com.sun.jndi.toolkit.url.Uri;
+import okhttp3.*;
+import okio.BufferedSink;
 import org.apache.commons.lang3.StringUtils;
 
 import java.io.IOException;
 import java.io.UnsupportedEncodingException;
-import java.net.MalformedURLException;
-import java.net.URI;
-import java.net.URISyntaxException;
-import java.net.URLEncoder;
+import java.net.*;
 import java.nio.charset.StandardCharsets;
-import java.util.ArrayList;
-import java.util.Base64;
-import java.util.HashMap;
-import java.util.Map;
+import java.util.*;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutionException;
 
@@ -57,54 +51,58 @@ public class OAuthClient extends ServiceClient {
         if (!scheme.toLowerCase().equals("https"))
             throw new IllegalArgumentException("Please supply a valid https uri");
         if (client == null)
-            throw new IllegalArgumentException("client");
+            throw new NullPointerException("client");
         this.client = client;
         this.uri = uri + (uri.endsWith("/") ? "" : "/");
         this.mapper = new ObjectMapper();
     }
 
     /**
-     * Get User Token for given user and connection.
-     *
-     * @param userId
-     * @param connectionName
-     * @param magicCode
-     * @return CompletableFuture<        TokenResponse        > on success; otherwise null.
+     The default endpoint that is used for API requests.
      */
-    public CompletableFuture<TokenResponse> GetUserTokenAsync(String userId, String connectionName, String magicCode) throws IOException, URISyntaxException, ExecutionException, InterruptedException {
-        return GetUserTokenAsync(userId, connectionName, magicCode, null);
+    private static String OAuthEndpoint = AuthenticationConstants.OAuthUrl;
+    public static String getOAuthEndpoint()
+    {
+        return OAuthEndpoint;
     }
-
-    protected URI MakeUri(String uri, HashMap<String, String> queryStrings) throws URISyntaxException {
-        String newUri = queryStrings.keySet().stream()
-                .map(key -> {
-                    try {
-                        return key + "=" + URLEncoder.encode(queryStrings.get(key), StandardCharsets.UTF_8.toString());
-                    } catch (UnsupportedEncodingException e) {
-                        throw new RuntimeException(e);
-                    }
-                })
-                .collect(joining("&", (uri.endsWith("?") ? uri : uri + "?"), ""));
-        return new URI(newUri);
-
-
+    public static void setOAuthEndpoint(String value)
+    {
+        OAuthEndpoint = value;
     }
 
     /**
-     * Get User Token for given user and connection.
-     *
-     * @param userId
-     * @param connectionName
-     * @param magicCode
-     * @param customHeaders
-     * @return CompletableFuture<        TokenResponse        > on success; null otherwise.
+     When using the Emulator, whether to emulate the OAuthCard behavior or use connected flows
      */
+    private static boolean EmulateOAuthCards = false;
+    public static boolean getEmulateOAuthCards()
+    {
+        return EmulateOAuthCards;
+    }
+    public static void setEmulateOAuthCards(boolean value)
+    {
+        EmulateOAuthCards = value;
+    }
+
+    /**
+     Gets a user token for a given user and connection.
+
+     @param userId The user's ID.
+     @param connectionName Name of the auth connection to use.
+     @param magicCode The user entered code to validate.
+     @param customHeaders
+     @return A task that represents the work queued to execute.
+     If the task completes successfully, the <see cref="TokenResponse"/> contains the user token.
+     */
+    public final CompletableFuture<TokenResponse> GetUserTokenAsync(String userId, String connectionName, String magicCode) throws URISyntaxException, ExecutionException, InterruptedException, IOException {
+        return GetUserTokenAsync(userId, connectionName, magicCode, null);
+    }
+
     public CompletableFuture<TokenResponse> GetUserTokenAsync(String userId, String connectionName, String magicCode, Map<String, ArrayList<String>> customHeaders) throws IllegalArgumentException {
-        if (StringUtils.isEmpty(userId)) {
-            throw new IllegalArgumentException("userId");
+        if (StringUtils.isBlank(userId)) {
+            throw new NullPointerException("userId");
         }
-        if (StringUtils.isEmpty(connectionName)) {
-            throw new IllegalArgumentException("connectionName");
+        if (StringUtils.isBlank(connectionName)) {
+            throw new NullPointerException("connectionName");
         }
 
         return CompletableFuture.supplyAsync(() -> {
@@ -223,6 +221,237 @@ public class OAuthClient extends ServiceClient {
         });
     }
 
+    /**
+     * Gets the Link to be sent to the user for signin into the given ConnectionName
+     *
+     * @param activity
+     * @param connectionName
+     * @param finalRedirect The endpoint URL for the final page of a succesful login attempt.
+     * @return A task that represents the work queued to execute.
+     * If the task completes successfully and the call to the OAuth client is successful,
+     * the result contains the signin link.     */
+    public CompletableFuture<String> GetSignInLinkAsync(Activity activity, String connectionName, String userId, String finalRedirect) throws IllegalArgumentException, URISyntaxException, JsonProcessingException {
+        if (StringUtils.isBlank(connectionName)) {
+            throw new IllegalArgumentException("connectionName");
+        }
+        if (activity == null) {
+            throw new IllegalArgumentException("activity");
+        }
+        final MicrosoftAppCredentials creds = (MicrosoftAppCredentials) this.client.restClient().credentials();
+
+        // Handle User
+        ChannelAccount user = null;
+        if (userId != null) {
+            user.withRole(RoleTypes.USER);
+            user.withId(userId);
+        }
+        else {
+            user = activity.from();
+        }
+
+        TokenExchangeState tokenExchangeState = new TokenExchangeState()
+                .withConnectionName(connectionName)
+                .withConversation(new ConversationReference()
+                        .withActivityId(activity.id())
+                        .withBot(activity.recipient())
+                        .withChannelId(activity.channelId())
+                        .withConversation(activity.conversation())
+                        .withServiceUrl(activity.serviceUrl())
+                        .withUser(user))
+                .withMsAppId((creds == null) ? null : creds.microsoftAppId());
+
+        String serializedState = this.mapper.writeValueAsString(tokenExchangeState);
+
+        // Construct URL
+        String encoded = Base64.getEncoder().encodeToString(serializedState.getBytes(StandardCharsets.UTF_8));
+        HashMap<String, String> qstrings = new HashMap<>();
+        qstrings.put("state", encoded);
+        qstrings.put("finalRedirect", finalRedirect);
+
+        String strUri = String.format("%sapi/botsignin/getsigninurl", this.uri);
+        final URI tokenUrl = MakeUri(strUri, qstrings);
+
+        return CompletableFuture.supplyAsync(() -> {
+
+            // add botframework api service url to the list of trusted service url's for these app credentials.
+            MicrosoftAppCredentials.trustServiceUrl(tokenUrl);
+
+
+            // Later: Use client in clientimpl?
+            OkHttpClient client = new OkHttpClient.Builder()
+                    .addInterceptor(new MicrosoftAppCredentialsInterceptor(creds))
+                    .build();
+
+            Request request = new Request.Builder()
+                    .url(tokenUrl.toString())
+                    .header("User-Agent", UserAgent.value())
+                    .build();
+
+            Response response = null;
+            try {
+                response = client.newCall(request).execute();
+                int statusCode = response.code();
+                if (statusCode == HTTP_OK)
+                    return response.body().string();
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+            return null;
+        });
+    }
+
+
+    /**
+     Get the status of tokens for connections for this bot for a particular user
+
+     @param userId
+     @param includeFilter A comma seperated list of connections to include. If null, then all connections are returned
+     @param customHeaders
+     @return
+     */
+
+    public final CompletableFuture<TokenStatus[]> GetTokenStatusAsync(String userId) throws URISyntaxException {
+        return GetTokenStatusAsync(userId, null);
+    }
+
+    public final CompletableFuture<TokenStatus[]> GetTokenStatusAsync(String userId, String includeFilter) throws URISyntaxException {
+        if (StringUtils.isBlank(userId))
+        {
+            throw new NullPointerException("userId");
+        }
+
+        String invocationId = null;
+        final MicrosoftAppCredentials creds = (MicrosoftAppCredentials) this.client.restClient().credentials();
+
+        // Construct URL
+        HashMap<String, String> qstrings = new HashMap<>();
+        qstrings.put("userId", userId);
+        qstrings.put("include", includeFilter);
+
+        String strUri = String.format("%sapi/usertoken/gettokenstatus", this.uri);
+        final URI tokenUrl = MakeUri(strUri, qstrings);
+
+        return CompletableFuture.supplyAsync(() -> {
+
+            // add botframework api service url to the list of trusted service url's for these app credentials.
+            MicrosoftAppCredentials.trustServiceUrl(tokenUrl);
+
+
+            // Later: Use client in clientimpl?
+            OkHttpClient client = new OkHttpClient.Builder()
+                    .addInterceptor(new MicrosoftAppCredentialsInterceptor(creds))
+                    .build();
+
+            Request request = new Request.Builder()
+                    .url(tokenUrl.toString())
+                    .header("User-Agent", UserAgent.value())
+                    .build();
+
+            Response response = null;
+            try {
+                response = client.newCall(request).execute();
+                int statusCode = response.code();
+                if (statusCode == HTTP_OK) {
+                    return mapper.readValue(response.body().string(), TokenStatus[].class);
+                }
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+            return null;
+        });
+    }
+
+    /**
+     Retrieve an Azure Active Directory token for particular AAD resources.
+
+     @param userId The user's ID.
+     @param connectionName Name of the auth connection to use for AAD token exchange.
+     @param resourceUrls The collection of resource URLs for which to get tokens
+     @return A task that represents the work queued to execute.
+     If the task completes successfully, the response includes a collection of TokenResponse
+     objects with the resourceUrl and its corresponding TokenResponse.
+     */
+
+    public final CompletableFuture<HashMap<String, TokenResponse>> GetAadTokensAsync(String userId, String connectionName, String[] resourceUrls) throws URISyntaxException {
+        if (StringUtils.isBlank(userId)) {
+            throw new NullPointerException("userId");
+        }
+
+        if (StringUtils.isBlank(connectionName)) {
+            throw new NullPointerException("connectionName");
+        }
+
+        if (resourceUrls == null) {
+            throw new NullPointerException("resourceUrls");
+        }
+
+        if (resourceUrls.length == 0) {
+            throw new IllegalArgumentException("Collection cannot be empty", new Throwable("resourceUrls"));
+        }
+
+        if (Arrays.stream(resourceUrls).anyMatch(s -> StringUtils.isBlank(s))) {
+            throw new IllegalArgumentException("Resource URLs must have a value", new Throwable("resourceUrls"));
+        }
+
+        String invocationId = null;
+        final MicrosoftAppCredentials creds = (MicrosoftAppCredentials) this.client.restClient().credentials();
+
+        // Construct URL
+        HashMap<String, String> qstrings = new HashMap<>();
+        qstrings.put("userId", userId);
+        qstrings.put("connectionName", connectionName);
+
+        String strUri = String.format("%sapi/usertoken/GetAadTokens", this.uri);
+        final URI tokenUrl = MakeUri(strUri, qstrings);
+
+
+        return CompletableFuture.supplyAsync(() -> {
+
+            // add botframework api service url to the list of trusted service url's for these app credentials.
+            MicrosoftAppCredentials.trustServiceUrl(tokenUrl);
+
+
+            // Later: Use client in clientimpl?
+            OkHttpClient client = new OkHttpClient.Builder()
+                    .addInterceptor(new MicrosoftAppCredentialsInterceptor(creds))
+                    .build();
+
+            // Serialize Request
+            AadResourceUrls tempVar = new AadResourceUrls();
+            tempVar.withResourceUrls(resourceUrls);
+            String postBody = null;
+            try {
+                postBody = mapper.writeValueAsString(tempVar);
+            } catch (JsonProcessingException e) {
+                e.printStackTrace();
+            }
+
+            RequestBody body = RequestBody.create(MediaType.parse("application/json; charset=utf-8"), postBody);
+            Request request = new Request.Builder()
+                    .method("POST", body)
+                    .url(tokenUrl.toString())
+                    .header("User-Agent", UserAgent.value())
+                    .build();
+
+            Response response = null;
+            try {
+                response = client.newCall(request).execute();
+                int statusCode = response.code();
+                if (statusCode == HTTP_OK) {
+                    TypeReference<HashMap<String, TokenResponse>> typeRef
+                            = new TypeReference<HashMap<String, TokenResponse>>() {
+                    };
+                    return mapper.readValue(response.body().string(), typeRef);
+                }
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+            return null;
+        });
+    }
+
+
+    /*=========================================== START OLD CODE GetSignInLinkAsync === */
 
     /**
      * Gets the Link to be sent to the user for signin into the given ConnectionName
@@ -293,9 +522,9 @@ public class OAuthClient extends ServiceClient {
      * Send a dummy OAuth card when the bot is being used on the emulator for testing without fetching a real token.
      *
      * @param emulateOAuthCards
-     * @return CompletableFuture with no result code
+     * @return void with no result code
      */
-    public CompletableFuture SendEmulateOAuthCardsAsync(Boolean emulateOAuthCards) throws URISyntaxException, IOException {
+    public CompletableFuture<Void> SendEmulateOAuthCardsAsync(Boolean emulateOAuthCards) throws URISyntaxException, IOException {
 
         // Construct URL
         HashMap<String, String> qstrings = new HashMap<>();
@@ -340,4 +569,21 @@ public class OAuthClient extends ServiceClient {
 
         });
     }
+
+    protected URI MakeUri(String uri, HashMap<String, String> queryStrings) throws URISyntaxException {
+        String newUri = queryStrings.keySet().stream()
+                .map(key -> {
+                    try {
+                        return key + "=" + URLEncoder.encode(queryStrings.get(key), StandardCharsets.UTF_8.toString());
+                    } catch (UnsupportedEncodingException e) {
+                        throw new RuntimeException(e);
+                    }
+                })
+                .collect(joining("&", (uri.endsWith("?") ? uri : uri + "?"), ""));
+        return new URI(newUri);
+
+
+    }
+
+
 }

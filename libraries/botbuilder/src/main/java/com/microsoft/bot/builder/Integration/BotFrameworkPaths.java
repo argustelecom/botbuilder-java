@@ -1,6 +1,4 @@
-package Microsoft.Bot.Builder.Integration;
-
-import Microsoft.Bot.Builder.*;
+package com.microsoft.bot.builder.integration;
 
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License.

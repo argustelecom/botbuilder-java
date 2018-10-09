@@ -1,6 +1,8 @@
-package Microsoft.Bot.Builder;
+package com.microsoft.bot.builder;
 
 import Newtonsoft.Json.*;
+import org.apache.commons.lang3.StringUtils;
+
 import java.util.*;
 
 // Copyright (c) Microsoft Corporation. All rights reserved.
@@ -38,9 +40,9 @@ public abstract class BotState implements IPropertyManager
 	 @param name name of the property.
 	 @return The created state property accessor.
 	*/
-	public final <T> IStatePropertyAccessor<T> CreateProperty(String name)
+	public final <T> StatePropertyAccessor<T> CreateProperty(String name)
 	{
-		if (tangible.StringHelper.isNullOrWhiteSpace(name))
+		if (StringUtils.isBlank(name))
 		{
 			throw new NullPointerException("name");
 		}
@@ -53,25 +55,24 @@ public abstract class BotState implements IPropertyManager
 	 
 	 @param turnContext The context object for this turn.
 	 @param force Optional. True to bypass the cache.
-	 @param cancellationToken A cancellation token that can be used by other objects
-	 or threads to receive notice of cancellation.
+
 	 @return A task that represents the work queued to execute.
 	*/
 
-	public final Task LoadAsync(ITurnContext turnContext, boolean force)
+	public final void LoadAsync(TurnContext turnContext, boolean force)
 	{
 		return LoadAsync(turnContext, force, null);
 	}
 
-	public final Task LoadAsync(ITurnContext turnContext)
+	public final void LoadAsync(TurnContext turnContext)
 	{
 		return LoadAsync(turnContext, false, null);
 	}
 
 //C# TO JAVA CONVERTER TODO TASK: There is no equivalent in Java to the 'async' keyword:
-//ORIGINAL LINE: public async Task LoadAsync(ITurnContext turnContext, bool force = false, CancellationToken cancellationToken = default(CancellationToken))
+//ORIGINAL LINE: public async void LoadAsync(TurnContext turnContext, bool force = false, CancellationToken cancellationToken = default(CancellationToken))
 //C# TO JAVA CONVERTER NOTE: Java does not support optional parameters. Overloaded method(s) are created above:
-	public final Task LoadAsync(ITurnContext turnContext, boolean force, CancellationToken cancellationToken)
+	public final void LoadAsync(TurnContext turnContext, boolean force)
 	{
 		if (turnContext == null)
 		{
@@ -84,7 +85,7 @@ public abstract class BotState implements IPropertyManager
 		{
 //C# TO JAVA CONVERTER TODO TASK: There is no equivalent to implicit typing in Java unless the Java 10 inferred typing option is selected:
 //C# TO JAVA CONVERTER TODO TASK: There is no equivalent to 'await' in Java:
-			var items = await Microsoft.Bot.Builder.StorageExtensions.ReadAsync(_storage, new String[] {storageKey}, cancellationToken).ConfigureAwait(false);
+			var items = await Microsoft.Bot.Builder.StorageExtensions.ReadAsync(_storage, new String[] {storageKey}, cancellationToken);
 			Object val;
 //C# TO JAVA CONVERTER TODO TASK: The following method call contained an unresolved 'out' keyword - these cannot be converted using the 'OutObject' helper class unless the method is within the code being modified:
 			items.TryGetValue(storageKey, out val);
@@ -97,25 +98,24 @@ public abstract class BotState implements IPropertyManager
 	 
 	 @param turnContext The context object for this turn.
 	 @param force Optional. True to save state to storage whether or not there are changes.
-	 @param cancellationToken A cancellation token that can be used by other objects
-	 or threads to receive notice of cancellation.
+
 	 @return A task that represents the work queued to execute.
 	*/
 
-	public final Task SaveChangesAsync(ITurnContext turnContext, boolean force)
+	public final void SaveChangesAsync(TurnContext turnContext, boolean force)
 	{
 		return SaveChangesAsync(turnContext, force, null);
 	}
 
-	public final Task SaveChangesAsync(ITurnContext turnContext)
+	public final void SaveChangesAsync(TurnContext turnContext)
 	{
 		return SaveChangesAsync(turnContext, false, null);
 	}
 
 //C# TO JAVA CONVERTER TODO TASK: There is no equivalent in Java to the 'async' keyword:
-//ORIGINAL LINE: public async Task SaveChangesAsync(ITurnContext turnContext, bool force = false, CancellationToken cancellationToken = default(CancellationToken))
+//ORIGINAL LINE: public async void SaveChangesAsync(TurnContext turnContext, bool force = false, CancellationToken cancellationToken = default(CancellationToken))
 //C# TO JAVA CONVERTER NOTE: Java does not support optional parameters. Overloaded method(s) are created above:
-	public final Task SaveChangesAsync(ITurnContext turnContext, boolean force, CancellationToken cancellationToken)
+	public final void SaveChangesAsync(TurnContext turnContext, boolean force)
 	{
 		if (turnContext == null)
 		{
@@ -128,7 +128,7 @@ public abstract class BotState implements IPropertyManager
 			String key = GetStorageKey(turnContext);
 			HashMap<String, Object> changes = new HashMap<String, Object>(Map.ofEntries(Map.entry(key, cachedState.getState())));
 //C# TO JAVA CONVERTER TODO TASK: There is no equivalent to 'await' in Java:
-			await _storage.WriteAsync(changes).ConfigureAwait(false);
+			await _storage.WriteAsync(changes);
 			cachedState.setHash(cachedState.ComputeHash(cachedState.getState()));
 			return;
 		}
@@ -142,14 +142,14 @@ public abstract class BotState implements IPropertyManager
 	 @return A <see cref="Task"/> representing the asynchronous operation.
 	*/
 
-	public final Task ClearStateAsync(ITurnContext turnContext)
+	public final void ClearStateAsync(TurnContext turnContext)
 	{
 		return ClearStateAsync(turnContext, null);
 	}
 
 //C# TO JAVA CONVERTER NOTE: Java does not support optional parameters. Overloaded method(s) are created above:
-//ORIGINAL LINE: public Task ClearStateAsync(ITurnContext turnContext, CancellationToken cancellationToken = default(CancellationToken))
-	public final Task ClearStateAsync(ITurnContext turnContext, CancellationToken cancellationToken)
+//ORIGINAL LINE: public void ClearStateAsync(TurnContext turnContext, CancellationToken cancellationToken = default(CancellationToken))
+	public final void ClearStateAsync(TurnContext turnContext)
 	{
 		if (turnContext == null)
 		{
@@ -171,7 +171,7 @@ public abstract class BotState implements IPropertyManager
 	 @param turnContext The context object for this turn.
 	 @return The storage key.
 	*/
-	protected abstract String GetStorageKey(ITurnContext turnContext);
+	protected abstract String GetStorageKey(TurnContext turnContext);
 
 	/** 
 	 Gets a property from the state cache in the turn context.
@@ -179,20 +179,19 @@ public abstract class BotState implements IPropertyManager
 	 <typeparam name="T">The property type.</typeparam>
 	 @param turnContext The context object for this turn.
 	 @param propertyName The name of the property to get.
-	 @param cancellationToken A cancellation token that can be used by other objects
-	 or threads to receive notice of cancellation.
+
 	 @return A task that represents the work queued to execute.
 	 If the task is successful, the result contains the property value.
 	*/
 
-	protected final <T> Task<T> GetPropertyValueAsync(ITurnContext turnContext, String propertyName)
+	protected final <T> CompletableFuture<T> GetPropertyValueAsync(TurnContext turnContext, String propertyName)
 	{
 		return GetPropertyValueAsync(turnContext, propertyName, null);
 	}
 
 //C# TO JAVA CONVERTER NOTE: Java does not support optional parameters. Overloaded method(s) are created above:
-//ORIGINAL LINE: protected Task<T> GetPropertyValueAsync<T>(ITurnContext turnContext, string propertyName, CancellationToken cancellationToken = default(CancellationToken))
-	protected final <T> Task<T> GetPropertyValueAsync(ITurnContext turnContext, String propertyName, CancellationToken cancellationToken)
+//ORIGINAL LINE: protected CompletableFuture<T> GetPropertyValueAsync<T>(TurnContext turnContext, string propertyName, CancellationToken cancellationToken = default(CancellationToken))
+	protected final <T> CompletableFuture<T> GetPropertyValueAsync(TurnContext turnContext, String propertyName)
 	{
 		if (turnContext == null)
 		{
@@ -216,19 +215,18 @@ public abstract class BotState implements IPropertyManager
 	 
 	 @param turnContext The context object for this turn.
 	 @param propertyName The name of the property to delete.
-	 @param cancellationToken A cancellation token that can be used by other objects
-	 or threads to receive notice of cancellation.
+
 	 @return A task that represents the work queued to execute.
 	*/
 
-	protected final Task DeletePropertyValueAsync(ITurnContext turnContext, String propertyName)
+	protected final void DeletePropertyValueAsync(TurnContext turnContext, String propertyName)
 	{
 		return DeletePropertyValueAsync(turnContext, propertyName, null);
 	}
 
 //C# TO JAVA CONVERTER NOTE: Java does not support optional parameters. Overloaded method(s) are created above:
-//ORIGINAL LINE: protected Task DeletePropertyValueAsync(ITurnContext turnContext, string propertyName, CancellationToken cancellationToken = default(CancellationToken))
-	protected final Task DeletePropertyValueAsync(ITurnContext turnContext, String propertyName, CancellationToken cancellationToken)
+//ORIGINAL LINE: protected void DeletePropertyValueAsync(TurnContext turnContext, string propertyName, CancellationToken cancellationToken = default(CancellationToken))
+	protected final void DeletePropertyValueAsync(TurnContext turnContext, String propertyName)
 	{
 		if (turnContext == null)
 		{
@@ -251,19 +249,18 @@ public abstract class BotState implements IPropertyManager
 	 @param turnContext The context object for this turn.
 	 @param propertyName The name of the property to set.
 	 @param value The value to set on the property.
-	 @param cancellationToken A cancellation token that can be used by other objects
-	 or threads to receive notice of cancellation.
+
 	 @return A task that represents the work queued to execute.
 	*/
 
-	protected final Task SetPropertyValueAsync(ITurnContext turnContext, String propertyName, Object value)
+	protected final void SetPropertyValueAsync(TurnContext turnContext, String propertyName, Object value)
 	{
 		return SetPropertyValueAsync(turnContext, propertyName, value, null);
 	}
 
 //C# TO JAVA CONVERTER NOTE: Java does not support optional parameters. Overloaded method(s) are created above:
-//ORIGINAL LINE: protected Task SetPropertyValueAsync(ITurnContext turnContext, string propertyName, object value, CancellationToken cancellationToken = default(CancellationToken))
-	protected final Task SetPropertyValueAsync(ITurnContext turnContext, String propertyName, Object value, CancellationToken cancellationToken)
+//ORIGINAL LINE: protected void SetPropertyValueAsync(TurnContext turnContext, string propertyName, object value, CancellationToken cancellationToken = default(CancellationToken))
+	protected final void SetPropertyValueAsync(TurnContext turnContext, String propertyName, Object value)
 	{
 		if (turnContext == null)
 		{
@@ -339,7 +336,7 @@ public abstract class BotState implements IPropertyManager
 	 
 	 <typeparam name="T">type of value the propertyAccessor accesses.</typeparam>
 	*/
-	private static class BotStatePropertyAccessor<T> implements IStatePropertyAccessor<T>
+	private static class BotStatePropertyAccessor<T> implements StatePropertyAccessor<T>
 	{
 		private BotState _botState;
 
@@ -374,13 +371,13 @@ public abstract class BotState implements IPropertyManager
 		 @return A <see cref="Task"/> representing the asynchronous operation.
 		*/
 //C# TO JAVA CONVERTER TODO TASK: There is no equivalent in Java to the 'async' keyword:
-//ORIGINAL LINE: public async Task DeleteAsync(ITurnContext turnContext, CancellationToken cancellationToken)
-		public final Task DeleteAsync(ITurnContext turnContext, CancellationToken cancellationToken)
+//ORIGINAL LINE: public async void DeleteAsync(TurnContext turnContext)
+		public final void DeleteAsync(TurnContext turnContext)
 		{
 //C# TO JAVA CONVERTER TODO TASK: There is no equivalent to 'await' in Java:
-			await _botState.LoadAsync(turnContext, false, cancellationToken).ConfigureAwait(false);
+			await _botState.LoadAsync(turnContext, false, cancellationToken);
 //C# TO JAVA CONVERTER TODO TASK: There is no equivalent to 'await' in Java:
-			await _botState.DeletePropertyValueAsync(turnContext, getName(), cancellationToken).ConfigureAwait(false);
+			await _botState.DeletePropertyValueAsync(turnContext, getName(), cancellationToken);
 		}
 
 		/** 
@@ -392,15 +389,15 @@ public abstract class BotState implements IPropertyManager
 		 @return A <see cref="Task"/> representing the asynchronous operation.
 		*/
 //C# TO JAVA CONVERTER TODO TASK: There is no equivalent in Java to the 'async' keyword:
-//ORIGINAL LINE: public async Task<T> GetAsync(ITurnContext turnContext, Func<T> defaultValueFactory, CancellationToken cancellationToken)
-		public final Task<T> GetAsync(ITurnContext turnContext, tangible.Func0Param<T> defaultValueFactory, CancellationToken cancellationToken)
+//ORIGINAL LINE: public async CompletableFuture<T> GetAsync(TurnContext turnContext, Func<T> defaultValueFactory)
+		public final CompletableFuture<T> GetAsync(TurnContext turnContext, tangible.Func0Param<T> defaultValueFactory)
 		{
 //C# TO JAVA CONVERTER TODO TASK: There is no equivalent to 'await' in Java:
-			await _botState.LoadAsync(turnContext, false, cancellationToken).ConfigureAwait(false);
+			await _botState.LoadAsync(turnContext, false, cancellationToken);
 			try
 			{
 //C# TO JAVA CONVERTER TODO TASK: There is no equivalent to 'await' in Java:
-				return await _botState.<T>GetPropertyValueAsync(turnContext, getName(), cancellationToken).ConfigureAwait(false);
+				return await _botState.<T>GetPropertyValueAsync(turnContext, getName(), cancellationToken);
 			}
 			catch (KeyNotFoundException e)
 			{
@@ -415,7 +412,7 @@ public abstract class BotState implements IPropertyManager
 
 				// save default value for any further calls
 //C# TO JAVA CONVERTER TODO TASK: There is no equivalent to 'await' in Java:
-				await SetAsync(turnContext, result, cancellationToken).ConfigureAwait(false);
+				await SetAsync(turnContext, result, cancellationToken);
 				return result;
 			}
 		}
@@ -429,13 +426,13 @@ public abstract class BotState implements IPropertyManager
 		 @return A <see cref="Task"/> representing the asynchronous operation.
 		*/
 //C# TO JAVA CONVERTER TODO TASK: There is no equivalent in Java to the 'async' keyword:
-//ORIGINAL LINE: public async Task SetAsync(ITurnContext turnContext, T value, CancellationToken cancellationToken)
-		public final Task SetAsync(ITurnContext turnContext, T value, CancellationToken cancellationToken)
+//ORIGINAL LINE: public async void SetAsync(TurnContext turnContext, T value)
+		public final void SetAsync(TurnContext turnContext, T value)
 		{
 //C# TO JAVA CONVERTER TODO TASK: There is no equivalent to 'await' in Java:
-			await _botState.LoadAsync(turnContext, false, cancellationToken).ConfigureAwait(false);
+			await _botState.LoadAsync(turnContext, false, cancellationToken);
 //C# TO JAVA CONVERTER TODO TASK: There is no equivalent to 'await' in Java:
-			await _botState.SetPropertyValueAsync(turnContext, getName(), value, cancellationToken).ConfigureAwait(false);
+			await _botState.SetPropertyValueAsync(turnContext, getName(), value, cancellationToken);
 		}
 	}
 }

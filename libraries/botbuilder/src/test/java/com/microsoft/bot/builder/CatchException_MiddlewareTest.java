@@ -18,7 +18,7 @@ public class CatchException_MiddlewareTest {
         TestAdapter adapter = new TestAdapter()
                 .Use(new CatchExceptionMiddleware<Exception>(new CallOnException() {
                     @Override
-                    public <T> CompletableFuture apply(TurnContext context, T t) throws Exception {
+                    public <T> void apply(TurnContext context, T t) throws Exception {
                         return CompletableFuture.runAsync(() -> {
                             Activity activity = context.getActivity();
                             if (activity instanceof ActivityImpl) {
@@ -38,7 +38,7 @@ public class CatchException_MiddlewareTest {
                 // Add middleware to catch NullReferenceExceptions before throwing up to the general exception instance
                 .Use(new CatchExceptionMiddleware<NullPointerException>(new CallOnException() {
                     @Override
-                    public <T> CompletableFuture apply(TurnContext context, T t) throws Exception {
+                    public <T> void apply(TurnContext context, T t) throws Exception {
                         context.SendActivity("Sorry - Null Reference Exception");
                         return CompletableFuture.completedFuture(null);
                     }

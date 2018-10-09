@@ -25,7 +25,7 @@ public class ChannelValidation {
      * @return A valid ClaimsIdentity.
      * @throws AuthenticationException A token issued by the Bot Framework emulator will FAIL this check.
      */
-    public static CompletableFuture<ClaimsIdentity> authenticateToken(String authHeader, CredentialProvider credentials, String channelId) throws ExecutionException, InterruptedException, AuthenticationException {
+    public static ClaimsIdentity authenticateToken(String authHeader, CredentialProvider credentials, String channelId) throws ExecutionException, InterruptedException, AuthenticationException {
         JwtTokenExtractor tokenExtractor = new JwtTokenExtractor(
                 ToBotFromChannelTokenValidationParameters,
                 ToBotFromChannelOpenIdMetadataUrl,
@@ -64,7 +64,7 @@ public class ChannelValidation {
             throw new AuthenticationException(String.format("Invalid AppId passed on token: '%s'.", appIdFromClaim));
         }
 
-        return CompletableFuture.completedFuture(identity);
+        return identity;
     }
 
     /**
@@ -76,8 +76,8 @@ public class ChannelValidation {
      * @return A valid ClaimsIdentity.
      * @throws AuthenticationException A token issued by the Bot Framework emulator will FAIL this check.
      */
-    public static CompletableFuture<ClaimsIdentity> authenticateToken(String authHeader,CredentialProvider credentials, String channelId, String serviceUrl) throws ExecutionException, InterruptedException, AuthenticationException {
-        ClaimsIdentity identity = ChannelValidation.authenticateToken(authHeader, credentials, channelId).get();
+    public static ClaimsIdentity authenticateToken(String authHeader,CredentialProvider credentials, String channelId, String serviceUrl) throws ExecutionException, InterruptedException, AuthenticationException {
+        ClaimsIdentity identity = ChannelValidation.authenticateToken(authHeader, credentials, channelId);
 
         if (!identity.claims().containsKey(ServiceUrlClaim)) {
             // Claim must be present. Not Authorized.
@@ -89,6 +89,6 @@ public class ChannelValidation {
             throw new AuthenticationException(String.format("'%s' claim does not match service url provided (%s).", ServiceUrlClaim, serviceUrl));
         }
 
-        return CompletableFuture.completedFuture(identity);
+        return identity;
     }
 }

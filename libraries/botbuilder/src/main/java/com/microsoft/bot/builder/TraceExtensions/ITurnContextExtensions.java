@@ -20,8 +20,7 @@ public final class ITurnContextExtensions
 	 @param value The value to assign to the activity's <see cref="Activity.Value"/> property.
 	 @param valueType The value to assign to the activity's <see cref="Activity.ValueType"/> property.
 	 @param label The value to assign to the activity's <see cref="Activity.Label"/> property.
-	 @param cancellationToken A cancellation token that can be used by other objects
-	 or threads to receive notice of cancellation.
+
 	 @return A task that represents the work queued to execute.
 	 If the adapter is being hosted in the Emulator, the task result contains
 	 a <see cref="ResourceResponse"/> object with the original trace activity's ID; otherwise,
@@ -29,30 +28,30 @@ public final class ITurnContextExtensions
 	 channel assigned to the activity.
 	*/
 
-	public static Task<ResourceResponse> TraceActivityAsync(ITurnContext turnContext, String name, Object value, String valueType, String label)
+	public static CompletableFuture<ResourceResponse> TraceActivityAsync(TurnContext turnContext, String name, Object value, String valueType, String label)
 	{
 		return TraceActivityAsync(turnContext, name, value, valueType, label, null);
 	}
 
-	public static Task<ResourceResponse> TraceActivityAsync(ITurnContext turnContext, String name, Object value, String valueType)
+	public static CompletableFuture<ResourceResponse> TraceActivityAsync(TurnContext turnContext, String name, Object value, String valueType)
 	{
 		return TraceActivityAsync(turnContext, name, value, valueType, null, null);
 	}
 
-	public static Task<ResourceResponse> TraceActivityAsync(ITurnContext turnContext, String name, Object value)
+	public static CompletableFuture<ResourceResponse> TraceActivityAsync(TurnContext turnContext, String name, Object value)
 	{
 		return TraceActivityAsync(turnContext, name, value, null, null, null);
 	}
 
-	public static Task<ResourceResponse> TraceActivityAsync(ITurnContext turnContext, String name)
+	public static CompletableFuture<ResourceResponse> TraceActivityAsync(TurnContext turnContext, String name)
 	{
 		return TraceActivityAsync(turnContext, name, null, null, null, null);
 	}
 
 //C# TO JAVA CONVERTER TODO TASK: Java annotations will not correspond to .NET attributes:
-//ORIGINAL LINE: public static Task<ResourceResponse> TraceActivityAsync(this ITurnContext turnContext, string name, object value = null, string valueType = null, [CallerMemberName] string label = null, CancellationToken cancellationToken = default(CancellationToken))
+//ORIGINAL LINE: public static CompletableFuture<ResourceResponse> TraceActivityAsync(this TurnContext turnContext, string name, object value = null, string valueType = null, [CallerMemberName] string label = null, CancellationToken cancellationToken = default(CancellationToken))
 //C# TO JAVA CONVERTER NOTE: Java does not support optional parameters. Overloaded method(s) are created above:
-	public static Task<ResourceResponse> TraceActivityAsync(ITurnContext turnContext, String name, Object value, String valueType, String label, CancellationToken cancellationToken)
+	public static CompletableFuture<ResourceResponse> TraceActivityAsync(TurnContext turnContext, String name, Object value, String valueType, String label)
 	{
 		return turnContext.SendActivityAsync(turnContext.getActivity().CreateTrace(name, value, valueType, label), cancellationToken);
 	}

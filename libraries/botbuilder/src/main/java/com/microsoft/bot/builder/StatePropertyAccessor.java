@@ -1,4 +1,4 @@
-package Microsoft.Bot.Builder;
+package com.microsoft.bot.builder;
 
 // Copyright (c) Microsoft. All rights reserved.
 // Licensed under the MIT license.
@@ -9,7 +9,7 @@ package Microsoft.Bot.Builder;
  
  <typeparam name="T">type of the property.</typeparam>
 */
-public interface IStatePropertyAccessor<T> extends IStatePropertyInfo
+public interface StatePropertyAccessor<T> extends StatePropertyInfo
 {
 	/** 
 	 Get the property value from the source.
@@ -21,11 +21,11 @@ public interface IStatePropertyAccessor<T> extends IStatePropertyInfo
 	 @return A <see cref="Task"/> representing the result of the asynchronous operation.
 	*/
 
-	Task<T> GetAsync(ITurnContext turnContext, Func<T> defaultValueFactory);
-	Task<T> GetAsync(ITurnContext turnContext);
+	CompletableFuture<T> GetAsync(TurnContext turnContext, Func<T> defaultValueFactory);
+	CompletableFuture<T> GetAsync(TurnContext turnContext);
 //C# TO JAVA CONVERTER NOTE: Java does not support optional parameters. Overloaded method(s) are created above:
-//ORIGINAL LINE: Task<T> GetAsync(ITurnContext turnContext, Func<T> defaultValueFactory = null, CancellationToken cancellationToken = default(CancellationToken));
-	Task<T> GetAsync(ITurnContext turnContext, Func<T> defaultValueFactory, CancellationToken cancellationToken);
+//ORIGINAL LINE: CompletableFuture<T> GetAsync(TurnContext turnContext, Func<T> defaultValueFactory = null, CancellationToken cancellationToken = default(CancellationToken));
+	CompletableFuture<T> GetAsync(TurnContext turnContext, Func<T> defaultValueFactory);
 
 	/** 
 	 Delete the property from the source.
@@ -35,10 +35,10 @@ public interface IStatePropertyAccessor<T> extends IStatePropertyInfo
 	 @return A <see cref="Task"/> representing the asynchronous operation.
 	*/
 
-	Task DeleteAsync(ITurnContext turnContext);
+	Task DeleteAsync(TurnContext turnContext);
 //C# TO JAVA CONVERTER NOTE: Java does not support optional parameters. Overloaded method(s) are created above:
-//ORIGINAL LINE: Task DeleteAsync(ITurnContext turnContext, CancellationToken cancellationToken = default(CancellationToken));
-	Task DeleteAsync(ITurnContext turnContext, CancellationToken cancellationToken);
+//ORIGINAL LINE: void DeleteAsync(TurnContext turnContext, CancellationToken cancellationToken = default(CancellationToken));
+	Task DeleteAsync(TurnContext turnContext);
 
 	/** 
 	 Set the property value on the source.
@@ -49,8 +49,8 @@ public interface IStatePropertyAccessor<T> extends IStatePropertyInfo
 	 @return A <see cref="Task"/> representing the asynchronous operation.
 	*/
 
-	Task SetAsync(ITurnContext turnContext, T value);
+	Task SetAsync(TurnContext turnContext, T value);
 //C# TO JAVA CONVERTER NOTE: Java does not support optional parameters. Overloaded method(s) are created above:
-//ORIGINAL LINE: Task SetAsync(ITurnContext turnContext, T value, CancellationToken cancellationToken = default(CancellationToken));
-	Task SetAsync(ITurnContext turnContext, T value, CancellationToken cancellationToken);
+//ORIGINAL LINE: void SetAsync(TurnContext turnContext, T value, CancellationToken cancellationToken = default(CancellationToken));
+	Task SetAsync(TurnContext turnContext, T value);
 }

@@ -1,4 +1,4 @@
-package Microsoft.Bot.Builder;
+package com.microsoft.bot.builder;
 
 import Newtonsoft.Json.*;
 import java.util.*;
@@ -11,12 +11,12 @@ import java.time.*;
 /** 
  Middleware for logging incoming and outgoing activitites to an <see cref="ITranscriptStore"/>.
 */
-public class TranscriptLoggerMiddleware implements IMiddleware
+public class TranscriptLoggerMiddleware implements Middleware
 {
 	private static JsonSerializerSettings _jsonSettings = new JsonSerializerSettings() {NullValueHandling = NullValueHandling.Ignore};
 	private ITranscriptLogger logger;
 
-	private LinkedList<IActivity> transcript = new LinkedList<IActivity>();
+	private LinkedList<Activity> transcript = new LinkedList<Activity>();
 
 	/** 
 	 Initializes a new instance of the <see cref="TranscriptLoggerMiddleware"/> class.
@@ -35,20 +35,19 @@ public class TranscriptLoggerMiddleware implements IMiddleware
 	 
 	 @param turnContext The context object for this turn.
 	 @param nextTurn The delegate to call to continue the bot middleware pipeline.
-	 @param cancellationToken A cancellation token that can be used by other objects
-	 or threads to receive notice of cancellation.
+
 	 @return A task that represents the work queued to execute.
 	 {@link ITurnContext}
 	 {@link Bot.Schema.IActivity}
 	*/
 //C# TO JAVA CONVERTER TODO TASK: There is no equivalent in Java to the 'async' keyword:
-//ORIGINAL LINE: public async Task OnTurnAsync(ITurnContext turnContext, NextDelegate nextTurn, CancellationToken cancellationToken)
-	public final Task OnTurnAsync(ITurnContext turnContext, NextDelegate nextTurn, CancellationToken cancellationToken)
+//ORIGINAL LINE: public async void OnTurnAsync(TurnContext turnContext, NextDelegate nextTurn)
+	public final void OnTurnAsync(TurnContext turnContext, NextDelegate nextTurn)
 	{
 		// log incoming activity at beginning of turn
 		if (turnContext.getActivity() != null)
 		{
-			if (tangible.StringHelper.isNullOrEmpty((String)turnContext.getActivity().From.Properties["role"]))
+			if (StringUtils.isBlank((String)turnContext.getActivity().From.Properties["role"]))
 			{
 				turnContext.getActivity().From.Properties["role"] = "user";
 			}
@@ -60,7 +59,7 @@ public class TranscriptLoggerMiddleware implements IMiddleware
 		turnContext.OnSendActivities(async(ctx, activities, nextSend) ->
 		{
 				// run full pipeline
-				var responses = await nextSend().ConfigureAwait(false);
+				var responses = await nextSend();
 
 				for (var activity : activities)
 				{
@@ -74,7 +73,7 @@ public class TranscriptLoggerMiddleware implements IMiddleware
 		turnContext.OnUpdateActivity(async(ctx, activity, nextUpdate) ->
 		{
 				// run full pipeline
-				var response = await nextUpdate().ConfigureAwait(false);
+				var response = await nextUpdate();
 
 				// add Message Update activity
 				IActivity updateActivity = CloneActivity(activity);
@@ -87,7 +86,7 @@ public class TranscriptLoggerMiddleware implements IMiddleware
 		turnContext.OnDeleteActivity(async(ctx, reference, nextDelete) ->
 		{
 				// run full pipeline
-				await nextDelete().ConfigureAwait(false);
+				await nextDelete();
 
 				// add MessageDelete activity
 				// log as MessageDelete activity
@@ -100,7 +99,7 @@ public class TranscriptLoggerMiddleware implements IMiddleware
 
 		// process bot logic
 //C# TO JAVA CONVERTER TODO TASK: There is no equivalent to 'await' in Java:
-		await nextTurn.invoke(cancellationToken).ConfigureAwait(false);
+		await nextTurn.invoke(cancellationToken);
 
 		// flush transcript at end of turn
 		while (!transcript.isEmpty())
@@ -110,7 +109,7 @@ public class TranscriptLoggerMiddleware implements IMiddleware
 //C# TO JAVA CONVERTER TODO TASK: There is no equivalent to implicit typing in Java unless the Java 10 inferred typing option is selected:
 				var activity = transcript.poll();
 //C# TO JAVA CONVERTER TODO TASK: There is no equivalent to 'await' in Java:
-				await logger.LogActivityAsync(activity).ConfigureAwait(false);
+				await logger.LogActivityAsync(activity);
 			}
 			catch (RuntimeException err)
 			{

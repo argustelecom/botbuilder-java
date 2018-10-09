@@ -206,7 +206,7 @@ public class ActivityImpl extends Activity {
     /**
      * Create an instance of the Activity class with an IEventActivity masking
      */
-    //public static IEventActivity CreateEventActivity() { return new Activity(ActivityTypes.Event); }
+    //public static EventActivity CreateEventActivity() { return new Activity(ActivityTypes.EVENT); }
 
     /**
      * Create an instance of the Activity class with IInvokeActivity masking

@@ -1,10 +1,13 @@
-package Microsoft.Bot.Builder;
+package com.microsoft.bot.builder;
 
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License.
 
 
-/** 
+import com.microsoft.bot.schema.models.ConversationReference;
+import com.microsoft.bot.schema.models.ConversationReferenceHelper;
+
+/**
  Represents a bot adapter that can connect a bot to a service endpoint.
  This class is abstract.
  
@@ -12,7 +15,7 @@ package Microsoft.Bot.Builder;
  activities to and receives activities from the Bot Connector Service. When your
  bot receives an activity, the adapter creates a context object, passes it to your
  bot's application logic, and sends responses back to the user's channel.
- <p>Use <see cref="Use(IMiddleware)"/> to add <see cref="IMiddleware"/> objects
+ <p>Use <see cref="Use(Middleware)"/> to add <see cref="Middleware"/> objects
  to your adapter’s middleware collection. The adapter processes and directs
  incoming activities in through the bot middleware pipeline to your bot’s logic
  and then back out again. As each activity flows in and out of the bot, each piece
@@ -21,8 +24,8 @@ package Microsoft.Bot.Builder;
  
  {@link ITurnContext}
  {@link IActivity}
- {@link IBot}
- {@link IMiddleware}
+ {@link Bot}
+ {@link Middleware}
 */
 public abstract class BotAdapter
 {
@@ -46,7 +49,7 @@ public abstract class BotAdapter
 	}
 	public final void setOnTurnError(tangible.Func2Param<ITurnContext, RuntimeException, Task> value)
 	{
-		OnTurnError = (ITurnContext arg1, RuntimeException arg2) -> value.invoke(arg1, arg2);
+		OnTurnError = (TurnContext arg1, RuntimeException arg2) -> value.invoke(arg1, arg2);
 	}
 
 	/** 
@@ -69,7 +72,7 @@ public abstract class BotAdapter
 	 For each turn, the adapter calls middleware in the order in which you added it.
 	 
 	*/
-	public final BotAdapter Use(IMiddleware middleware)
+	public final BotAdapter Use(Middleware middleware)
 	{
 		getMiddlewareSet().Use(middleware);
 		return this;
@@ -80,15 +83,14 @@ public abstract class BotAdapter
 	 
 	 @param turnContext The context object for the turn.
 	 @param activities The activities to send.
-	 @param cancellationToken A cancellation token that can be used by other objects
-	 or threads to receive notice of cancellation.
+
 	 @return A task that represents the work queued to execute.
 	 If the activities are successfully sent, the task result contains
 	 an array of <see cref="ResourceResponse"/> objects containing the IDs that
 	 the receiving channel assigned to the activities.
 	 {@link ITurnContext.OnSendActivities(SendActivitiesHandler)}
 	*/
-	public abstract Task<ResourceResponse[]> SendActivitiesAsync(ITurnContext turnContext, Activity[] activities, CancellationToken cancellationToken);
+	public abstract CompletableFuture<ResourceResponse[]> SendActivitiesAsync(TurnContext turnContext, Activity[] activities);
 
 	/** 
 	 When overridden in a derived class, replaces an existing activity in the
@@ -96,8 +98,7 @@ public abstract class BotAdapter
 	 
 	 @param turnContext The context object for the turn.
 	 @param activity New replacement activity.
-	 @param cancellationToken A cancellation token that can be used by other objects
-	 or threads to receive notice of cancellation.
+
 	 @return A task that represents the work queued to execute.
 	 If the activity is successfully sent, the task result contains
 	 a <see cref="ResourceResponse"/> object containing the ID that the receiving
@@ -106,7 +107,7 @@ public abstract class BotAdapter
 	 of the activity to replace.</p>
 	 {@link ITurnContext.OnUpdateActivity(UpdateActivityHandler)}
 	*/
-	public abstract Task<ResourceResponse> UpdateActivityAsync(ITurnContext turnContext, Activity activity, CancellationToken cancellationToken);
+	public abstract CompletableFuture<ResourceResponse> UpdateActivityAsync(TurnContext turnContext, Activity activity);
 
 	/** 
 	 When overridden in a derived class, deletes an existing activity in the
@@ -114,14 +115,13 @@ public abstract class BotAdapter
 	 
 	 @param turnContext The context object for the turn.
 	 @param reference Conversation reference for the activity to delete.
-	 @param cancellationToken A cancellation token that can be used by other objects
-	 or threads to receive notice of cancellation.
+
 	 @return A task that represents the work queued to execute.
 	 The <see cref="ConversationReference.ActivityId"/> of the conversation
 	 reference identifies the activity to delete.
 	 {@link ITurnContext.OnDeleteActivity(DeleteActivityHandler)}
 	*/
-	public abstract Task DeleteActivityAsync(ITurnContext turnContext, ConversationReference reference, CancellationToken cancellationToken);
+	public abstract void DeleteActivity(TurnContext turnContext, ConversationReference reference);
 
 	/** 
 	 Sends a proactive message to a conversation.
@@ -131,19 +131,18 @@ public abstract class BotAdapter
 	 which is multi-tenant aware. 
 	 @param reference A reference to the conversation to continue.
 	 @param callback The method to call for the resulting bot turn.
-	 @param cancellationToken A cancellation token that can be used by other objects
-	 or threads to receive notice of cancellation.
+
 	 @return A task that represents the work queued to execute.
 	 Call this method to proactively send a message to a conversation.
 	 Most _channels require a user to initiate a conversation with a bot
 	 before the bot can send activities to the user.
-	 {@link RunPipelineAsync(ITurnContext, BotCallbackHandler, CancellationToken)}
+	 {@link RunPipelineAsync(ITurnContext, BotCallbackHandler )}
 	*/
-	public Task ContinueConversationAsync(String botId, ConversationReference reference, BotCallbackHandler callback, CancellationToken cancellationToken)
+	public void ContinueConversation(String botId, ConversationReference reference, BotCallbackHandler callback)
 	{
-		try (TurnContext context = new TurnContext(this, reference.GetContinuationActivity()))
+		try (TurnContext context = new TurnContext(this, ConversationReferenceHelper.GetContinuationActivity(reference)))
 		{
-			return RunPipelineAsync(context, callback, cancellationToken);
+			return RunPipeline(context, callback);
 		}
 	}
 
@@ -152,8 +151,7 @@ public abstract class BotAdapter
 	 
 	 @param turnContext The turn's context object.
 	 @param callback A callback method to run at the end of the pipeline.
-	 @param cancellationToken A cancellation token that can be used by other objects
-	 or threads to receive notice of cancellation.
+
 	 @return A task that represents the work queued to execute.
 	 @exception ArgumentNullException
 	 <paramref name="turnContext"/> is null.
@@ -163,18 +161,18 @@ public abstract class BotAdapter
 	 in the pipeline. Once control reaches the end of the pipeline, the adapter calls
 	 the <paramref name="callback"/> method. If a middleware component doesn’t call
 	 the next delegate, the adapter does not call  any of the subsequent middleware’s
-	 <see cref="IMiddleware.OnTurnAsync(ITurnContext, NextDelegate, CancellationToken)"/>
+	 <see cref="Middleware.OnTurnAsync(ITurnContext, NextDelegate, CancellationToken)"/>
 	 methods or the callback method, and the pipeline short circuits.
 	 <p>When the turn is initiated by a user activity (reactive messaging), the
 	 callback method will be a reference to the bot's
-	 <see cref="IBot.OnTurnAsync(ITurnContext, CancellationToken)"/> method. When the turn is
+	 <see cref="Bot.OnTurnAsync(ITurnContext, CancellationToken)"/> method. When the turn is
 	 initiated by a call to <see cref="ContinueConversationAsync(string, ConversationReference, BotCallbackHandler, CancellationToken)"/>
 	 (proactive messaging), the callback method is the callback method that was provided in the call.</p>
 	 
 	*/
 //C# TO JAVA CONVERTER TODO TASK: There is no equivalent in Java to the 'async' keyword:
-//ORIGINAL LINE: protected async Task RunPipelineAsync(ITurnContext turnContext, BotCallbackHandler callback, CancellationToken cancellationToken)
-	protected final Task RunPipelineAsync(ITurnContext turnContext, BotCallbackHandler callback, CancellationToken cancellationToken)
+//ORIGINAL LINE: protected async void RunPipelineAsync(TurnContext turnContext, BotCallbackHandler callback)
+	protected final void RunPipeline(TurnContext turnContext, BotCallbackHandler callback)
 	{
 		BotAssert.ContextNotNull(turnContext);
 
@@ -183,15 +181,13 @@ public abstract class BotAdapter
 		{
 			try
 			{
-//C# TO JAVA CONVERTER TODO TASK: There is no equivalent to 'await' in Java:
-				await getMiddlewareSet().ReceiveActivityWithStatusAsync(turnContext, callback, cancellationToken).ConfigureAwait(false);
+				getMiddlewareSet().ReceiveActivityWithStatusAsync(turnContext, callback);
 			}
 			catch (RuntimeException e)
 			{
 				if (getOnTurnError() != null)
 				{
-//C# TO JAVA CONVERTER TODO TASK: There is no equivalent to 'await' in Java:
-					await getOnTurnError().Invoke(turnContext, e).ConfigureAwait(false);
+					getOnTurnError().Invoke(turnContext, e);
 				}
 				else
 				{
@@ -205,7 +201,7 @@ public abstract class BotAdapter
 			if (callback != null)
 			{
 //C# TO JAVA CONVERTER TODO TASK: There is no equivalent to 'await' in Java:
-				await callback.invoke(turnContext, cancellationToken).ConfigureAwait(false);
+				await callback.invoke(turnContext, cancellationToken);
 			}
 		}
 	}

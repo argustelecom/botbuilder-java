@@ -1,4 +1,4 @@
-package Microsoft.Bot.Builder;
+package com.microsoft.bot.builder;
 
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License.
@@ -14,5 +14,5 @@ package Microsoft.Bot.Builder;
 @FunctionalInterface
 public interface BotCallbackHandler
 {
-	Task invoke(ITurnContext turnContext, CancellationToken cancellationToken);
+	Task invoke(TurnContext turnContext);
 }

@@ -1,4 +1,4 @@
-package Microsoft.Bot.Builder.Integration;
+package com.microsoft.bot.builder.adapters;
 
 import Microsoft.Bot.Builder.*;
 import java.util.*;
@@ -65,11 +65,11 @@ public class BotFrameworkOptions
 	}
 	public final void setOnTurnError(tangible.Func2Param<ITurnContext, RuntimeException, Task> value)
 	{
-		OnTurnError = (ITurnContext arg1, RuntimeException arg2) -> value.invoke(arg1, arg2);
+		OnTurnError = (TurnContext arg1, RuntimeException arg2) -> value.invoke(arg1, arg2);
 	}
 
 	/** 
-	 Gets a list of the <see cref="IMiddleware"/> to use on each incoming activity.
+	 Gets a list of the <see cref="Middleware"/> to use on each incoming activity.
 	 
 	 <value>The middleware list.</value>
 	 {@link BotAdapter.Use(IMiddleware)}
@@ -84,7 +84,7 @@ public class BotFrameworkOptions
 	 Gets a list of the <see cref="BotState"/> providers to use on each incoming activity.
 	 Objects in the State list enable other components to get access to the state providers
 	 during the start up process.  For example, creating state property accessors within a ASP.net Core Singleton
-	 that could be passed to your IBot-derived class.
+	 that could be passed to your Bot-derived class.
 	 The providers in this list are not associated with the BotStateSet Middleware component. To clarify, state providers
 	 in this list are not automatically loaded or saved during the turn process.
 	 

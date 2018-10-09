@@ -24,7 +24,10 @@ public class JwtTokenValidation {
      * @return Nothing
      * @throws AuthenticationException Throws on auth failed.
      */
-    public static CompletableFuture<ClaimsIdentity> authenticateRequest(Activity activity, String authHeader, CredentialProvider credentials) throws AuthenticationException, InterruptedException, ExecutionException {
+    public static ClaimsIdentity authenticateRequest(
+                                    Activity activity,
+                                    String authHeader,
+                                    CredentialProvider credentials) throws AuthenticationException, InterruptedException, ExecutionException {
         if (authHeader == null || authHeader.isEmpty()) {
             // No auth header was sent. We might be on the anonymous code path.
             boolean isAuthDisable = credentials.isAuthenticationDisabledAsync().get();
@@ -32,7 +35,7 @@ public class JwtTokenValidation {
                 // In the scenario where Auth is disabled, we still want to have the
                 // IsAuthenticated flag set in the ClaimsIdentity. To do this requires
                 // adding in an empty claim.
-                return CompletableFuture.completedFuture(new ClaimsIdentityImpl("anonymous"));
+                return new ClaimsIdentityImpl("anonymous");
             }
 
             // No Auth Header. Auth is required. Request is not authorized.
@@ -40,20 +43,24 @@ public class JwtTokenValidation {
         }
 
         // Go through the standard authentication path.
-        ClaimsIdentity identity = JwtTokenValidation.validateAuthHeader(authHeader, credentials, activity.channelId(), activity.serviceUrl()).get();
+        ClaimsIdentity identity = JwtTokenValidation.validateAuthHeader(authHeader, credentials, activity.channelId(), activity.serviceUrl());
 
         // On the standard Auth path, we need to trust the URL that was incoming.
         MicrosoftAppCredentials.trustServiceUrl(activity.serviceUrl());
-        return CompletableFuture.completedFuture(identity);
+        return (identity);
     }
 
     // TODO: Recieve httpClient and use ClientID
-    public static CompletableFuture<ClaimsIdentity> validateAuthHeader(String authHeader, CredentialProvider credentials, String channelId, String serviceUrl) throws ExecutionException, InterruptedException, AuthenticationException {
+    public static ClaimsIdentity validateAuthHeader(
+                                                    String authHeader,
+                                                    CredentialProvider credentials,
+                                                    String channelId,
+                                                    String serviceUrl) throws ExecutionException, InterruptedException, AuthenticationException {
         if (authHeader == null || authHeader.isEmpty()) {
             throw new IllegalArgumentException("No authHeader present. Auth is required.");
         }
 
-        boolean usingEmulator = EmulatorValidation.isTokenFromEmulator(authHeader).get();
+        boolean usingEmulator = EmulatorValidation.isTokenFromEmulator(authHeader);
         if (usingEmulator) {
             return EmulatorValidation.authenticateToken(authHeader, credentials, channelId);
         } else {

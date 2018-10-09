@@ -1,4 +1,4 @@
-package Microsoft.Bot.Builder;
+package com.microsoft.bot.builder;
 
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License.
@@ -6,7 +6,7 @@ package Microsoft.Bot.Builder;
 /** 
  Can convert from a generic recognizer result to a strongly typed one.
 */
-public interface IRecognizerConvert
+public interface RecognizerConvert
 {
 	/** 
 	 Convert recognizer result.
