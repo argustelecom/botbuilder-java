@@ -1,9 +1,11 @@
 package com.microsoft.bot.builder;
 
 import Newtonsoft.Json.*;
+import com.fasterxml.jackson.databind.JsonNode;
 import org.apache.commons.lang3.StringUtils;
 
 import java.util.*;
+import java.util.concurrent.CompletableFuture;
 
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License.
@@ -27,10 +29,17 @@ public abstract class BotState implements IPropertyManager
 	{
 //C# TO JAVA CONVERTER TODO TASK: Throw expressions are not converted by C# to Java Converter:
 //ORIGINAL LINE: _storage = storage ?? throw new ArgumentNullException(nameof(storage));
-		_storage = (storage != null) ? storage : throw new NullPointerException("storage");
-//C# TO JAVA CONVERTER TODO TASK: Throw expressions are not converted by C# to Java Converter:
-//ORIGINAL LINE: _contextServiceKey = contextServiceKey ?? throw new ArgumentNullException(nameof(contextServiceKey));
-		_contextServiceKey = (contextServiceKey != null) ? contextServiceKey : throw new NullPointerException("contextServiceKey");
+		if (storage == null)
+		{
+			throw new NullPointerException("storage");
+		}
+		if (contextServiceKey == null)
+		{
+			throw new NullPointerException("contextServiceKey");
+		}
+
+		_storage = storage;
+		_contextServiceKey = contextServiceKey;
 	}
 
 	/** 
@@ -59,20 +68,7 @@ public abstract class BotState implements IPropertyManager
 	 @return A task that represents the work queued to execute.
 	*/
 
-	public final void LoadAsync(TurnContext turnContext, boolean force)
-	{
-		return LoadAsync(turnContext, force, null);
-	}
-
-	public final void LoadAsync(TurnContext turnContext)
-	{
-		return LoadAsync(turnContext, false, null);
-	}
-
-//C# TO JAVA CONVERTER TODO TASK: There is no equivalent in Java to the 'async' keyword:
-//ORIGINAL LINE: public async void LoadAsync(TurnContext turnContext, bool force = false, CancellationToken cancellationToken = default(CancellationToken))
-//C# TO JAVA CONVERTER NOTE: Java does not support optional parameters. Overloaded method(s) are created above:
-	public final void LoadAsync(TurnContext turnContext, boolean force)
+	public final void Load(TurnContext turnContext, boolean force)
 	{
 		if (turnContext == null)
 		{
@@ -83,9 +79,20 @@ public abstract class BotState implements IPropertyManager
 		String storageKey = GetStorageKey(turnContext);
 		if (force || cachedState == null || cachedState.getState() == null)
 		{
-//C# TO JAVA CONVERTER TODO TASK: There is no equivalent to implicit typing in Java unless the Java 10 inferred typing option is selected:
-//C# TO JAVA CONVERTER TODO TASK: There is no equivalent to 'await' in Java:
-			var items = await Microsoft.Bot.Builder.StorageExtensions.ReadAsync(_storage, new String[] {storageKey}, cancellationToken);
+			String[] keys = new String[] { storageKey };
+			Map<String, JsonNode> items = _storage.ReadAsync(keys);
+			Dictionary<String, JsonNode> values = new Dictionary<String, JsonNode>(keys.length);
+			for(Map.Entry<String, JsonNode> entry : items)
+			{
+				if (objectMapper.treetoValue(entry.getValue(), )
+				{
+					values.Add(entry.Key, valueAsType);
+				}
+			}
+
+			return values;
+
+			// ================================================
 			Object val;
 //C# TO JAVA CONVERTER TODO TASK: The following method call contained an unresolved 'out' keyword - these cannot be converted using the 'OutObject' helper class unless the method is within the code being modified:
 			items.TryGetValue(storageKey, out val);

@@ -77,7 +77,8 @@ public class BotStateSet
 //C# TO JAVA CONVERTER NOTE: Java does not support optional parameters. Overloaded method(s) are created above:
 	public final void LoadAllAsync(TurnContext turnContext, boolean force)
 	{
-		ArrayList<Object> tasks = this.getBotStates().Select(bs -> bs.LoadAsync(turnContext, force, cancellationToken)).ToList();
+		this.getBotStates().stream().map(bs -> bs.load())
+		ArrayList<Object> tasks = this.getBotStates().Select(bs -> bs.loadAsync(turnContext, force, cancellationToken)).ToList();
 //C# TO JAVA CONVERTER TODO TASK: There is no equivalent to 'await' in Java:
 		await Task.WhenAll(tasks);
 	}

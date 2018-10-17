@@ -35,25 +35,31 @@ public class MemoryTranscriptStore implements ITranscriptStore
 
 		synchronized (_channels)
 		{
-			TValue channel;
-			if (!(_channels.containsKey(activity.channelId()) ? (channel = _channels.get(activity.channelId())) == channel : false))
+			HashMap<String, ArrayList<Activity>> channel;
+			if (_channels.containsKey(activity.channelId()))
+			{
+				channel = _channels.get(activity.channelId());
+			}
+			else
 			{
 				channel = new HashMap<String, ArrayList<Activity>>();
 				_channels.put(activity.channelId(), channel);
 			}
 
-			Object transcript;
-//C# TO JAVA CONVERTER TODO TASK: The following method call contained an unresolved 'out' keyword - these cannot be converted using the 'OutObject' helper class unless the method is within the code being modified:
-			if (!channel.TryGetValue(activity.Conversation.Id, out transcript))
+			ArrayList<Activity> transcript;
+			String conversationId = activity.conversation().id();
+			if (channel.containsKey(conversationId))
+			{
+				transcript = channel.get(conversationId);
+			}
+			else
 			{
 				transcript = new ArrayList<Activity>();
-				channel[activity.conversation().id()] = transcript;
+				channel.put(conversationId, transcript);
 			}
 
-			transcript.Add(activity);
+			((ArrayList) transcript).add(activity);
 		}
-
-		return Task.CompletedTask;
 	}
 
 	/** 

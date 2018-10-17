@@ -1,5 +1,7 @@
 package com.microsoft.bot.builder;
 
+import com.google.gson.JsonObject;
+
 import java.util.*;
 import java.util.concurrent.CompletableFuture;
 

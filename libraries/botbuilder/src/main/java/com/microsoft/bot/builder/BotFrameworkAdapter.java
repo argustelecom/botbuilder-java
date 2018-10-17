@@ -255,12 +255,10 @@ public class BotFrameworkAdapter extends BotAdapter
 
 		try (TurnContext context = new TurnContext(this, activity))
 		{
-			context.getTurnState().<Identity>add(BotIdentityKey, identity);
+			context.getTurnState().put(BotIdentityKey, identity);
 
-//C# TO JAVA CONVERTER TODO TASK: There is no equivalent to implicit typing in Java unless the Java 10 inferred typing option is selected:
-//C# TO JAVA CONVERTER TODO TASK: There is no equivalent to 'await' in Java:
-			var connectorClient = CreateConnectorClientAsync(activity.serviceUrl(), identity);
-			context.getTurnState().put(connectorClient);
+			ConnectorClient connectorClient = CreateConnectorClientAsync(activity.serviceUrl(), identity);
+			context.getTurnState().put("ConnectorClient", connectorClient);
 
 			RunPipeline(context, callback);
 
@@ -276,7 +274,7 @@ public class BotFrameworkAdapter extends BotAdapter
 				}
 				else
 				{
-					return (InvokeResponse)invokeResponse.Value;
+					return (InvokeResponse)invokeResponse.value();
 				}
 			}
 
@@ -291,7 +289,6 @@ public class BotFrameworkAdapter extends BotAdapter
 	 
 	 @param turnContext The context object for the turn.
 	 @param activities The activities to send.
-	 @param cancellationToken Cancellation token.
 	 @return A task that represents the work queued to execute.
 	 If the activities are successfully sent, the task result contains
 	 an array of <see cref="ResourceResponse"/> objects containing the IDs that
@@ -389,7 +386,6 @@ public class BotFrameworkAdapter extends BotAdapter
 	 
 	 @param turnContext The context object for the turn.
 	 @param activity New replacement activity.
-	 @param cancellationToken Cancellation token.
 	 @return A task that represents the work queued to execute.
 	 If the activity is successfully sent, the task result contains
 	 a <see cref="ResourceResponse"/> object containing the ID that the receiving
@@ -409,11 +405,10 @@ public class BotFrameworkAdapter extends BotAdapter
 	 
 	 @param turnContext The context object for the turn.
 	 @param reference Conversation reference for the activity to delete.
-	 @param cancellationToken Cancellation token.
 	 @return A task that represents the work queued to execute.
 	 The <see cref="ConversationReference.ActivityId"/> of the conversation
 	 reference identifies the activity to delete.
-	 {@link ITurnContext.OnDeleteActivity(DeleteActivityHandler)}
+	 {@link TurnContext.onDeleteActivity(DeleteActivityHandler)}
 	*/
 	@Override
 	public void DeleteActivity(TurnContext turnContext, ConversationReference reference)
@@ -455,7 +450,6 @@ public class BotFrameworkAdapter extends BotAdapter
 	 
 	 @param turnContext The context object for the turn.
 	 @param activityId (Optional) Activity ID to enumerate. If not specified the current activities ID will be used.
-	 @param cancellationToken Cancellation token.
 	 @return List of Members of the activity.
 	*/
 	public final List<ChannelAccount> GetActivityMembers(TurnContext turnContext, String activityId)
@@ -641,17 +635,32 @@ public class BotFrameworkAdapter extends BotAdapter
 
 	 @return A task that represents the work queued to execute.
 	*/
-
 	public final void SignOutUserAsync(TurnContext turnContext, String connectionName, String userId)
 	{
 		return SignOutUserAsync(turnContext, connectionName, userId, null);
 	}
 
-	public final void SignOutUserAsync(TurnContext turnContext, String connectionName)
+    /**
+     Signs the user out with the token server.
+
+     @param turnContext Context for the current turn of conversation with the user.
+     @param connectionName Name of the auth connection to use.
+
+     @return A task that represents the work queued to execute.
+     */
+    public final void SignOutUserAsync(TurnContext turnContext, String connectionName)
 	{
 		return SignOutUserAsync(turnContext, connectionName, null, null);
 	}
 
+
+    /**
+     Signs the user out with the token server.
+
+     @param turnContext Context for the current turn of conversation with the user.
+
+     @return A task that represents the work queued to execute.
+     */
 	public final void SignOutUserAsync(TurnContext turnContext)
 	{
 		return SignOutUserAsync(turnContext, null, null, null);
@@ -674,15 +683,20 @@ public class BotFrameworkAdapter extends BotAdapter
 	 
 	 @param context Context for the current turn of conversation with the user.
 	 @param userId The user Id for which token status is retrieved.
-	 @param includeFilter Optional comma seperated list of connection's to include. Blank will return token status for all configured connections.
 	 @return Array of TokenStatus.
 	*/
-
-	public final CompletableFuture<TokenStatus[]> GetTokenStatusAsync(TurnContext context, String userId)
-	{
+	public final CompletableFuture<TokenStatus[]> GetTokenStatusAsync(TurnContext context, String userId) throws URISyntaxException {
 		return GetTokenStatusAsync(context, userId, null);
 	}
 
+    /**
+     Retrieves the token status for each configured connection for the given user.
+
+     @param context Context for the current turn of conversation with the user.
+     @param userId The user Id for which token status is retrieved.
+     @param includeFilter Optional comma seperated list of connection's to include. Blank will return token status for all configured connections.
+     @return Array of TokenStatus.
+     */
 	public final CompletableFuture<TokenStatus[]> GetTokenStatusAsync(TurnContext context, String userId, String includeFilter) throws URISyntaxException {
 		BotAssert.ContextNotNull(context);
 
@@ -701,19 +715,23 @@ public class BotFrameworkAdapter extends BotAdapter
 	 @param context Context for the current turn of conversation with the user.
 	 @param connectionName The name of the Azure Active Direcotry connection configured with this bot.
 	 @param resourceUrls The list of resource URLs to retrieve tokens for.
-	 @param userId The user Id for which tokens are retrieved. If passing in null the userId is taken from the Activity in the ITurnContext.
 	 @return Dictionary of resourceUrl to the corresponding TokenResponse.
 	*/
-
 	public final CompletableFuture<java.util.HashMap<String, TokenResponse>> GetAadTokensAsync(TurnContext context, String connectionName, String[] resourceUrls)
 	{
 		return GetAadTokensAsync(context, connectionName, resourceUrls, null);
 	}
 
-//C# TO JAVA CONVERTER TODO TASK: There is no equivalent in Java to the 'async' keyword:
-//ORIGINAL LINE: public async CompletableFuture<Dictionary<string, TokenResponse>> GetAadTokensAsync(TurnContext context, string connectionName, string[] resourceUrls, string userId = null)
-//C# TO JAVA CONVERTER NOTE: Java does not support optional parameters. Overloaded method(s) are created above:
-	public final CompletableFuture<HashMap<String, TokenResponse>> GetAadTokensAsync(TurnContext context, String connectionName, String[] resourceUrls, String userId) throws URISyntaxException {
+    /**
+     Retrieves Azure Active Directory tokens for particular resources on a configured connection.
+
+     @param context Context for the current turn of conversation with the user.
+     @param connectionName The name of the Azure Active Direcotry connection configured with this bot.
+     @param resourceUrls The list of resource URLs to retrieve tokens for.
+     @param userId The user Id for which tokens are retrieved. If passing in null the userId is taken from the Activity in the ITurnContext.
+     @return Dictionary of resourceUrl to the corresponding TokenResponse.
+     */
+	public final CompletableFuture<HashMap<String, TokenResponse>> GetAadTokensAsync(TurnContext context, String connectionName, String[] resourceUrls, String userId) throws URISyntaxException, InterruptedException, ExecutionException, IOException {
 		BotAssert.ContextNotNull(context);
 
 		if (StringUtils.isBlank(connectionName))
@@ -825,8 +843,6 @@ public class BotFrameworkAdapter extends BotAdapter
 	 @return ConnectorClient instance.
 	 @exception NotSupportedException ClaimsIdemtity cannot be null. Pass Anonymous ClaimsIdentity if authentication is turned off.
 	*/
-//C# TO JAVA CONVERTER TODO TASK: There is no equivalent in Java to the 'async' keyword:
-//ORIGINAL LINE: private async CompletableFuture<IConnectorClient> CreateConnectorClientAsync(string serviceUrl, ClaimsIdentity claimsIdentity)
 	private ConnectorClient CreateConnectorClientAsync(String serviceUrl, ClaimsIdentity claimsIdentity)
 	{
 		if (claimsIdentity == null)
@@ -842,7 +858,7 @@ public class BotFrameworkAdapter extends BotAdapter
 		if (claims != null){
 			if (claims.containsKey(AuthenticationConstants.AudienceClaim))
 				botAppIdClaim = claims.get(AuthenticationConstants.AudienceClaim);
-			else if (claims.containsKey(AuthenticationConstants.AppIdClaim)))
+			else if (claims.containsKey(AuthenticationConstants.AppIdClaim))
 				botAppIdClaim = claims.get(AuthenticationConstants.AppIdClaim);
 		}
 
@@ -863,47 +879,51 @@ public class BotFrameworkAdapter extends BotAdapter
 	 Creates the connector client.
 	 
 	 @param serviceUrl The service URL.
-	 @param appCredentials The application credentials for the bot.
 	 @return Connector client instance.
 	*/
-
 	private ConnectorClient CreateConnectorClient(String serviceUrl)
 	{
 		return CreateConnectorClient(serviceUrl, null);
 	}
+    /**
+     Creates the connector client.
 
+     @param serviceUrl The service URL.
+     @param appCredentials The application credentials for the bot.
+     @return Connector client instance.
+     */
 	private ConnectorClient CreateConnectorClient(String serviceUrl, MicrosoftAppCredentials appCredentials)
 	{
 		String appId = "";
 		if (appCredentials != null)
-			if (!StringUtils.isBlank(appCredentials.microsoftAppId())
+			if (!StringUtils.isBlank(appCredentials.microsoftAppId()))
 				appId = appCredentials.microsoftAppId();
 
 		String clientKey = String.format("%1$s%2$s", serviceUrl, appId);
 
-		return _connectorClients.putIfAbsent(clientKey, (key) ->
-		{
-				ConnectorClient connectorClient;
-				if (appCredentials != null)
-				{
-					connectorClient = new ConnectorClientImpl(serviceUrl, appCredentials);
-				}
-				else
-				{
-					MicrosoftAppCredentials emptyCredentials = new MicrosoftAppCredentials("","");
-					if (_channelProvider != null  _channelProvider.IsGovernment())
-						emptyCredentials = new MicrosoftGovernmentAppCredentials()
-					MicrosoftAppCredentials emptyCredentials = (_channelProvider  != null && _channelProvider.IsGovernment()) ? MicrosoftGovernmentAppCredentials.Empty : MicrosoftAppCredentials.Empty;
-					connectorClient = new ConnectorClientImpl(serviceUrl, emptyCredentials);
-				}
+        ConnectorClientImpl connectorClient;
 
-				if (_connectorClientRetryStrategy  != null)
-				{
-					connectorClient.SetRetryPolicy(_connectorClientRetryPolicy);
-				}
+        if (appCredentials != null)
+        {
+            connectorClient = new ConnectorClientImpl(serviceUrl, appCredentials);
+        }
+        else
+        {
+            MicrosoftAppCredentials emptyCredentials;
+            if (_channelProvider != null &&  _channelProvider.IsGovernment())
+                emptyCredentials = MicrosoftGovernmentAppCredentials.Empty;
+            else
+                emptyCredentials = MicrosoftAppCredentials.Empty;
 
-				return connectorClient;
-		});
+            connectorClient = new ConnectorClientImpl(serviceUrl, emptyCredentials);
+        }
+
+        if (_connectorClientRetryStrategy  != null)
+        {
+            connectorClient.withRestRetryStrategy(this._connectorClientRetryStrategy);
+        }
+
+        return _connectorClients.putIfAbsent(clientKey, connectorClient);
 	}
 
 	/** 
@@ -911,30 +931,21 @@ public class BotFrameworkAdapter extends BotAdapter
 	 token everytime.
 	 
 	 @param appId The application identifier (AAD Id for the bot).
-	 @param cancellationToken Cancellation token.
 	 @return App credentials.
 	*/
-//C# TO JAVA CONVERTER TODO TASK: There is no equivalent in Java to the 'async' keyword:
-//ORIGINAL LINE: private async CompletableFuture<MicrosoftAppCredentials> GetAppCredentialsAsync(string appId)
-	private MicrosoftAppCredentials GetAppCredentialsAsync(String appId)
-	{
+	private MicrosoftAppCredentials GetAppCredentialsAsync(String appId) throws ExecutionException, InterruptedException {
 		if (appId == null)
 		{
 			return MicrosoftAppCredentials.Empty;
 		}
 
-		TValue appCredentials;
-//C# TO JAVA CONVERTER TODO TASK: There is no Java ConcurrentHashMap equivalent to this .NET ConcurrentDictionary method:
-//C# TO JAVA CONVERTER TODO TASK: The following method call contained an unresolved 'out' keyword - these cannot be converted using the 'OutObject' helper class unless the method is within the code being modified:
-		if (_appCredentialMap.TryGetValue(appId, out appCredentials))
-		{
-			return appCredentials;
-		}
+		if (_appCredentialMap.containsKey(appId))
+		    return _appCredentialMap.get(appId);
 
-		// NOTE: we can't do async operations inside of a AddOrUpdate, so we split access pattern
-//C# TO JAVA CONVERTER TODO TASK: There is no equivalent to 'await' in Java:
-		String appPassword = await _credentialProvider.GetAppPasswordAsync(appId);
-		appCredentials = (_ChannelProvider  != null && _channelProvider.IsGovernment()) ? new MicrosoftGovernmentAppCredentials(appId, appPassword) : new MicrosoftAppCredentials(appId, appPassword);
+		String appPassword =  _credentialProvider.getAppPasswordAsync(appId).get();
+        MicrosoftAppCredentials appCredentials = new MicrosoftAppCredentials(appId, appPassword);
+        if (_channelProvider  != null && _channelProvider.IsGovernment())
+            appCredentials =  new MicrosoftGovernmentAppCredentials(appId, appPassword);
 		_appCredentialMap.put(appId, appCredentials);
 		return appCredentials;
 	}

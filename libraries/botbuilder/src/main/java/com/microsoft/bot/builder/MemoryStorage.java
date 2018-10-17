@@ -1,8 +1,10 @@
 package com.microsoft.bot.builder;
 
-import Newtonsoft.Json.*;
-import Newtonsoft.Json.Linq.*;
+import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.ObjectMapper;
+
 import java.util.*;
+import java.util.concurrent.CompletableFuture;
 
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License.
@@ -13,9 +15,8 @@ import java.util.*;
 */
 public class MemoryStorage implements IStorage
 {
-	private static final JsonSerializer StateJsonSerializer = new JsonSerializer() {TypeNameHandling = TypeNameHandling.All};
-
-	private HashMap<String, JObject> _memory;
+	private static final ObjectMapper _mapper = new ObjectMapper();
+    private HashMap<String, JsonNode> _memory;
 	private final Object _syncroot = new Object();
 	private int _eTag = 0;
 
@@ -32,9 +33,10 @@ public class MemoryStorage implements IStorage
 
 //C# TO JAVA CONVERTER NOTE: Java does not support optional parameters. Overloaded method(s) are created above:
 //ORIGINAL LINE: public MemoryStorage(Dictionary<string, JObject> dictionary = null)
-	public MemoryStorage(HashMap<String, JObject> dictionary)
+	public MemoryStorage(HashMap<String, JsonNode> dictionary)
 	{
-		_memory = (dictionary != null) ? dictionary : new HashMap<String, JObject>();
+	    _mapper.enableDefaultTyping();
+		_memory = (dictionary != null) ? dictionary : new HashMap<String, JsonNode>();
 	}
 
 	/** 
@@ -55,8 +57,6 @@ public class MemoryStorage implements IStorage
 				_memory.remove(key);
 			}
 		}
-
-		return Task.CompletedTask;
 	}
 
 	/** 
@@ -70,13 +70,13 @@ public class MemoryStorage implements IStorage
 	 {@link DeleteAsync(string[] )}
 	 {@link WriteAsync(IDictionary{string, object} )}
 	*/
-	public final CompletableFuture<Map<String, Object>> ReadAsync(String[] keys)
+	public final Map<String, JsonNode> ReadAsync(String[] keys)
 	{
 		HashMap<String, Object> storeItems = new HashMap<String, Object>(keys.length);
 		synchronized (_syncroot)
 		{
 			for (String key : keys)
-			{
+			{cd
 				TValue state;
 				if (_memory.containsKey(key) ? (state = _memory.get(key)) == state : false)
 				{
@@ -88,7 +88,7 @@ public class MemoryStorage implements IStorage
 			}
 		}
 
-		return Task.<Map<String, Object>>FromResult(storeItems);
+		return storeItems;
 	}
 
 	/** 
