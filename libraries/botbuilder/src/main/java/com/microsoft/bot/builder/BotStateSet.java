@@ -1,14 +1,12 @@
+// Copyright (c) Microsoft. All rights reserved.
+// Licensed under the MIT license.
+
 package com.microsoft.bot.builder;
 
 import java.util.*;
 import java.util.concurrent.CompletableFuture;
-import java.util.stream.Collectors;
 
-// Copyright (c) Microsoft. All rights reserved.
-// Licensed under the MIT license.
-
-
-/** 
+/**
   Manages a collection of botState and provides ability to load and save in parallel.
 */
 public class BotStateSet
@@ -59,65 +57,53 @@ public class BotStateSet
 	 Load all BotState records in parallel.
 	 
 	 @param turnContext turn context.
-	 @param force should data be forced into cache.
 
 	 @return A task that represents the work queued to execute.
 	*/
-
-	public final void LoadAllAsync(TurnContext turnContext, boolean force)
-	{
-		return LoadAllAsync(turnContext, force, null);
-	}
-
 	public final void LoadAllAsync(TurnContext turnContext)
 	{
 		return LoadAllAsync(turnContext, false, null);
 	}
 
-//C# TO JAVA CONVERTER TODO TASK: There is no equivalent in Java to the 'async' keyword:
-//ORIGINAL LINE: public async void LoadAllAsync(TurnContext turnContext, bool force = false, CancellationToken cancellationToken = default(CancellationToken))
-//C# TO JAVA CONVERTER NOTE: Java does not support optional parameters. Overloaded method(s) are created above:
-	public final void LoadAllAsync(TurnContext turnContext, boolean force)
+	/**
+	 Load all BotState records in parallel.
+
+	 @param turnContext turn context.
+	 @param force should data be forced into cache.
+
+	 @return A task that represents the work queued to execute.
+	 */
+	public final CompletableFuture LoadAllAsync(TurnContext turnContext, boolean force)
 	{
-		ArrayList<> tasks = this.getBotStates().stream().map(bs -> bs.Load(turnContext, force)).collect(Collectors.toList());
-		ArrayList<Object> tasks = this.getBotStates().stream().filter(bs -> bs.loadAsync(turnContext, force, cancellationToken)).ToList();
+		CompletableFuture[] tasks = this.getBotStates().stream().map(bs -> bs.LoadAsync(turnContext, force)).toArray(CompletableFuture[]::new);
 		CompletableFuture.allOf(tasks).join();
-//C# TO JAVA CONVERTER TODO TASK: There is no equivalent to 'await' in Java:
-		await Task.WhenAll(tasks);
-
-		{
-			var tasks = this.BotStates.Select(bs => bs.LoadAsync(turnContext, force, cancellationToken)).ToList();
-			await Task.WhenAll(tasks).ConfigureAwait(false);
-		}
-
+		return CompletableFuture.completedFuture(null);
 	}
 
 	/** 
 	 Save All BotState changes in parallel.
 	 
 	 @param turnContext turn context.
-	 @param force should data be forced to save even if no change were detected.
 
 	 @return A task that represents the work queued to execute.
 	*/
-
-	public final void SaveAllChangesAsync(TurnContext turnContext, boolean force)
-	{
-		return SaveAllChangesAsync(turnContext, force, null);
-	}
-
 	public final void SaveAllChangesAsync(TurnContext turnContext)
 	{
 		return SaveAllChangesAsync(turnContext, false, null);
 	}
 
-//C# TO JAVA CONVERTER TODO TASK: There is no equivalent in Java to the 'async' keyword:
-//ORIGINAL LINE: public async void SaveAllChangesAsync(TurnContext turnContext, bool force = false, CancellationToken cancellationToken = default(CancellationToken))
-//C# TO JAVA CONVERTER NOTE: Java does not support optional parameters. Overloaded method(s) are created above:
+	/**
+	 Save All BotState changes in parallel.
+
+	 @param turnContext turn context.
+	 @param force should data be forced to save even if no change were detected.
+
+	 @return A task that represents the work queued to execute.
+	 */
 	public final void SaveAllChangesAsync(TurnContext turnContext, boolean force)
 	{
-		ArrayList<Object> tasks = this.getBotStates().Select(bs -> bs.SaveChangesAsync(turnContext, force, cancellationToken)).ToList();
-//C# TO JAVA CONVERTER TODO TASK: There is no equivalent to 'await' in Java:
-		await Task.WhenAll(tasks);
+		CompletableFuture[] tasks = this.getBotStates().stream().map(bs -> bs.SaveChangesAsync(turnContext, force)).toArray(CompletableFuture[]::new);
+		CompletableFuture.allOf(tasks).join();
+		return CompletableFuture.completedFuture(null);
 	}
 }
