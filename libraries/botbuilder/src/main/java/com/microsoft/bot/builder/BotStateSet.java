@@ -1,6 +1,8 @@
 package com.microsoft.bot.builder;
 
 import java.util.*;
+import java.util.concurrent.CompletableFuture;
+import java.util.stream.Collectors;
 
 // Copyright (c) Microsoft. All rights reserved.
 // Licensed under the MIT license.
@@ -77,10 +79,17 @@ public class BotStateSet
 //C# TO JAVA CONVERTER NOTE: Java does not support optional parameters. Overloaded method(s) are created above:
 	public final void LoadAllAsync(TurnContext turnContext, boolean force)
 	{
-		this.getBotStates().stream().map(bs -> bs.load())
-		ArrayList<Object> tasks = this.getBotStates().Select(bs -> bs.loadAsync(turnContext, force, cancellationToken)).ToList();
+		ArrayList<> tasks = this.getBotStates().stream().map(bs -> bs.Load(turnContext, force)).collect(Collectors.toList());
+		ArrayList<Object> tasks = this.getBotStates().stream().filter(bs -> bs.loadAsync(turnContext, force, cancellationToken)).ToList();
+		CompletableFuture.allOf(tasks).join();
 //C# TO JAVA CONVERTER TODO TASK: There is no equivalent to 'await' in Java:
 		await Task.WhenAll(tasks);
+
+		{
+			var tasks = this.BotStates.Select(bs => bs.LoadAsync(turnContext, force, cancellationToken)).ToList();
+			await Task.WhenAll(tasks).ConfigureAwait(false);
+		}
+
 	}
 
 	/** 

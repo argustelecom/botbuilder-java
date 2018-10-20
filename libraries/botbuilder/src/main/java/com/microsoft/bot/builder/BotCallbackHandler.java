@@ -14,5 +14,5 @@ package com.microsoft.bot.builder;
 @FunctionalInterface
 public interface BotCallbackHandler
 {
-	Task invoke(TurnContext turnContext);
+	void invoke(TurnContext turnContext);
 }

@@ -18,13 +18,8 @@ import org.junit.Assert;
 import org.junit.Test;
 
 import java.util.UUID;
-import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutionException;
 import java.util.function.Consumer;
-import java.util.function.Function;
-
-
-import static java.util.concurrent.CompletableFuture.completedFuture;
 
 //    [TestClass]
 //            [TestCategory("State Management")]
@@ -71,7 +66,7 @@ public class BotStateTest {
                 System.out.flush();
                 TestState userState = StateTurnContextExtensions.<TestState>GetUserState(context);
                 Assert.assertNotNull("user state should exist", userState);
-                switch (context.getActivity().text()) {
+                switch (context.activity().text()) {
                     case "set value":
                         userState.withValue("test");
                         try {

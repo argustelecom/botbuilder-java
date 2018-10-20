@@ -28,14 +28,14 @@ public class PrivateConversationState extends BotState
 	@Override
 	protected String GetStorageKey(TurnContext turnContext)
 	{
-		if (turnContext.getActivity().channelId() == null) {
+		if (turnContext.activity().channelId() == null) {
 			throw new NullPointerException("invalid activity-missing channelId");
 		}
 
-		String channelId = turnContext.getActivity().channelId();
+		String channelId = turnContext.activity().channelId();
 		String conversationId = null;
-		if (turnContext.getActivity().conversation() != null) {
-			conversationId = turnContext.getActivity().conversation().id();
+		if (turnContext.activity().conversation() != null) {
+			conversationId = turnContext.activity().conversation().id();
 			if (conversationId == null) {
 				throw new NullPointerException("invalid activity-missing Conversation.Id");
 			}
@@ -43,8 +43,8 @@ public class PrivateConversationState extends BotState
 
 
 		String userId = null;
-		if (turnContext.getActivity().from() != null) {
-			userId = turnContext.getActivity().from().id();
+		if (turnContext.activity().from() != null) {
+			userId = turnContext.activity().from().id();
 			if (userId == null) {
 				throw new NullPointerException("invalid activity-missing From.Id");
 			}

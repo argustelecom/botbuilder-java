@@ -71,7 +71,7 @@ public class ShowTypingMiddleware implements Middleware
 		try
 		{
 			// If the incoming activity is a MessageActivity, start a timer to periodically send the typing activity
-			if (turnContext.getActivity().Type == ActivityTypes.Message)
+			if (turnContext.activity().Type == ActivityTypes.Message)
 			{
 				cts = new CancellationTokenSource();
 				cancellationToken.Register(() -> cts.Cancel());
@@ -127,12 +127,12 @@ public class ShowTypingMiddleware implements Middleware
 		// create a TypingActivity, associate it with the conversation and send immediately
 		Activity typingActivity = new Activity();
 		typingActivity.Type = ActivityTypes.Typing;
-		typingActivity.RelatesTo = turnContext.getActivity().RelatesTo;
+		typingActivity.RelatesTo = turnContext.activity().RelatesTo;
 
 		// sending the Activity directly on the Adapter avoids other Middleware and avoids setting the Responded
 		// flag, however, this also requires that the conversation reference details are explicitly added.
 //C# TO JAVA CONVERTER TODO TASK: There is no equivalent to implicit typing in Java unless the Java 10 inferred typing option is selected:
-		var conversationReference = turnContext.getActivity().GetConversationReference();
+		var conversationReference = turnContext.activity().GetConversationReference();
 		typingActivity.ApplyConversationReference(conversationReference);
 
 		// make sure to send the Activity directly on the Adapter rather than via the TurnContext

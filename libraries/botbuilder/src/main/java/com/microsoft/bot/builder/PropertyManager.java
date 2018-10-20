@@ -6,7 +6,7 @@ package com.microsoft.bot.builder;
 /** 
  IPropertyManager defines implementation of a source of named properties.
 */
-public interface IPropertyManager
+public interface PropertyManager
 {
 	/** 
 	 Create a managed state property accessor for named property.

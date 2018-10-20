@@ -177,7 +177,7 @@ public abstract class BotAdapter
 		BotAssert.ContextNotNull(turnContext);
 
 		// Call any registered Middleware Components looking for ReceiveActivityAsync()
-		if (turnContext.getActivity() != null)
+		if (turnContext.activity() != null)
 		{
 			try
 			{
@@ -201,7 +201,7 @@ public abstract class BotAdapter
 			if (callback != null)
 			{
 //C# TO JAVA CONVERTER TODO TASK: There is no equivalent to 'await' in Java:
-				await callback.invoke(turnContext, cancellationToken);
+				callback.invoke(turnContext);
 			}
 		}
 	}

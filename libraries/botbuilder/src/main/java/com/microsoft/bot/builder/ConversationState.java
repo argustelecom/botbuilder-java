@@ -32,19 +32,19 @@ public class ConversationState extends BotState
 	@Override
 	protected String GetStorageKey(TurnContext turnContext)
 	{
-		if ((turnContext.getActivity().channelId()) == null) {
+		if ((turnContext.activity().channelId()) == null) {
 			throw new NullPointerException("invalid activity-missing channelId");
 		}
 
 		String conversationId = null;
-		if (turnContext.getActivity().conversation() != null) {
-			conversationId = turnContext.getActivity().conversation().id();
+		if (turnContext.activity().conversation() != null) {
+			conversationId = turnContext.activity().conversation().id();
 			if (conversationId == null) {
 				throw new NullPointerException("invalid activity-missing Conversation.Id");
 			}
 		}
 
-		String channelId = turnContext.getActivity().channelId();
+		String channelId = turnContext.activity().channelId();
 		return String.format("%1$s/conversations/%2$s", channelId, conversationId);
 	}
 }

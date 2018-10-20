@@ -5,14 +5,12 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import com.microsoft.bot.connector.ConnectorClient;
 import com.microsoft.bot.connector.authentication.*;
 import com.microsoft.bot.connector.implementation.ConnectorClientImpl;
-import com.microsoft.bot.schema.TokenExchangeState;
 import com.microsoft.bot.schema.models.*;
 import com.microsoft.bot.schema.TokenStatus;
 import com.microsoft.rest.retry.RetryStrategy;
 import org.apache.commons.lang3.StringUtils;
 
 import java.io.IOException;
-import java.net.MalformedURLException;
 import java.net.URISyntaxException;
 import java.util.*;
 import java.util.concurrent.CompletableFuture;
@@ -428,19 +426,19 @@ public class BotFrameworkAdapter extends BotAdapter
 	*/
 	public final void DeleteConversationMember(TurnContext turnContext, String memberId)
 	{
-		if (turnContext.getActivity().conversation() == null)
+		if (turnContext.activity().conversation() == null)
 		{
 			throw new NullPointerException("BotFrameworkAdapter.deleteConversationMember(): missing conversation");
 		}
 
-		if (StringUtils.isBlank(turnContext.getActivity().conversation().id()))
+		if (StringUtils.isBlank(turnContext.activity().conversation().id()))
 		{
 			throw new NullPointerException("BotFrameworkAdapter.deleteConversationMember(): missing conversation.id");
 		}
 
 		ConnectorClient connectorClient = turnContext.getTurnState().<ConnectorClient>Get();
 
-		String conversationId = turnContext.getActivity().conversation().id();
+		String conversationId = turnContext.activity().conversation().id();
 
 		connectorClient.conversations().deleteConversationMember(conversationId, memberId);
 	}
@@ -457,21 +455,21 @@ public class BotFrameworkAdapter extends BotAdapter
 		// If no activity was passed in, use the current activity.
 		if (activityId == null)
 		{
-			activityId = turnContext.getActivity().id();
+			activityId = turnContext.activity().id();
 		}
 
-		if (turnContext.getActivity().conversation() == null)
+		if (turnContext.activity().conversation() == null)
 		{
 			throw new NullPointerException("BotFrameworkAdapter.GetActivityMembers(): missing conversation");
 		}
 
-		if (StringUtils.isBlank(turnContext.getActivity().conversation().id()))
+		if (StringUtils.isBlank(turnContext.activity().conversation().id()))
 		{
 			throw new NullPointerException("BotFrameworkAdapter.GetActivityMembers(): missing conversation.id");
 		}
 
 		ConnectorClient connectorClient = turnContext.getTurnState().<ConnectorClient>Get();
-		String conversationId = turnContext.getActivity().conversation().id();
+		String conversationId = turnContext.activity().conversation().id();
 
 		List<ChannelAccount> accounts = connectorClient.conversations().getActivityMembers(conversationId, activityId);
 
@@ -486,18 +484,18 @@ public class BotFrameworkAdapter extends BotAdapter
 	*/
 	public final CompletableFuture<List<ChannelAccount>> GetConversationMembersAsync(TurnContext turnContext)
 	{
-		if (turnContext.getActivity().conversation() == null)
+		if (turnContext.activity().conversation() == null)
 		{
 			throw new NullPointerException("BotFrameworkAdapter.GetActivityMembers(): missing conversation");
 		}
 
-		if (StringUtils.isBlank(turnContext.getActivity().conversation().id()))
+		if (StringUtils.isBlank(turnContext.activity().conversation().id()))
 		{
 			throw new NullPointerException("BotFrameworkAdapter.GetActivityMembers(): missing conversation.id");
 		}
 
 		ConnectorClient connectorClient = turnContext.getTurnState().<ConnectorClient>Get();
-		String conversationId = turnContext.getActivity().conversation().id();
+		String conversationId = turnContext.activity().conversation().id();
 
 		List<ChannelAccount> accounts = connectorClient.conversations().getConversationMembers(conversationId);
 		return accounts;
@@ -568,7 +566,7 @@ public class BotFrameworkAdapter extends BotAdapter
 	public final CompletableFuture<TokenResponse> GetUserTokenAsync(TurnContext turnContext, String connectionName, String magicCode)
 	{
 		BotAssert.ContextNotNull(turnContext);
-		if (turnContext.getActivity().from() == null || StringUtils.isBlank(turnContext.getActivity().from().id()))
+		if (turnContext.activity().from() == null || StringUtils.isBlank(turnContext.activity().from().id()))
 		{
 			throw new NullPointerException("BotFrameworkAdapter.GetuserToken(): missing from or from.id");
 		}
@@ -579,7 +577,7 @@ public class BotFrameworkAdapter extends BotAdapter
 		}
 
 		OAuthClient client = CreateOAuthApiClientAsync(turnContext);
-		return client.GetUserTokenAsync(turnContext.getActivity().from().id(), connectionName, magicCode, null);
+		return client.GetUserTokenAsync(turnContext.activity().from().id(), connectionName, magicCode, null);
 	}
 
 	/** 
@@ -598,7 +596,7 @@ public class BotFrameworkAdapter extends BotAdapter
 			throw new NullPointerException("connectionName");
 		}
 
-		Activity activity = turnContext.getActivity();
+		Activity activity = turnContext.activity();
 		OAuthClient client = CreateOAuthApiClientAsync(turnContext);
 		return client.GetSignInLinkAsync(activity, connectionName);
 	}
@@ -671,7 +669,7 @@ public class BotFrameworkAdapter extends BotAdapter
 
 		if (StringUtils.isBlank(userId))
 		{
-			userId = turnContext.getActivity() == null ? null : (turnContext.getActivity().from() == null ? null : turnContext.getActivity().from().id());
+			userId = turnContext.activity() == null ? null : (turnContext.activity().from() == null ? null : turnContext.activity().from().id());
 		}
 
 		OAuthClient client = CreateOAuthApiClientAsync(turnContext);
@@ -746,7 +744,7 @@ public class BotFrameworkAdapter extends BotAdapter
 
 		if (StringUtils.isBlank(userId))
 		{
-			userId = context.getActivity() == null ? null : (context.getActivity().From == null ? null : context.getActivity().From.Id);
+			userId = context.activity() == null ? null : (context.activity().From == null ? null : context.activity().From.Id);
 		}
 
 		OAuthClient client = this.CreateOAuthApiClientAsync(context);
@@ -818,7 +816,7 @@ public class BotFrameworkAdapter extends BotAdapter
 			throw new NullPointerException("CreateOAuthApiClient: OAuth requires a valid ConnectorClient instance");
 		}
 
-		if (!OAuthClient.getEmulateOAuthCards() && turnContext.getActivity().channelId().equalsIgnoreCase("emulator")
+		if (!OAuthClient.getEmulateOAuthCards() && turnContext.activity().channelId().equalsIgnoreCase("emulator")
 				&& (_credentialProvider.isAuthenticationDisabledAsync().get() == false))
 		{
 			OAuthClient.setEmulateOAuthCards(true);
@@ -826,7 +824,7 @@ public class BotFrameworkAdapter extends BotAdapter
 
 		if (OAuthClient.getEmulateOAuthCards())
 		{
-			OAuthClient oauthClient = new OAuthClient(client, turnContext.getActivity().serviceUrl());
+			OAuthClient oauthClient = new OAuthClient(client, turnContext.activity().serviceUrl());
 
 			oauthClient.SendEmulateOAuthCardsAsync(OAuthClient.getEmulateOAuthCards()).get();
 			return oauthClient;

@@ -31,10 +31,10 @@ public class UserState extends BotState
 //C# TO JAVA CONVERTER TODO TASK: There is no equivalent to implicit typing in Java unless the Java 10 inferred typing option is selected:
 //C# TO JAVA CONVERTER TODO TASK: Throw expressions are not converted by C# to Java Converter:
 //ORIGINAL LINE: var channelId = turnContext.Activity.ChannelId ?? throw new ArgumentNullException("invalid activity-missing channelId");
-		String channelId = ((turnContext.getActivity().channelId()) != null) ? turnContext.getActivity().channelId() : throw new NullPointerException("invalid activity-missing channelId");
+		String channelId = ((turnContext.activity().channelId()) != null) ? turnContext.activity().channelId() : throw new NullPointerException("invalid activity-missing channelId");
 //C# TO JAVA CONVERTER TODO TASK: Throw expressions are not converted by C# to Java Converter:
 //ORIGINAL LINE: var userId = turnContext.Activity.From == null ? null : turnContext.Activity.From.Id ?? throw new ArgumentNullException("invalid activity-missing From.Id");
-		boolean userId = turnContext.getActivity().getFrom() == null ? null : ((turnContext.getActivity().From.Id) != null) ? turnContext.getActivity().From.Id : throw new NullPointerException("invalid activity-missing From.Id");
+		boolean userId = turnContext.activity().getFrom() == null ? null : ((turnContext.activity().From.Id) != null) ? turnContext.activity().From.Id : throw new NullPointerException("invalid activity-missing From.Id");
 		return String.format("%1$s/users/%2$s", channelId, userId);
 	}
 }

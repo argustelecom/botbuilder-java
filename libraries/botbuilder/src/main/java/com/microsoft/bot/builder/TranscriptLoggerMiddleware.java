@@ -45,14 +45,14 @@ public class TranscriptLoggerMiddleware implements Middleware
 	public final void OnTurnAsync(TurnContext turnContext, NextDelegate nextTurn)
 	{
 		// log incoming activity at beginning of turn
-		if (turnContext.getActivity() != null)
+		if (turnContext.activity() != null)
 		{
-			if (StringUtils.isBlank((String)turnContext.getActivity().From.Properties["role"]))
+			if (StringUtils.isBlank((String)turnContext.activity().From.Properties["role"]))
 			{
-				turnContext.getActivity().From.Properties["role"] = "user";
+				turnContext.activity().From.Properties["role"] = "user";
 			}
 
-			LogActivity(CloneActivity(turnContext.getActivity()));
+			LogActivity(CloneActivity(turnContext.activity()));
 		}
 
 		// hook up onSend pipeline
