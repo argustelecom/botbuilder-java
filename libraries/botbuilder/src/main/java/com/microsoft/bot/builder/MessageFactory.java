@@ -1,5 +1,12 @@
 package com.microsoft.bot.builder;
 
+import com.microsoft.bot.schema.ActivityImpl;
+import com.microsoft.bot.schema.models.Activity;
+import com.microsoft.bot.schema.models.Attachment;
+import com.microsoft.bot.schema.models.CardAction;
+import com.microsoft.bot.schema.models.SuggestedActions;
+import org.apache.commons.lang3.StringUtils;
+
 import java.util.*;
 
 // Copyright (c) Microsoft Corporation. All rights reserved.
@@ -69,7 +76,7 @@ public final class MessageFactory
 	public static Activity Text(String text, String ssml, String inputHint)
 	{
 //C# TO JAVA CONVERTER TODO TASK: There is no equivalent to implicit typing in Java unless the Java 10 inferred typing option is selected:
-		var ma = Activity.CreateMessageActivity();
+		Activity ma = ActivityImpl.CreateMessageActivity();
 		SetTextAndSpeak(ma, text, ssml, inputHint);
 		return (Activity)ma;
 	}
@@ -206,7 +213,7 @@ public final class MessageFactory
 		}
 
 //C# TO JAVA CONVERTER TODO TASK: There is no equivalent to implicit typing in Java unless the Java 10 inferred typing option is selected:
-		var ma = Activity.CreateMessageActivity();
+		Activity ma = ActivityImpl.CreateMessageActivity();
 		SetTextAndSpeak(ma, text, ssml, inputHint);
 
 		ma.SuggestedActions = new SuggestedActions();
@@ -473,7 +480,7 @@ public final class MessageFactory
 	private static IMessageActivity AttachmentActivity(String attachmentLayout, java.lang.Iterable<Attachment> attachments, String text, String ssml, String inputHint)
 	{
 //C# TO JAVA CONVERTER TODO TASK: There is no equivalent to implicit typing in Java unless the Java 10 inferred typing option is selected:
-		var ma = Activity.CreateMessageActivity();
+		Activity ma = ActivityImpl.CreateMessageActivity();
 		ma.AttachmentLayout = attachmentLayout;
 		ma.Attachments = attachments.ToList();
 		SetTextAndSpeak(ma, text, ssml, inputHint);
