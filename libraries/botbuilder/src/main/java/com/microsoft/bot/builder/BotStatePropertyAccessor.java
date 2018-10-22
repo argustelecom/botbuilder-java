@@ -42,13 +42,12 @@ private class BotStatePropertyAccessor<T> implements StatePropertyAccessor<T>
      Delete the property. The semantics are intended to be lazy, note the use of LoadAsync at the start.
 
      @param turnContext The turn context.
-     @param cancellationToken The cancellation token.
      @return A <see cref="Task"/> representing the asynchronous operation.
      */
     public final CompletableFuture DeleteAsync(TurnContext turnContext)
     {
-        _botState.LoadAsync(turnContext, false, cancellationToken).join();
-        _botState.DeletePropertyValueAsync(turnContext, getName(), cancellationToken).join();
+        _botState.LoadAsync(turnContext, false).join();
+        _botState.DeletePropertyValueAsync(turnContext, getName()).join();
     }
 
     /**
@@ -56,7 +55,6 @@ private class BotStatePropertyAccessor<T> implements StatePropertyAccessor<T>
      ///
      @param turnContext The context object for this turn.
      @param defaultValueFactory Defines the default value. Invoked when no value been set for the requested state property.  If defaultValueFactory is defined as null, the MissingMemberException will be thrown if the underlying property is not set.
-     @param cancellationToken The cancellation token.
      @return A <see cref="Task"/> representing the asynchronous operation.
      */
     public final CompletableFuture<T> GetAsync(TurnContext turnContext, tangible.Func0Param<T> defaultValueFactory)

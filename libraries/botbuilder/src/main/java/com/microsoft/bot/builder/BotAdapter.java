@@ -200,7 +200,6 @@ public abstract class BotAdapter
 			// call back to caller on proactive case
 			if (callback != null)
 			{
-//C# TO JAVA CONVERTER TODO TASK: There is no equivalent to 'await' in Java:
 				callback.invoke(turnContext);
 			}
 		}

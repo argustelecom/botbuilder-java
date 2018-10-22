@@ -4,6 +4,7 @@ package com.microsoft.bot.builder;
 // Licensed under the MIT License.
 
 
+import com.fasterxml.jackson.core.JsonProcessingException;
 import com.microsoft.bot.schema.models.Activity;
 
 import java.util.concurrent.CompletableFuture;
@@ -19,5 +20,5 @@ public interface ITranscriptLogger
 	 @param activity The activity to transcribe.
 	 @return A task that represents the work queued to execute.
 	*/
-	CompletableFuture LogActivityAsync(Activity activity);
+	CompletableFuture LogActivityAsync(Activity activity) throws JsonProcessingException;
 }
