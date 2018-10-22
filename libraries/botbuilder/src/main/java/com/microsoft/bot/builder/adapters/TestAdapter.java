@@ -1,10 +1,13 @@
 package com.microsoft.bot.builder.adapters;
+import com.microsoft.bot.builder.BotAdapter;
 import com.microsoft.bot.builder.BotCallbackHandler;
-import com.microsoft.bot.schema.models.Activity;
-import com.microsoft.bot.schema.models.ActivityTypes;
+import com.microsoft.bot.builder.Middleware;
+import com.microsoft.bot.builder.TurnContext;
+import com.microsoft.bot.schema.models.*;
 
 import java.util.*;
 import java.time.*;
+import java.util.concurrent.CompletableFuture;
 
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License.
@@ -54,12 +57,15 @@ public class TestAdapter extends BotAdapter
 		else
 		{
 			setConversation(new ConversationReference());
-			getConversation().ChannelId = "test";
-			getConversation().ServiceUrl = "https://test.com";
+			getConversation().withChannelId("test") ;
+			getConversation().withServiceUrl("https://test.com");
 
-			getConversation().User = new ChannelAccount("user1", "User1");
-			getConversation().Bot = new ChannelAccount("bot", "Bot");
-			getConversation().Conversation = new ConversationAccount(false, "convo1", "Conversation1");
+			getConversation().withUser(new ChannelAccount().withId("user1").withName("User1"));
+			getConversation().withBot(new ChannelAccount().withId("bot").withName("Bot"));
+			getConversation().withConversation(new ConversationAccount()
+									.withIsGroup(false)
+									.withConversationType("convo1")
+									.withId("Conversation1"));
 		}
 	}
 
@@ -98,9 +104,7 @@ public class TestAdapter extends BotAdapter
 	 For each turn, the adapter calls middleware in the order in which you added it.
 	 
 	*/
-//C# TO JAVA CONVERTER WARNING: There is no Java equivalent to C#'s shadowing via the 'new' keyword:
-//ORIGINAL LINE: public new TestAdapter Use(Middleware middleware)
-	public final TestAdapter Use(IMiddleware middleware)
+	public final TestAdapter Use(Middleware middleware)
 	{
 		super.Use(middleware);
 		return this;
@@ -130,19 +134,18 @@ public class TestAdapter extends BotAdapter
 			// ready for next reply
 			if (activity.type() == null)
 			{
-				activity.type() = ActivityTypes.MESSAGE;
+				activity.withType(ActivityTypes.MESSAGE);
 			}
 
-			activity.ChannelId = getConversation().ChannelId;
-			activity.From = getConversation().User;
-			activity.Recipient = getConversation().Bot;
-			activity.Conversation = getConversation().Conversation;
-			activity.ServiceUrl = getConversation().ServiceUrl;
-
-			String id = activity.Id = (_nextId++).toString();
+			activity.withChannelId(getConversation().channelId());
+			activity.withFrom(getConversation().user());
+			activity.withRecipient(getConversation().bot());
+			activity.withConversation(getConversation().conversation());
+			activity.withServiceUrl(getConversation().serviceUrl());
+			activity.withId(Integer.toString(_nextId++));
 		}
 
-		if (activity.Timestamp == null || activity.Timestamp == new DateTimeOffset())
+		if (activity.timestamp() == null || activity.withTimestamp(new OffsetDateTime()))
 		{
 			activity.Timestamp = LocalDateTime.UtcNow;
 		}
