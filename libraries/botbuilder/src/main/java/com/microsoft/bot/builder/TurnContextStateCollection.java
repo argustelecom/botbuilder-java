@@ -1,10 +1,12 @@
+// Copyright (c) Microsoft Corporation. All rights reserved.
+// Licensed under the MIT License.
+
 package com.microsoft.bot.builder;
 
 import java.util.*;
 import java.io.*;
+import java.util.Map;
 
-// Copyright (c) Microsoft Corporation. All rights reserved.
-// Licensed under the MIT License.
 
 
 /** 
@@ -15,9 +17,7 @@ import java.io.*;
  
 */
 
-package com.microsoft.bot.builder;
 
-import java.util.Map;
 
 /**
  * Represents a set of collection of services associated with the {@link TurnContext}.

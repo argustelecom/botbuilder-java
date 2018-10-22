@@ -4,7 +4,9 @@ package com.microsoft.bot.builder;
 // Licensed under the MIT License.
 
 
-/** 
+import java.util.concurrent.CompletableFuture;
+
+/**
  Encapsulates an asynchronous method that calls the next
  <see cref="Middleware"/>.<see cref="Middleware.OnTurnAsync"/>
  or <see cref="Bot"/>.<see cref="Bot.OnTurnAsync"/> method in the middleware pipeline.
@@ -16,5 +18,5 @@ package com.microsoft.bot.builder;
 @FunctionalInterface
 public interface NextDelegate
 {
-	Task invoke(CancellationToken cancellationToken);
+	CompletableFuture invoke();
 }

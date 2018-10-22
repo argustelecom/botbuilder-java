@@ -1,4 +1,8 @@
 package com.microsoft.bot.builder.adapters;
+import com.microsoft.bot.builder.BotCallbackHandler;
+import com.microsoft.bot.schema.models.Activity;
+import com.microsoft.bot.schema.models.ActivityTypes;
+
 import java.util.*;
 import java.time.*;
 
@@ -124,9 +128,9 @@ public class TestAdapter extends BotAdapter
 		synchronized (_conversationLock)
 		{
 			// ready for next reply
-			if (activity.Type == null)
+			if (activity.type() == null)
 			{
-				activity.Type = ActivityTypes.Message;
+				activity.type() = ActivityTypes.MESSAGE;
 			}
 
 			activity.ChannelId = getConversation().ChannelId;

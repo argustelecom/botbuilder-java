@@ -4,15 +4,16 @@ package com.microsoft.bot.builder;
 // Licensed under the MIT License.
 
 
-/** 
+import java.util.concurrent.CompletableFuture;
+
+/**
  The callback delegate for application code.
  
  @param turnContext The turn context.
- @param cancellationToken The task cancellation token.
- @return A <see cref="Task"/> representing the asynchronous operation.
+  @return A <see cref="Task"/> representing the asynchronous operation.
 */
 @FunctionalInterface
 public interface BotCallbackHandler
 {
-	void invoke(TurnContext turnContext);
+	CompletableFuture invoke(TurnContext turnContext);
 }

@@ -14,7 +14,6 @@ import java.util.List;
 import java.util.concurrent.Callable;
 import java.util.concurrent.CompletableFuture;
 
-import static com.ea.async.Async.await;
 import static com.microsoft.bot.schema.models.ActivityTypes.MESSAGE;
 import static com.microsoft.bot.schema.models.ActivityTypes.TRACE;
 import static java.util.concurrent.CompletableFuture.completedFuture;
@@ -37,7 +36,7 @@ public class TurnContextImpl implements TurnContext, AutoCloseable {
     private final List<UpdateActivityHandler> onUpdateActivity = new ArrayList<UpdateActivityHandler>();
     private final List<DeleteActivityHandler> onDeleteActivity = new ArrayList<DeleteActivityHandler>();
 
-    private final TurnContextServiceCollection turnServices;
+    private final TurnContextStateCollection turnServices;
 
     /**
      * Creates a context object.
@@ -56,7 +55,7 @@ public class TurnContextImpl implements TurnContext, AutoCloseable {
             throw new IllegalArgumentException("activity");
         this.activity = activity;
 
-        turnServices = new TurnContextServiceCollectionImpl();
+        turnServices = new TurnContextStateCollectionImpl();
     }
 
 
@@ -126,7 +125,7 @@ public class TurnContextImpl implements TurnContext, AutoCloseable {
     /**
      * Gets the services registered on this context object.
      */
-    public TurnContextServiceCollection getServices() {
+    public TurnContextStateCollection getServices() {
         return this.turnServices;
     }
 

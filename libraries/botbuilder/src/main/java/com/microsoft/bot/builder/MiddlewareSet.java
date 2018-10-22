@@ -1,9 +1,11 @@
+// Copyright (c) Microsoft Corporation. All rights reserved.
+// Licensed under the MIT License.
+
 package com.microsoft.bot.builder;
 
 import java.util.*;
+import java.util.concurrent.CompletableFuture;
 
-// Copyright (c) Microsoft Corporation. All rights reserved.
-// Licensed under the MIT License.
 
 
 /** 
@@ -35,14 +37,10 @@ public class MiddlewareSet implements Middleware
 
 	 @return A task that represents the work queued to execute.
 	*/
-//C# TO JAVA CONVERTER TODO TASK: There is no equivalent in Java to the 'async' keyword:
-//ORIGINAL LINE: public async void OnTurnAsync(TurnContext turnContext, NextDelegate next)
 	public final void OnTurnAsync(TurnContext turnContext, NextDelegate next)
 	{
-//C# TO JAVA CONVERTER TODO TASK: There is no equivalent to 'await' in Java:
-		await ReceiveActivityInternalAsync(turnContext, null, 0, cancellationToken);
-//C# TO JAVA CONVERTER TODO TASK: There is no equivalent to 'await' in Java:
-		await next.invoke(cancellationToken);
+		ReceiveActivityInternalAsync(turnContext, null, 0).join();
+		next.invoke().join();
 	}
 
 	/** 
@@ -53,15 +51,12 @@ public class MiddlewareSet implements Middleware
 
 	 @return A task that represents the work queued to execute.
 	*/
-//C# TO JAVA CONVERTER TODO TASK: There is no equivalent in Java to the 'async' keyword:
-//ORIGINAL LINE: public async void ReceiveActivityWithStatusAsync(TurnContext turnContext, BotCallbackHandler callback)
-	public final void ReceiveActivityWithStatusAsync(TurnContext turnContext, BotCallbackHandler callback)
+	public final CompletableFuture ReceiveActivityWithStatusAsync(TurnContext turnContext, BotCallbackHandler callback)
 	{
-//C# TO JAVA CONVERTER TODO TASK: There is no equivalent to 'await' in Java:
-		await ReceiveActivityInternalAsync(turnContext, callback, 0, cancellationToken);
+		return ReceiveActivityInternalAsync(turnContext, callback, 0);
 	}
 
-	private void ReceiveActivityInternalAsync(TurnContext turnContext, BotCallbackHandler callback, int nextMiddlewareIndex)
+	private CompletableFuture ReceiveActivityInternalAsync(TurnContext turnContext, BotCallbackHandler callback, int nextMiddlewareIndex)
 	{
 		// Check if we're at the end of the middleware list yet
 		if (nextMiddlewareIndex == _middleware.size())
@@ -76,13 +71,17 @@ public class MiddlewareSet implements Middleware
 			// to run as expected.
 
 			// If a callback was provided invoke it now and return its task, otherwise just return the completed task
-			return callback == null ? null : (callback.invoke(turnContext, cancellationToken) != null) ? callback.invoke(turnContext, cancellationToken) : Task.CompletedTask;
+			return callback == null ? null : (callback.invoke(turnContext) != null) ? callback.invoke(turnContext) : CompletableFuture.completedFuture(null);
 		}
 
 		// Get the next piece of middleware
 		Middleware nextMiddleware = _middleware.get(nextMiddlewareIndex);
 
 		// Execute the next middleware passing a closure that will recurse back into this method at the next piece of middlware as the NextDelegate
-		return nextMiddleware.OnTurnAsync(turnContext, (ct) -> ReceiveActivityInternalAsync(turnContext, callback, nextMiddlewareIndex + 1, ct), cancellationToken);
+		return nextMiddleware.OnTurnAsync(turnContext, () ->
+				{
+					ReceiveActivityInternalAsync(turnContext, callback, nextMiddlewareIndex + 1).join();
+				});
+
 	}
 }

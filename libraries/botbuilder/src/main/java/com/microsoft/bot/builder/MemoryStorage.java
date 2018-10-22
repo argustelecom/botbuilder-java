@@ -16,7 +16,7 @@ import java.util.concurrent.CompletableFuture;
 public class MemoryStorage implements IStorage
 {
 	private static final ObjectMapper _mapper = new ObjectMapper();
-    private HashMap<String, JsonNode> _memory;
+    private HashMap<String, Object> _memory;
 	private final Object _syncroot = new Object();
 	private int _eTag = 0;
 
@@ -31,12 +31,10 @@ public class MemoryStorage implements IStorage
 		this(null);
 	}
 
-//C# TO JAVA CONVERTER NOTE: Java does not support optional parameters. Overloaded method(s) are created above:
-//ORIGINAL LINE: public MemoryStorage(Dictionary<string, JObject> dictionary = null)
-	public MemoryStorage(HashMap<String, JsonNode> dictionary)
+	public MemoryStorage(HashMap<String, Object> dictionary)
 	{
 	    _mapper.enableDefaultTyping();
-		_memory = (dictionary != null) ? dictionary : new HashMap<String, JsonNode>();
+		_memory = (dictionary != null) ? dictionary : new HashMap<String, Object>();
 	}
 
 	/** 
@@ -70,19 +68,21 @@ public class MemoryStorage implements IStorage
 	 {@link DeleteAsync(string[] )}
 	 {@link WriteAsync(IDictionary{string, object} )}
 	*/
-	public final Map<String, JsonNode> ReadAsync(String[] keys)
+
+	public final CompletableFuture<Map<String, Object>> ReadAsync(String[] keys)
 	{
 		HashMap<String, Object> storeItems = new HashMap<String, Object>(keys.length);
 		synchronized (_syncroot)
 		{
 			for (String key : keys)
-			{cd
-				TValue state;
-				if (_memory.containsKey(key) ? (state = _memory.get(key)) == state : false)
-				{
+			{
+				Object state;
+				if (_memory.containsKey(key))
+                {
+				    state = _memory.get(key);
 					if (state != null)
 					{
-						storeItems.put(key, state.<Object>ToObject(StateJsonSerializer));
+						storeItems.put(key, state);
 					}
 				}
 			}
@@ -100,49 +100,45 @@ public class MemoryStorage implements IStorage
 	 {@link DeleteAsync(string[] )}
 	 {@link ReadAsync(string[] )}
 	*/
-	public final void WriteAsync(Map<String, Object> changes)
+	public final CompletableFuture WriteAsync(Map<String, Object> changes)
 	{
-		synchronized (_syncroot)
-		{
-			for (Map.Entry<String, Object> change : changes.entrySet())
-			{
-//C# TO JAVA CONVERTER TODO TASK: There is no equivalent to implicit typing in Java unless the Java 10 inferred typing option is selected:
-				var newValue = change.getValue();
+	    return CompletableFuture.runAsync(() -> {
+            synchronized (_syncroot)
+            {
+                for (Map.Entry<String, Object> change : changes.entrySet())
+                {
+                    Object newValue = change.getValue();
 
-//C# TO JAVA CONVERTER TODO TASK: There is no equivalent to implicit typing in Java unless the Java 10 inferred typing option is selected:
-				var oldStateETag = null;
+                    Object oldStateETag = null;
+                    Object oldState = null;
+                    if (_memory.containsKey(change.getKey()))
+                    {
+                        oldState = _memory.get(change.getKey());
+                        if (oldState instanceof Map)
+                        {
+                            Map<String, Object> oldStateDict = (Map<String, Object>)oldState;
+                            if (oldStateDict.containsKey("eTag"))
+                            {
+                                oldStateETag = (String)oldStateDict.get("eTag");
+                            }
 
-				TValue oldState;
-				if (_memory.containsKey(change.getKey()) ? (oldState = _memory.get(change.getKey())) == oldState : false)
-				{
-					Object etag;
-//C# TO JAVA CONVERTER TODO TASK: The following method call contained an unresolved 'out' keyword - these cannot be converted using the 'OutObject' helper class unless the method is within the code being modified:
-					if (oldState.TryGetValue("eTag", out etag))
-					{
-						oldStateETag = etag.<String>Value();
-					}
-				}
+                        }
+                    }
 
-//C# TO JAVA CONVERTER TODO TASK: There is no equivalent to implicit typing in Java unless the Java 10 inferred typing option is selected:
-				var newState = JObject.FromObject(newValue, StateJsonSerializer);
-
-				// Set ETag if applicable
-//C# TO JAVA CONVERTER TODO TASK: Java has no equivalent to C# pattern variables in 'is' expressions:
-//ORIGINAL LINE: if (newValue is IStoreItem newStoreItem)
-				if (newValue instanceof IStoreItem newStoreItem)
-				{
-					if (oldStateETag != null && !newStoreItem.ETag.equals("*") && newStoreItem.ETag != oldStateETag)
-					{
-						throw new RuntimeException(String.format("Etag conflict.\r\n\r\nOriginal: %1$s\r\nCurrent: %2$s", newStoreItem.ETag, oldStateETag));
-					}
-
-					newState["eTag"] = (_eTag++).toString();
-				}
-
-				_memory.put(change.getKey(), newState);
-			}
-		}
-
-		return Task.CompletedTask;
+                    // Set ETag if applicable
+                    IStoreItem newStoreItem = null;
+                    if (newValue instanceof IStoreItem )
+                    {
+                        newStoreItem = (IStoreItem)newValue;
+                        if (oldStateETag != null && !newStoreItem.getETag().equals("*") && newStoreItem.getETag() != oldStateETag)
+                        {
+                            throw new RuntimeException(String.format("Etag conflict.\r\n\r\nOriginal: %1$s\r\nCurrent: %2$s", newStoreItem.getETag(), oldStateETag));
+                        }
+                        newStoreItem.setETag(Integer.toString(_eTag++));
+                    }
+                    _memory.put(change.getKey(), newStoreItem);
+                }
+            }
+        });
 	}
 }
