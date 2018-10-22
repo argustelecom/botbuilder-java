@@ -30,7 +30,7 @@ import java.util.stream.Collectors;
  * <p>
  * Because this uses an unbounded volitile dictionary this should only be used for unit tests or non-production environments.
  */
-public class MemoryTranscriptStore implements TranscriptStore {
+public class MemoryTranscriptStore implements ITranscriptStore {
 	private HashMap<String, HashMap<String, ArrayList<Activity>>> channels = new HashMap<String, HashMap<String, ArrayList<Activity>>>();
 	final ForkJoinPool.ForkJoinWorkerThreadFactory factory = new ForkJoinPool.ForkJoinWorkerThreadFactory() {
 		@Override
@@ -50,7 +50,7 @@ public class MemoryTranscriptStore implements TranscriptStore {
 	 * @param activity The activity to log.
 	 * @return A CompletableFuture that represents the work queued to execute.
 	 */
-	public final void LogActivityAsync(Activity activity) {
+	public final CompletableFuture LogActivityAsync(Activity activity) {
 		if (activity == null) {
 			throw new NullPointerException("activity cannot be null for LogActivity()");
 		}

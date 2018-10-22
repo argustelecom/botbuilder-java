@@ -1,6 +1,12 @@
 package com.microsoft.bot.builder;
 
-/** 
+import com.microsoft.bot.schema.models.Activity;
+import com.microsoft.bot.schema.models.ResourceResponse;
+
+import java.util.concurrent.CompletableFuture;
+import java.util.function.Supplier;
+
+/**
  A method that can participate in update activity events for the current turn.
  
  @param turnContext The context object for the turn.
@@ -25,5 +31,5 @@ package com.microsoft.bot.builder;
 @FunctionalInterface
 public interface UpdateActivityHandler
 {
-	CompletableFuture<ResourceResponse> invoke(TurnContext turnContext, Activity activity, Func<CompletableFuture<ResourceResponse>> next);
+	CompletableFuture<ResourceResponse> invoke(TurnContext turnContext, Activity activity, Supplier<CompletableFuture<ResourceResponse>> next);
 }

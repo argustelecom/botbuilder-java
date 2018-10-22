@@ -11,7 +11,7 @@ import java.util.concurrent.CompletableFuture;
 
  <typeparam name="T">type of value the propertyAccessor accesses.</typeparam>
  */
-private class BotStatePropertyAccessor<T> implements StatePropertyAccessor<T>
+class BotStatePropertyAccessor<T> implements StatePropertyAccessor<T>
 {
     private BotState _botState;
 

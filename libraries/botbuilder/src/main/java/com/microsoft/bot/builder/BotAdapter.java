@@ -123,19 +123,21 @@ public abstract class BotAdapter {
 	 *                              initiated by a call to {@link ContinueConversation(ConversationReference, Func{TurnContext, Task})}
 	 *                              (proactive messaging), the callback method is the callback method that was provided in the call.</p>
 	 */
-	protected void RunPipeline(TurnContext context, Consumer<TurnContext> callback) throws Exception {
-		BotAssert.ContextNotNull(context);
+	protected CompletableFuture RunPipelineAsync(TurnContext context, Consumer<TurnContext> callback) throws Exception {
+		return CompletableFuture.runAsync(() -> {
+			BotAssert.ContextNotNull(context);
 
-		// Call any registered Middleware Components looking for ReceiveActivity()
-		if (context.getActivity() != null) {
-			_middlewareSet.ReceiveActivityWithStatus(context, callback);
-		} else {
-			// call back to caller on proactive case
-			if (callback != null) {
-				callback.accept(context);
+			// Call any registered Middleware Components looking for ReceiveActivity()
+			if (context.activity() != null) {
+				_middlewareSet.ReceiveActivityWithStatus(context, callback);
+			} else {
+				// call back to caller on proactive case
+				if (callback != null) {
+					callback.accept(context);
+				}
 			}
-		}
-		return;
+			return;
+		});
 	}
 
 
@@ -165,13 +167,13 @@ public abstract class BotAdapter {
 	 * before the bot can send activities to the user.
 	 * {@linkalso RunPipeline(TurnContext, Func { TurnContext, Task })}
 	 */
-	public void ContinueConversation(String botId, ConversationReference reference, Consumer<TurnContext> callback) throws Exception {
+	public CompletableFuture ContinueConversationAsync(String botId, ConversationReference reference, Consumer<TurnContext> callback) throws Exception {
 
 		ConversationReferenceHelper conv = new ConversationReferenceHelper(reference);
 		ActivityImpl activity = conv.GetPostToBotMessage();
 
 		try (TurnContextImpl context = new TurnContextImpl(this, activity)) {
-			this.RunPipeline(context, callback);
+			return this.RunPipelineAsync(context, callback);
 		}
 	}
 }

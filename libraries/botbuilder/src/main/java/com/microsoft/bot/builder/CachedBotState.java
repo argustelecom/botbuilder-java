@@ -5,7 +5,7 @@ import java.util.Map;
 /**
  Internal cached bot state.
  */
-private class CachedBotState
+class CachedBotState
 {
 
     public CachedBotState()
