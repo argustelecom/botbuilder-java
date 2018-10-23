@@ -81,10 +81,10 @@ public interface TurnContext
 	 * Speech Synthesis Markup Language (SSML) format.</p>
 	 *
 	 */
-	CompletableFuture<ResourceResponse> SendActivity(String textReplyToSend) throws Exception;
-	CompletableFuture<ResourceResponse> SendActivity(String textReplyToSend, String speak) throws Exception;
-	//CompletableFuture<ResourceResponse> SendActivity(String textReplyToSend, String speak = null, String inputHint = InputHints.AcceptingInput);
-	CompletableFuture<ResourceResponse> SendActivity(String textReplyToSend, String speak, String inputHint) throws Exception;
+	CompletableFuture<ResourceResponse> SendActivityAsync(String textReplyToSend) throws Exception;
+	CompletableFuture<ResourceResponse> SendActivityAsync(String textReplyToSend, String speak) throws Exception;
+	//CompletableFuture<ResourceResponse> SendActivityAsync(String textReplyToSend, String speak = null, String inputHint = InputHints.AcceptingInput);
+	CompletableFuture<ResourceResponse> SendActivityAsync(String textReplyToSend, String speak, String inputHint) throws Exception;
 
 	/**
 	 * Sends an activity to the sender of the incoming activity.
@@ -94,7 +94,7 @@ public interface TurnContext
 	 * a {@link ResourceResponse} object containing the ID that the receiving
 	 * channel assigned to the activity.
 	 */
-	CompletableFuture<ResourceResponse> SendActivity(Activity activity) throws Exception;
+	CompletableFuture<ResourceResponse> SendActivityAsync(Activity activity) throws Exception;
 
 	/**
 	 * Sends a set of activities to the sender of the incoming activity.

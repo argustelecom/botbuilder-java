@@ -13,6 +13,7 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.concurrent.Callable;
 import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.CompletionException;
 
 import static com.microsoft.bot.schema.models.ActivityTypes.MESSAGE;
 import static com.microsoft.bot.schema.models.ActivityTypes.TRACE;
@@ -177,28 +178,39 @@ public class TurnContextImpl implements TurnContext, AutoCloseable {
      *
      */
     @Override
-    public CompletableFuture<ResourceResponse> SendActivity(String textReplyToSend) throws Exception {
-        return SendActivity(textReplyToSend, null, null);
+    public CompletableFuture<ResourceResponse> SendActivityAsync(String textReplyToSend) throws Exception {
+        return SendActivityAsync(textReplyToSend, null, null);
     }
     @Override
-    public CompletableFuture<ResourceResponse> SendActivity(String textReplyToSend, String speak) throws Exception {
-        return SendActivity(textReplyToSend, speak, null);
+    public CompletableFuture<ResourceResponse> SendActivityAsync(String textReplyToSend, String speak) throws Exception {
+        return SendActivityAsync(textReplyToSend, speak, null);
     }
     @Override
-    public CompletableFuture<ResourceResponse> SendActivity(String textReplyToSend, String speak, String inputHint) throws Exception {
-        if (StringUtils.isEmpty(textReplyToSend))
-            throw new IllegalArgumentException("textReplyToSend");
+    public CompletableFuture<ResourceResponse> SendActivityAsync(String textReplyToSend, String speak, String inputHint) throws Exception {
+        CompletableFuture<ResourceResponse> result =  CompletableFuture.supplyAsync(() ->
+        {
+            if (StringUtils.isEmpty(textReplyToSend)) {
+                throw new IllegalArgumentException("textReplyToSend");
+            }
 
-        ActivityImpl activityToSend = (ActivityImpl) new ActivityImpl()
-                .withType(MESSAGE)
-                .withText(textReplyToSend);
-        if (speak != null)
-            activityToSend.withSpeak(speak);
+            ActivityImpl activityToSend = (ActivityImpl) new ActivityImpl()
+                    .withType(MESSAGE.toString())
+                    .withText(textReplyToSend);
+            if (speak != null)
+                activityToSend.withSpeak(speak);
 
-        if (StringUtils.isNotEmpty(inputHint))
-            activityToSend.withInputHint(InputHints.fromString(inputHint));
+            if (StringUtils.isNotEmpty(inputHint))
+                activityToSend.withInputHint(InputHints.fromString(inputHint));
 
-        return completedFuture(await(SendActivity(activityToSend)));
+            try {
+                return SendActivityAsync(activityToSend);
+            } catch (Exception e) {
+                e.printStackTrace();
+                throw new CompletionException(e);
+            }
+
+        });
+        return result;
     }
 
     /**
@@ -211,17 +223,18 @@ public class TurnContextImpl implements TurnContext, AutoCloseable {
      * channel assigned to the activity.
      */
     @Override
-    public CompletableFuture<ResourceResponse> SendActivity(Activity activity) throws Exception {
-        if (activity == null)
-            throw new IllegalArgumentException("activity");
+    public CompletableFuture<ResourceResponse> SendActivityAsync(Activity activity) throws Exception {
         return CompletableFuture.supplyAsync(() -> {
+            if (activity == null)
+                throw new CompletionException(new IllegalArgumentException("activity"));
+
             Activity[] activities = { activity };
             ResourceResponse[] responses = new ResourceResponse[0];
             try {
-                responses = await(SendActivities(activities));
+                responses = SendActivities(activities).join();
             } catch (Exception e) {
                 e.printStackTrace();
-                throw new RuntimeException(String.format("TurnContext:SendActivity fail %s", e.toString()));
+                throw new CompletionException(e);
             }
             if (responses == null || responses.length == 0)  {
                 // It's possible an interceptor prevented the activity from having been sent.

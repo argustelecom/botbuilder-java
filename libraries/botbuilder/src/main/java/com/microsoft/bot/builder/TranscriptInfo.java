@@ -1,10 +1,11 @@
-package com.microsoft.bot.builder;
-
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License.
 
+package com.microsoft.bot.builder;
 
-/** 
+import java.time.OffsetDateTime;
+
+/**
  Represents a copy of a conversation.
 */
 public class TranscriptInfo
@@ -44,12 +45,12 @@ public class TranscriptInfo
 	 
 	 <value>The date then conversation began.</value>
 	*/
-	private DateTimeOffset Created = new DateTimeOffset();
-	public final DateTimeOffset getCreated()
+	private OffsetDateTime Created = OffsetDateTime.now();
+	public final OffsetDateTime getCreated()
 	{
 		return Created;
 	}
-	public final void setCreated(DateTimeOffset value)
+	public final void setCreated(OffsetDateTime value)
 	{
 		Created = value;
 	}

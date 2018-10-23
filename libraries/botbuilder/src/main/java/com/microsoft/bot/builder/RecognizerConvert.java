@@ -1,7 +1,8 @@
-package com.microsoft.bot.builder;
-
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License.
+
+package com.microsoft.bot.builder;
+
 
 /** 
  Can convert from a generic recognizer result to a strongly typed one.
@@ -13,6 +14,5 @@ public interface RecognizerConvert
 	 
 	 @param result Result to convert.
 	*/
-//C# TO JAVA CONVERTER TODO TASK: There is no Java equivalent to the C# 'dynamic' keyword:
-	void Convert(dynamic result);
+	void Convert(Object result);
 }

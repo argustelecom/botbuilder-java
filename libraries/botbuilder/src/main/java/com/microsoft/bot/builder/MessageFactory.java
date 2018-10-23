@@ -1,26 +1,25 @@
-package com.microsoft.bot.builder;
-
-import com.microsoft.bot.schema.ActivityImpl;
-import com.microsoft.bot.schema.models.Activity;
-import com.microsoft.bot.schema.models.Attachment;
-import com.microsoft.bot.schema.models.CardAction;
-import com.microsoft.bot.schema.models.SuggestedActions;
-import org.apache.commons.lang3.StringUtils;
-
-import java.util.*;
-
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License.
 
+package com.microsoft.bot.builder;
 
-/** 
+import com.microsoft.bot.schema.ActivityImpl;
+import com.microsoft.bot.schema.models.*;
+import org.apache.commons.lang3.StringUtils;
+
+import java.util.*;
+import java.util.stream.Collectors;
+import java.util.stream.StreamSupport;
+
+
+/**
  Contains utility methods for various message types a bot can return.
  
  <example>
  <code>
  // Create and send a message.
  var message = MessageFactory.Text("Hello World");
- await context.SendActivity(message);
+ await context.SendActivityAsync(message);
  </code>
  </example>
  The following apply to message actions in general.
@@ -48,7 +47,7 @@ public final class MessageFactory
 	 <code>
 	 // Create and send a message.
 	 var message = MessageFactory.Text("Hello World");
-	 await context.SendActivity(message);
+	 await context.SendActivityAsync(message);
 	 </code>
 	 </example>
 	 @param text The text of the message to send.
@@ -71,11 +70,8 @@ public final class MessageFactory
 		return Text(text, null, null);
 	}
 
-//C# TO JAVA CONVERTER NOTE: Java does not support optional parameters. Overloaded method(s) are created above:
-//ORIGINAL LINE: public static Activity Text(string text, string ssml = null, string inputHint = null)
 	public static Activity Text(String text, String ssml, String inputHint)
 	{
-//C# TO JAVA CONVERTER TODO TASK: There is no equivalent to implicit typing in Java unless the Java 10 inferred typing option is selected:
 		Activity ma = ActivityImpl.CreateMessageActivity();
 		SetTextAndSpeak(ma, text, ssml, inputHint);
 		return (Activity)ma;
@@ -92,7 +88,7 @@ public final class MessageFactory
 		 text: "Choose a color");
 	
 	 // Send the activity as a reply to the user.
-	 await context.SendActivity(activity);
+	 await context.SendActivityAsync(activity);
 	 </code>
 	 </example>
 	 @param actions
@@ -116,24 +112,22 @@ public final class MessageFactory
 	 {@link SuggestedActions(IEnumerable{CardAction}, string, string, string)}
 	*/
 
-	public static IMessageActivity SuggestedActions(java.lang.Iterable<String> actions, String text, String ssml)
+	public static Activity SuggestedActions(java.lang.Iterable<String> actions, String text, String ssml)
 	{
 		return SuggestedActions(actions, text, ssml, null);
 	}
 
-	public static IMessageActivity SuggestedActions(java.lang.Iterable<String> actions, String text)
+	public static Activity SuggestedActions(java.lang.Iterable<String> actions, String text)
 	{
 		return SuggestedActions(actions, text, null, null);
 	}
 
-	public static IMessageActivity SuggestedActions(java.lang.Iterable<String> actions)
+	public static Activity SuggestedActions(java.lang.Iterable<String> actions)
 	{
 		return SuggestedActions(actions, null, null, null);
 	}
 
-//C# TO JAVA CONVERTER NOTE: Java does not support optional parameters. Overloaded method(s) are created above:
-//ORIGINAL LINE: public static IMessageActivity SuggestedActions(IEnumerable<string> actions, string text = null, string ssml = null, string inputHint = null)
-	public static IMessageActivity SuggestedActions(java.lang.Iterable<String> actions, String text, String ssml, String inputHint)
+	public static Activity SuggestedActions(Iterable<String> actions, String text, String ssml, String inputHint)
 	{
 		if (actions == null)
 		{
@@ -144,9 +138,9 @@ public final class MessageFactory
 		for (String s : actions)
 		{
 			CardAction ca = new CardAction();
-			ca.Type = ActionTypes.ImBack;
-			ca.Value = s;
-			ca.Title = s;
+			ca.withType(ActionTypes.IM_BACK);
+			ca.withValue(s);
+			ca.withTitle(s);
 
 			cardActions.add(ca);
 		}
@@ -169,7 +163,7 @@ public final class MessageFactory
 		 }, text: "Choose a color");
 	
 	 // Send the activity as a reply to the user.
-	 await context.SendActivity(activity);
+	 await context.SendActivityAsync(activity);
 	 </code>
 	 </example>
 	 @param cardActions
@@ -188,41 +182,41 @@ public final class MessageFactory
 	 {@link SuggestedActions(IEnumerable{string}, string, string, string)}
 	*/
 
-	public static IMessageActivity SuggestedActions(java.lang.Iterable<CardAction> cardActions, String text, String ssml)
+	public static Activity SuggestedActionsCard(Iterable<CardAction> cardActions, String text, String ssml)
 	{
-		return SuggestedActions(cardActions, text, ssml, null);
+		return SuggestedActionsCard(cardActions, text, ssml, null);
 	}
 
-	public static IMessageActivity SuggestedActions(java.lang.Iterable<CardAction> cardActions, String text)
+	public static Activity SuggestedActionsCard(Iterable<CardAction> cardActions, String text)
 	{
-		return SuggestedActions(cardActions, text, null, null);
+		return SuggestedActionsCard(cardActions, text, null, null);
 	}
 
-	public static IMessageActivity SuggestedActions(java.lang.Iterable<CardAction> cardActions)
+	public static Activity SuggestedActionsCard(Iterable<CardAction> cardActions)
 	{
-		return SuggestedActions(cardActions, null, null, null);
+		return SuggestedActionsCard(cardActions, null, null, null);
 	}
 
-//C# TO JAVA CONVERTER NOTE: Java does not support optional parameters. Overloaded method(s) are created above:
-//ORIGINAL LINE: public static IMessageActivity SuggestedActions(IEnumerable<CardAction> cardActions, string text = null, string ssml = null, string inputHint = null)
-	public static IMessageActivity SuggestedActions(java.lang.Iterable<CardAction> cardActions, String text, String ssml, String inputHint)
+	public static Activity SuggestedActionsCard(Iterable<CardAction> cardActions, String text, String ssml, String inputHint)
 	{
 		if (cardActions == null)
 		{
 			throw new NullPointerException("cardActions");
 		}
 
-//C# TO JAVA CONVERTER TODO TASK: There is no equivalent to implicit typing in Java unless the Java 10 inferred typing option is selected:
 		Activity ma = ActivityImpl.CreateMessageActivity();
 		SetTextAndSpeak(ma, text, ssml, inputHint);
 
-		ma.SuggestedActions = new SuggestedActions();
-		ma.SuggestedActions.Actions = cardActions.ToList();
+		ma.withSuggestedActions(new SuggestedActions());
+		List<CardAction> actions = StreamSupport        // Convert to list
+                                    .stream(cardActions.spliterator(), false)
+                                    .collect(Collectors.toList());
+		ma.suggestedActions().withActions(actions);
 
 		return ma;
 	}
 
-	/** 
+	/**
 	 Returns a message activity that contains an attachment.
 	 
 	 @param attachment Attachment to include in the message.
@@ -240,24 +234,22 @@ public final class MessageFactory
 	 {@link Carousel(IEnumerable{Attachment}, string, string, string)}
 	*/
 
-	public static IMessageActivity Attachment(Attachment attachment, String text, String ssml)
+	public static Activity Attachment(Attachment attachment, String text, String ssml)
 	{
 		return Attachment(attachment, text, ssml, null);
 	}
 
-	public static IMessageActivity Attachment(Attachment attachment, String text)
+	public static Activity Attachment(Attachment attachment, String text)
 	{
 		return Attachment(attachment, text, null, null);
 	}
 
-	public static IMessageActivity Attachment(Attachment attachment)
+	public static Activity Attachment(Attachment attachment)
 	{
 		return Attachment(attachment, null, null, null);
 	}
 
-//C# TO JAVA CONVERTER NOTE: Java does not support optional parameters. Overloaded method(s) are created above:
-//ORIGINAL LINE: public static IMessageActivity Attachment(Attachment attachment, string text = null, string ssml = null, string inputHint = null)
-	public static IMessageActivity Attachment(Attachment attachment, String text, String ssml, String inputHint)
+	public static Activity Attachment(Attachment attachment, String text, String ssml, String inputHint)
 	{
 		if (attachment == null)
 		{
@@ -285,24 +277,22 @@ public final class MessageFactory
 	 {@link Attachment(Schema.Attachment, string, string, string)}
 	*/
 
-	public static IMessageActivity Attachment(java.lang.Iterable<Attachment> attachments, String text, String ssml)
+	public static Activity Attachment(java.lang.Iterable<Attachment> attachments, String text, String ssml)
 	{
 		return Attachment(attachments, text, ssml, null);
 	}
 
-	public static IMessageActivity Attachment(java.lang.Iterable<Attachment> attachments, String text)
+	public static Activity Attachment(java.lang.Iterable<Attachment> attachments, String text)
 	{
 		return Attachment(attachments, text, null, null);
 	}
 
-	public static IMessageActivity Attachment(java.lang.Iterable<Attachment> attachments)
+	public static Activity Attachment(java.lang.Iterable<Attachment> attachments)
 	{
 		return Attachment(attachments, null, null, null);
 	}
 
-//C# TO JAVA CONVERTER NOTE: Java does not support optional parameters. Overloaded method(s) are created above:
-//ORIGINAL LINE: public static IMessageActivity Attachment(IEnumerable<Attachment> attachments, string text = null, string ssml = null, string inputHint = null)
-	public static IMessageActivity Attachment(java.lang.Iterable<Attachment> attachments, String text, String ssml, String inputHint)
+	public static Activity Attachment(java.lang.Iterable<Attachment> attachments, String text, String ssml, String inputHint)
 	{
 		if (attachments == null)
 		{
@@ -359,37 +349,35 @@ public final class MessageFactory
 	 });
 	
 	 // Send the activity as a reply to the user.
-	 await context.SendActivity(activity);
+	 await context.SendActivityAsync(activity);
 	 </code>
 	 </example>
 	 {@link Attachment(IEnumerable{Attachment}, string, string, string)}
 	*/
 
-	public static IMessageActivity Carousel(java.lang.Iterable<Attachment> attachments, String text, String ssml)
+	public static Activity Carousel(java.lang.Iterable<Attachment> attachments, String text, String ssml)
 	{
 		return Carousel(attachments, text, ssml, null);
 	}
 
-	public static IMessageActivity Carousel(java.lang.Iterable<Attachment> attachments, String text)
+	public static Activity Carousel(java.lang.Iterable<Attachment> attachments, String text)
 	{
 		return Carousel(attachments, text, null, null);
 	}
 
-	public static IMessageActivity Carousel(java.lang.Iterable<Attachment> attachments)
+	public static Activity Carousel(java.lang.Iterable<Attachment> attachments)
 	{
 		return Carousel(attachments, null, null, null);
 	}
 
-//C# TO JAVA CONVERTER NOTE: Java does not support optional parameters. Overloaded method(s) are created above:
-//ORIGINAL LINE: public static IMessageActivity Carousel(IEnumerable<Attachment> attachments, string text = null, string ssml = null, string inputHint = null)
-	public static IMessageActivity Carousel(java.lang.Iterable<Attachment> attachments, String text, String ssml, String inputHint)
+	public static Activity Carousel(java.lang.Iterable<Attachment> attachments, String text, String ssml, String inputHint)
 	{
 		if (attachments == null)
 		{
 			throw new NullPointerException("attachments");
 		}
 
-		return AttachmentActivity(AttachmentLayoutTypes.Carousel, attachments, text, ssml, inputHint);
+		return AttachmentActivity(AttachmentLayoutTypes.CAROUSEL.toString(), attachments, text, ssml, inputHint);
 	}
 
 	/** 
@@ -417,29 +405,27 @@ public final class MessageFactory
 	 </example>
 	*/
 
-	public static IMessageActivity ContentUrl(String url, String contentType, String name, String text, String ssml)
+	public static Activity ContentUrl(String url, String contentType, String name, String text, String ssml)
 	{
 		return ContentUrl(url, contentType, name, text, ssml, null);
 	}
 
-	public static IMessageActivity ContentUrl(String url, String contentType, String name, String text)
+	public static Activity ContentUrl(String url, String contentType, String name, String text)
 	{
 		return ContentUrl(url, contentType, name, text, null, null);
 	}
 
-	public static IMessageActivity ContentUrl(String url, String contentType, String name)
+	public static Activity ContentUrl(String url, String contentType, String name)
 	{
 		return ContentUrl(url, contentType, name, null, null, null);
 	}
 
-	public static IMessageActivity ContentUrl(String url, String contentType)
+	public static Activity ContentUrl(String url, String contentType)
 	{
 		return ContentUrl(url, contentType, null, null, null, null);
 	}
 
-//C# TO JAVA CONVERTER NOTE: Java does not support optional parameters. Overloaded method(s) are created above:
-//ORIGINAL LINE: public static IMessageActivity ContentUrl(string url, string contentType, string name = null, string text = null, string ssml = null, string inputHint = null)
-	public static IMessageActivity ContentUrl(String url, String contentType, String name, String text, String ssml, String inputHint)
+	public static Activity ContentUrl(String url, String contentType, String name, String text, String ssml, String inputHint)
 	{
 		if (StringUtils.isBlank(url))
 		{
@@ -452,65 +438,60 @@ public final class MessageFactory
 		}
 
 		Attachment a = new Attachment();
-		a.setContentType(contentType);
-		a.ContentUrl = url;
-		a.setName(!StringUtils.isBlank(name) ? name : "");
+		a.withContentType(contentType);
+		a.withContentUrl(url);
+		a.withName(!StringUtils.isBlank(name) ? name : "");
 
-		return AttachmentActivity(AttachmentLayoutTypes.List, new ArrayList<Attachment>(Arrays.asList(a)), text, ssml, inputHint);
+		return AttachmentActivity(AttachmentLayoutTypes.LIST.toString(), new ArrayList<Attachment>(Arrays.asList(a)), text, ssml, inputHint);
 	}
 
 
-	private static IMessageActivity AttachmentActivity(String attachmentLayout, java.lang.Iterable<Attachment> attachments, String text, String ssml)
+	private static Activity AttachmentActivity(String attachmentLayout, java.lang.Iterable<Attachment> attachments, String text, String ssml)
 	{
 		return AttachmentActivity(attachmentLayout, attachments, text, ssml, null);
 	}
 
-	private static IMessageActivity AttachmentActivity(String attachmentLayout, java.lang.Iterable<Attachment> attachments, String text)
+	private static Activity AttachmentActivity(String attachmentLayout, java.lang.Iterable<Attachment> attachments, String text)
 	{
 		return AttachmentActivity(attachmentLayout, attachments, text, null, null);
 	}
 
-	private static IMessageActivity AttachmentActivity(String attachmentLayout, java.lang.Iterable<Attachment> attachments)
+	private static Activity AttachmentActivity(String attachmentLayout, java.lang.Iterable<Attachment> attachments)
 	{
 		return AttachmentActivity(attachmentLayout, attachments, null, null, null);
 	}
 
-//C# TO JAVA CONVERTER NOTE: Java does not support optional parameters. Overloaded method(s) are created above:
-//ORIGINAL LINE: private static IMessageActivity AttachmentActivity(string attachmentLayout, IEnumerable<Attachment> attachments, string text = null, string ssml = null, string inputHint = null)
-	private static IMessageActivity AttachmentActivity(String attachmentLayout, java.lang.Iterable<Attachment> attachments, String text, String ssml, String inputHint)
+	private static Activity AttachmentActivity(String attachmentLayout, java.lang.Iterable<Attachment> attachments, String text, String ssml, String inputHint)
 	{
-//C# TO JAVA CONVERTER TODO TASK: There is no equivalent to implicit typing in Java unless the Java 10 inferred typing option is selected:
 		Activity ma = ActivityImpl.CreateMessageActivity();
-		ma.AttachmentLayout = attachmentLayout;
-		ma.Attachments = attachments.ToList();
+		ma.withAttachmentLayout(attachmentLayout);
+		ma.withAttachments(attachments);
 		SetTextAndSpeak(ma, text, ssml, inputHint);
 		return ma;
 	}
 
 
-	private static void SetTextAndSpeak(IMessageActivity ma, String text, String ssml)
+	private static void SetTextAndSpeak(Activity ma, String text, String ssml)
 	{
 		SetTextAndSpeak(ma, text, ssml, null);
 	}
 
-	private static void SetTextAndSpeak(IMessageActivity ma, String text)
+	private static void SetTextAndSpeak(Activity ma, String text)
 	{
 		SetTextAndSpeak(ma, text, null, null);
 	}
 
-	private static void SetTextAndSpeak(IMessageActivity ma)
+	private static void SetTextAndSpeak(Activity ma)
 	{
 		SetTextAndSpeak(ma, null, null, null);
 	}
 
-//C# TO JAVA CONVERTER NOTE: Java does not support optional parameters. Overloaded method(s) are created above:
-//ORIGINAL LINE: private static void SetTextAndSpeak(IMessageActivity ma, string text = null, string ssml = null, string inputHint = null)
-	private static void SetTextAndSpeak(IMessageActivity ma, String text, String ssml, String inputHint)
+	private static void SetTextAndSpeak(Activity ma, String text, String ssml, String inputHint)
 	{
 		// Note: we must put NULL in the fields, as the clients will happily render
 		// an empty string, which is not the behavior people expect to see.
-		ma.Text = !StringUtils.isBlank(text) ? text : null;
-		ma.Speak = !StringUtils.isBlank(ssml) ? ssml : null;
-		ma.InputHint = (inputHint != null) ? inputHint : InputHints.AcceptingInput;
+		ma.withText(!StringUtils.isBlank(text) ? text : null);
+		ma.withSpeak(!StringUtils.isBlank(ssml) ? ssml : null);
+		ma.withInputHint((inputHint != null) ? InputHints.fromString(inputHint) : InputHints.ACCEPTING_INPUT);
 	}
 }

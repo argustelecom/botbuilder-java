@@ -4,7 +4,7 @@ import com.microsoft.bot.builder.TurnContext;
 import com.microsoft.bot.schema.ActivityImpl;
 import com.microsoft.bot.schema.models.Activity;
 import org.joda.time.DateTime;
-import org.junit.Assert;
+
 
 import java.lang.management.ManagementFactory;
 import java.util.ArrayList;
