@@ -3,7 +3,6 @@
 
 package com.microsoft.bot.builder;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.datatype.joda.JodaModule;
 import com.microsoft.bot.builder.adapters.TestAdapter;
@@ -17,12 +16,7 @@ import org.apache.logging.log4j.Logger;
 import org.junit.Assert;
 import org.junit.Test;
 
-import java.util.ArrayList;
-import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutionException;
-
-
-import static java.util.concurrent.CompletableFuture.completedFuture;
 
 
 public class TranscriptMiddlewareTest {
@@ -38,12 +32,12 @@ public class TranscriptMiddlewareTest {
         {
 
                 TurnContextImpl context = (TurnContextImpl) ctxt;
-                conversationId[0] = context.getActivity().conversation().id();
+                conversationId[0] = context.activity().conversation().id();
                 ActivityImpl typingActivity = new ActivityImpl()
                         .withType(ActivityTypes.TYPING)
-                        .withRelatesTo(context.getActivity().relatesTo());
+                        .withRelatesTo(context.activity().relatesTo());
                 try {
-                    ResourceResponse response = context.SendActivity(typingActivity);
+                    ResourceResponse response = context.SendActivityAsync(typingActivity);
                     System.out.printf("Here's the response:");
                 } catch (Exception e) {
                     e.printStackTrace();
@@ -56,7 +50,7 @@ public class TranscriptMiddlewareTest {
                     Assert.fail();
                 }
                 try {
-                    context.SendActivity("echo:" + context.getActivity().text());
+                    context.SendActivityAsync("echo:" + context.activity().text());
                 } catch (Exception e) {
                     e.printStackTrace();
                     Assert.fail();
@@ -90,9 +84,9 @@ public class TranscriptMiddlewareTest {
         };
         ActivityImpl typingActivity = new ActivityImpl()
                 .withType(ActivityTypes.TYPING)
-                .withRelatesTo(context.getActivity().relatesTo());
+                .withRelatesTo(context.activity().relatesTo());
         try {
-            context.SendActivity(typingActivity);
+            context.SendActivityAsync(typingActivity);
             System.out.printf("HI");
         } catch (Exception e) {
             e.printStackTrace();
@@ -120,7 +114,7 @@ public class TranscriptMiddlewareTest {
                         .withType(ActivityTypes.TYPING)
                         .withRelatesTo(context.getActivity().relatesTo());
                 try {
-                    context.SendActivity((Activity)typingActivity);
+                    context.SendActivityAsync((Activity)typingActivity);
                 } catch (Exception e) {
                     e.printStackTrace();
                     Assert.fail();
@@ -192,7 +186,7 @@ public class TranscriptMiddlewareTest {
                     ActivityImpl activity = ((ActivityImpl) context.getActivity()).CreateReply("response");
                     ResourceResponse response = null;
                     try {
-                        response = context.SendActivity(activity);
+                        response = context.SendActivityAsync(activity);
                     } catch (Exception e) {
                         e.printStackTrace();
                         Assert.fail();
@@ -239,7 +233,7 @@ public class TranscriptMiddlewareTest {
                     ActivityImpl activity = ((ActivityImpl) context.getActivity()).CreateReply("response");
                     ResourceResponse response = null;
                     try {
-                        response = context.SendActivity(activity);
+                        response = context.SendActivityAsync(activity);
                     } catch (Exception e) {
                         e.printStackTrace();
                         Assert.fail();

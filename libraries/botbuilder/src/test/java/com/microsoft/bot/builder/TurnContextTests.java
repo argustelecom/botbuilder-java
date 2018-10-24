@@ -113,7 +113,7 @@ public class TurnContextTests {
         SimpleAdapter a = new SimpleAdapter();
         TurnContext c = new TurnContext(a, new Activity());
         Assert.IsFalse(c.Responded);            
-        var response = await c.SendActivity(TestMessage.Message("testtest"));
+        var response = await c.SendActivityAsync(TestMessage.Message("testtest"));
 
         Assert.IsTrue(c.Responded);
         Assert.IsTrue(response.Id == "testtest");
@@ -145,7 +145,7 @@ public class TurnContextTests {
         Assert.IsFalse(c.Responded);
 
         MessageActivity msg = TestMessage.Message().AsMessageActivity();
-        await c.SendActivity(msg);
+        await c.SendActivityAsync(msg);
         Assert.IsTrue(c.Responded);
     }
 
@@ -158,13 +158,13 @@ public class TurnContextTests {
 
         // Send a Trace Activity, and make sure responded is NOT set. 
         ITraceActivity trace  = Activity.CreateTraceActivity("trace");            
-        await c.SendActivity(trace);
+        await c.SendActivityAsync(trace);
         Assert.IsFalse(c.Responded);
 
         // Just to sanity check everything, send a Message and verify the 
         // responded flag IS set. 
         MessageActivity msg = TestMessage.Message().AsMessageActivity();
-        await c.SendActivity(msg);
+        await c.SendActivityAsync(msg);
         Assert.IsTrue(c.Responded);
     }
 
@@ -182,7 +182,7 @@ public class TurnContextTests {
 
         SimpleAdapter a = new SimpleAdapter(ValidateResponses);
         TurnContext c = new TurnContext(a, new Activity());            
-        await c.SendActivity(TestMessage.Message());
+        await c.SendActivityAsync(TestMessage.Message());
         Assert.IsTrue(foundActivity);
     }
 
@@ -200,7 +200,7 @@ public class TurnContextTests {
             return await next(); 
         });
 
-        await c.SendActivity(TestMessage.Message());
+        await c.SendActivityAsync(TestMessage.Message());
 
         Assert.IsTrue(count == 1);
     }
@@ -227,7 +227,7 @@ public class TurnContextTests {
             return null;
         });
 
-        await c.SendActivity(TestMessage.Message());
+        await c.SendActivityAsync(TestMessage.Message());
 
         Assert.IsTrue(count == 1);
         Assert.IsFalse(responsesSent, "Responses made it to the adapter.");
@@ -257,7 +257,7 @@ public class TurnContextTests {
             return await next(); 
         });
 
-        await c.SendActivity(TestMessage.Message());
+        await c.SendActivityAsync(TestMessage.Message());
 
         // Intercepted the message, changed it, and sent it on to the Adapter
         Assert.IsTrue(foundIt);            
@@ -469,7 +469,7 @@ public class TurnContextTests {
 
         try
         {
-            await c.SendActivity(TestMessage.Message());
+            await c.SendActivityAsync(TestMessage.Message());
             Assert.Fail("Should not get here");
         }
         catch(Exception ex)
@@ -483,9 +483,9 @@ public class TurnContextTests {
         switch (context.Activity.AsMessageActivity().Text)
         {
             case "count":
-                await context.SendActivity(context.Activity.CreateReply("one"));
-                await context.SendActivity(context.Activity.CreateReply("two"));
-                await context.SendActivity(context.Activity.CreateReply("three"));
+                await context.SendActivityAsync(context.Activity.CreateReply("one"));
+                await context.SendActivityAsync(context.Activity.CreateReply("two"));
+                await context.SendActivityAsync(context.Activity.CreateReply("three"));
                 break;
             case "ignore":
                 break;
@@ -493,13 +493,13 @@ public class TurnContextTests {
                 if (context.Responded == true)
                     throw new InvalidOperationException("Responded Is True");
 
-                await context.SendActivity(context.Activity.CreateReply("one"));
+                await context.SendActivityAsync(context.Activity.CreateReply("one"));
 
                 if (context.Responded == false)
                     throw new InvalidOperationException("Responded Is True");
                 break;
             default:
-                await context.SendActivity(
+                await context.SendActivityAsync(
                     context.Activity.CreateReply($"echo:{context.Activity.Text}"));
                 break;
         }

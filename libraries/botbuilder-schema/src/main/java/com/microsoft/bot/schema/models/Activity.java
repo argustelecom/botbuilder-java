@@ -13,6 +13,7 @@ import com.fasterxml.jackson.databind.JsonNode;
 import com.microsoft.bot.schema.EntityImpl;
 import org.joda.time.DateTime;
 
+import java.time.OffsetDateTime;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -30,9 +31,12 @@ public class Activity {
      * 'endOfConversation', 'event', 'invoke', 'deleteUserData',
      * 'messageUpdate', 'messageDelete', 'installationUpdate',
      * 'messageReaction', 'suggestion', 'trace'.
+     *
+     * NOTE: This has been modified from generated ActivityTypes object type to "String"
+     *
      */
     @JsonProperty(value = "type")
-    private ActivityTypes type;
+    private String type;
 
     /**
      * ID of this activity.
@@ -42,16 +46,20 @@ public class Activity {
 
     /**
      * UTC Time when message was sent (set by service).
+     *
+     * NOTE: This has been modified from generated DateTime object type to "OffsetDateTime"
      */
     @JsonProperty(value = "timestamp")
-    private DateTime timestamp;
+    private OffsetDateTime timestamp;
 
     /**
      * Local time when message was sent (set by client, Ex:
      * 2016-09-23T13:07:49.4714686-07:00).
+     *
+     * NOTE: This has been modified from generated DateTime object type to "OffsetDateTime"
      */
     @JsonProperty(value = "localTimestamp")
-    private DateTime localTimestamp;
+    private OffsetDateTime localTimestamp;
 
     /**
      * Service endpoint where operations concerning the activity may be
@@ -273,8 +281,9 @@ public class Activity {
      * Get the type value.
      *
      * @return the type value
+     * NOTE: This has been modified to be ActivityTypes to String.
      */
-    public ActivityTypes type() {
+    public String type() {
         return this.type;
     }
 
@@ -283,8 +292,9 @@ public class Activity {
      *
      * @param type the type value to set
      * @return the Activity object itself.
+     * NOTE: This has been modified to be String from ActivityTypes.
      */
-    public Activity withType(ActivityTypes type) {
+    public Activity withType(String type) {
         this.type = type;
         return this;
     }
@@ -313,8 +323,9 @@ public class Activity {
      * Get the timestamp value.
      *
      * @return the timestamp value
+     * NOTE: This has been modified to be OffsetDateTime from DateTime.
      */
-    public DateTime timestamp() {
+    public OffsetDateTime timestamp() {
         return this.timestamp;
     }
 
@@ -324,7 +335,7 @@ public class Activity {
      * @param timestamp the timestamp value to set
      * @return the Activity object itself.
      */
-    public Activity withTimestamp(DateTime timestamp) {
+    public Activity withTimestamp(OffsetDateTime timestamp) {
         this.timestamp = timestamp;
         return this;
     }
@@ -333,8 +344,9 @@ public class Activity {
      * Get the localTimestamp value.
      *
      * @return the localTimestamp value
+     * NOTE: This has been modified to OffsetDateTime from DateTime
      */
-    public DateTime localTimestamp() {
+    public OffsetDateTime localTimestamp() {
         return this.localTimestamp;
     }
 
@@ -344,7 +356,7 @@ public class Activity {
      * @param localTimestamp the localTimestamp value to set
      * @return the Activity object itself.
      */
-    public Activity withLocalTimestamp(DateTime localTimestamp) {
+    public Activity withLocalTimestamp(OffsetDateTime localTimestamp) {
         this.localTimestamp = localTimestamp;
         return this;
     }

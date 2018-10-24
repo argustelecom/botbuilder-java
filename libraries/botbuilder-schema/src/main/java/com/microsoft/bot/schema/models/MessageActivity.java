@@ -181,7 +181,7 @@ public class MessageActivity extends ActivityImpl
     public static ConversationUpdateActivity CreateConversationUpdateActivity()
     {
         ConversationUpdateActivity conversationActivity =  new ConversationUpdateActivity();
-        conversationActivity.withType(ActivityTypes.CONVERSATION_UPDATE);
+        conversationActivity.withType(ActivityTypes.CONVERSATION_UPDATE.toString());
         conversationActivity.withMembersAdded(new ArrayList<ChannelAccount>());
         conversationActivity.withMembersRemoved(new ArrayList<ChannelAccount>());
         return conversationActivity;

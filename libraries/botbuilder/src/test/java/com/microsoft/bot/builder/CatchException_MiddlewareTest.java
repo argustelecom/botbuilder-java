@@ -20,13 +20,13 @@ public class CatchException_MiddlewareTest {
                     @Override
                     public <T> void apply(TurnContext context, T t) throws Exception {
                         return CompletableFuture.runAsync(() -> {
-                            Activity activity = context.getActivity();
+                            Activity activity = context.activity();
                             if (activity instanceof ActivityImpl) {
                                 try {
-                                    context.SendActivity(((ActivityImpl) activity).CreateReply(t.toString()));
+                                    context.SendActivityAsync(((ActivityImpl) activity).CreateReply(t.toString()));
                                 } catch (Exception e) {
                                     e.printStackTrace();
-                                    throw new RuntimeException(String.format("CatchException_TestMiddleware_TestStackedErrorMiddleware:SendActivity failed %s", e.toString()));
+                                    throw new RuntimeException(String.format("CatchException_TestMiddleware_TestStackedErrorMiddleware:SendActivityAsync failed %s", e.toString()));
                                 }
                             } else
                                 Assert.assertTrue("Test was built for ActivityImpl", false);
@@ -39,7 +39,7 @@ public class CatchException_MiddlewareTest {
                 .Use(new CatchExceptionMiddleware<NullPointerException>(new CallOnException() {
                     @Override
                     public <T> void apply(TurnContext context, T t) throws Exception {
-                        context.SendActivity("Sorry - Null Reference Exception");
+                        context.SendActivityAsync("Sorry - Null Reference Exception");
                         return CompletableFuture.completedFuture(null);
                     }
                 }, NullPointerException.class));
@@ -76,12 +76,12 @@ public class CatchException_MiddlewareTest {
     TestAdapter adapter = new TestAdapter()
             .Use(new CatchExceptionMiddleware<Exception>((context, exception) =>
             {
-                    context.SendActivity("Generic Exception Caught");
+                    context.SendActivityAsync("Generic Exception Caught");
     return CompletableFuture.CompletedTask;
                 }))
                 .Use(new CatchExceptionMiddleware<NullReferenceException>((context, exception) =>
         {
-                context.SendActivity(exception.Message);
+                context.SendActivityAsync(exception.Message);
     return CompletableFuture.CompletedTask;
                 }));
 
@@ -90,7 +90,7 @@ public class CatchException_MiddlewareTest {
         {
     if (context.Activity.AsMessageActivity().Text == "foo")
     {
-        context.SendActivity(context.Activity.AsMessageActivity().Text);
+        context.SendActivityAsync(context.Activity.AsMessageActivity().Text);
     }
 
     if (context.Activity.AsMessageActivity().Text == "NullReferenceException")

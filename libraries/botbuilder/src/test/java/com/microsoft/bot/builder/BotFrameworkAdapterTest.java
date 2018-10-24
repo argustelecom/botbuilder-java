@@ -6,7 +6,6 @@ import com.microsoft.bot.schema.models.*;
 import org.junit.Assert;
 import org.junit.Test;
 
-import java.util.Collections;
 import java.util.UUID;
 import java.util.function.Consumer;
 
@@ -41,7 +40,7 @@ public class BotFrameworkAdapterTest {
                 .withId(activityId);
 
 
-        ResourceResponse resourceResponse = c.SendActivity(activity);
+        ResourceResponse resourceResponse = c.SendActivityAsync(activity);
         Assert.assertTrue("Incorrect response Id returned", resourceResponse.id() == activityId);
     }
     
