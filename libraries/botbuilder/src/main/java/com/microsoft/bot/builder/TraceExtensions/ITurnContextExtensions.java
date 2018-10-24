@@ -5,14 +5,14 @@ package com.microsoft.bot.builder.TraceExtensions;
 
 import com.microsoft.bot.builder.TurnContext;
 import com.microsoft.bot.builder.TurnContextImpl;
+import com.microsoft.bot.schema.ActivityImpl;
 import com.microsoft.bot.schema.models.ResourceResponse;
 
 import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.CompletionException;
 
 
-
-
-/** 
+/**
  Contains methods for woring with <see cref="ITurnContext"/> objects.
 */
 public final class ITurnContextExtensions
@@ -88,8 +88,15 @@ public final class ITurnContextExtensions
 	 it containsa <see cref="ResourceResponse"/> object containing the ID that the receiving
 	 channel assigned to the activity.
 	 */
-	public static CompletableFuture<ResourceResponse> TraceActivityAsync(TurnContext turnContext, String name, Object value, String valueType, String label)
-	{
-		return (TurnContextImpl)turnContext.SendActivityAsync(turnContext.activity().createTrace(name, value, valueType, label));
+	public static CompletableFuture<ResourceResponse> TraceActivityAsync(TurnContext turnContext, String name, Object value, String valueType, String label) {
+	    return CompletableFuture.supplyAsync(() -> {
+            try {
+                return ((TurnContextImpl)turnContext).SendActivityAsync(((ActivityImpl)turnContext.activity()).CreateTrace(name, value, valueType, label)).join();
+            } catch (Exception e) {
+                e.printStackTrace();
+                throw new CompletionException(e);
+            }
+        });
+
 	}
 }

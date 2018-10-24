@@ -49,7 +49,7 @@ public class MemoryStorage implements IStorage
 	*/
 	public final CompletableFuture DeleteAsync(String[] keys)
 	{
-	    return CompletableFuture.supplyAsync(() -> {
+	    return CompletableFuture.runAsync(() -> {
             synchronized (_syncroot)
             {
                 for (String key : keys)

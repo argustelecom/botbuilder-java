@@ -20,7 +20,7 @@ public class StorageExtensions {
 	 */
 	@SuppressWarnings("unchecked")
 	public static <StoreItemT extends Object> CompletableFuture<Map<String, StoreItemT>> Read(Storage storage, String... keys) throws JsonProcessingException {
-		Map<String, ?> storeItems = storage.Read(keys).join();
+		Map<String, ?> storeItems = storage.ReadAsync(keys).join();
 		HashMap<String, StoreItemT> result = new HashMap<String, StoreItemT>();
 		for (Map.Entry entry : storeItems.entrySet()) {
 			StoreItemT tempVal;

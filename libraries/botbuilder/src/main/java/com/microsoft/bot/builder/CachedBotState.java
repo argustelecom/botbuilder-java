@@ -1,6 +1,10 @@
 package com.microsoft.bot.builder;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
+
 import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
 
 /**
  Internal cached bot state.
@@ -15,7 +19,7 @@ class CachedBotState
 
     public CachedBotState(Map<String, Object> state)
     {
-        setState((state != null) ? state : new java.util.concurrent.ConcurrentHashMap<String, Object>());
+        setState((state != null) ? state : new ConcurrentHashMap<String, Object>());
         setHash(ComputeHash(getState()));
     }
 
@@ -44,8 +48,10 @@ class CachedBotState
         return !getHash().equals(ComputeHash(getState()));
     }
 
-    public final String ComputeHash(Object obj)
-    {
-        return JsonConvert.SerializeObject(obj);
+    public final String ComputeHash(Object obj) throws JsonProcessingException {
+        ObjectMapper objectMapper = new ObjectMapper();
+
+        return objectMapper.writeValueAsString(obj);
+
     }
 }

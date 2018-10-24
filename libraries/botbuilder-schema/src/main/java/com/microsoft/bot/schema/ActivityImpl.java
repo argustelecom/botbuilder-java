@@ -123,33 +123,6 @@ public class ActivityImpl extends Activity {
     }
 
     /**
-     * Create an instance of the TraceActivity
-     * @param name Name of the operation
-     * @param value value of the operation
-     * @param valueType valueType if helpful to identify the value schema (default is value.GetType().Name)
-     * @param label descritive label of context. (Default is calling function name)
-     */
-    public static TraceActivity CreateTraceActivity(String name, String valueType) {
-        return CreateTraceActivity(name, valueType, null, null);
-    }
-
-    public static TraceActivity CreateTraceActivity(String name, String valueType, Object value) {
-        return CreateTraceActivity(name, valueType, value, null);
-    }
-
-    // public static TraceActivity CreateTraceActivity(String name, String valueType, Object value, [CallerMemberName] String label=null)
-    public static TraceActivity CreateTraceActivity(String name, String valueType, Object value, String label) {
-        TraceActivity reply = (TraceActivity) new TraceActivity();
-        reply.withType(ActivityTypes.TRACE.toString());
-        reply.withName(name);
-        reply.withLabel(label);
-        reply.withValueType((valueType == null) ? value.getClass().getTypeName() : valueType);
-        reply.withValue(value);
-        return reply;
-
-    }
-
-    /**
      * Extension data for overflow of properties
      */
     //        [JsonExtensionData(ReadData = true, WriteData = true)]
@@ -166,6 +139,18 @@ public class ActivityImpl extends Activity {
         reply.withEntities(new ArrayList<EntityImpl>());;
         return reply;
     }
+
+    /**
+     Creates a trace activity based on this activity.
+
+     @param name The value to assign to the trace activity's <see cref="Activity.Name"/> property.
+     @param value The value to assign to the trace activity's <see cref="Activity.Value"/> property.
+     @param valueType The value to assign to the trace activity's <see cref="Activity.ValueType"/> property.
+     @param label The value to assign to the trace activity's <see cref="Activity.Label"/> property.
+     @return The created trace activity.
+     */
+
+
 
     /**
      * Create an instance of the Activity class with IContactRelationUpdateActivity masking

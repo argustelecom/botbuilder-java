@@ -63,7 +63,13 @@ public class TurnContextImpl implements TurnContext, AutoCloseable {
     /**
      *  Gets the services registered on this context object.
      */
-    TurnContextStateCollection turnState() { return turnServices; }
+    public TurnContextStateCollection turnState() { return turnServices; }
+
+
+    public boolean responded() {return responded;}
+    public TurnContext withResponded(boolean responded){
+        responded = responded; return this;
+    }
 
     /**
      * Adds a response handler for send activity operations.
@@ -308,7 +314,7 @@ public class TurnContextImpl implements TurnContext, AutoCloseable {
             return completedFuture(responses);
         };
 
-        List<Activity> act_list = new ArrayList<>(activityList);
+        ArrayList<Activity> act_list = new ArrayList<>(activityList);
         return completedFuture(SendActivitiesInternal(act_list, onSendActivities.iterator(), ActuallySendStuff).join());
     }
 
@@ -383,7 +389,7 @@ public class TurnContextImpl implements TurnContext, AutoCloseable {
     }
 
     private CompletableFuture<ResourceResponse[]> SendActivitiesInternal(
-            List<Activity> activities,
+            ArrayList<Activity> activities,
             Iterator<SendActivitiesHandler> sendHandlers,
             Callable<CompletableFuture<ResourceResponse[]>> callAtBottom) throws Exception {
         if (activities == null)
@@ -413,45 +419,6 @@ public class TurnContextImpl implements TurnContext, AutoCloseable {
         return completedFuture(caller.invoke(this, activities, next).join());
     }
 
-    //         private async Task<ResourceResponse> UpdateActivityInternal(Activity activity,
-    //            IEnumerable<UpdateActivityHandler> updateHandlers,
-    //            Func<Task<ResourceResponse>> callAtBottom)
-    //        {
-    //            BotAssert.ActivityNotNull(activity);
-    //            if (updateHandlers == null)
-    //                throw new ArgumentException(nameof(updateHandlers));
-    //
-    //            if (updateHandlers.Count() == 0) // No middleware to run.
-    //            {
-    //                if (callAtBottom != null)
-    //                {
-    //                    return await callAtBottom();
-    //                }
-    //
-    //                return null;
-    //            }
-    //
-    //          /**
-    //           */ Default to "No more Middleware after this".
-    //           */
-    //            async Task<ResourceResponse> next()
-    //            {
-    //              /**
-    //               */ Remove the first item from the list of middleware to call,
-    //               */ so that the next call just has the remaining items to worry about.
-    //               */
-    //                IEnumerable<UpdateActivityHandler> remaining = updateHandlers.Skip(1);
-    //                var result = await UpdateActivityInternal(activity, remaining, callAtBottom).ConfigureAwait(false);
-    //                activity.Id = result.Id;
-    //                return result;
-    //            }
-    //
-    //          /**
-    //           */ Grab the current middleware, which is the 1st element in the array, and execute it
-    //           */
-    //            UpdateActivityHandler toCall = updateHandlers.First();
-    //            return await toCall(this, activity, next);
-    //        }
     private CompletableFuture<ResourceResponse> UpdateActivityInternal(Activity activity,
                                                                        Iterator<UpdateActivityHandler> updateHandlers,
                                                                        Callable<CompletableFuture<ResourceResponse>> callAtBottom) throws Exception {
@@ -461,13 +428,13 @@ public class TurnContextImpl implements TurnContext, AutoCloseable {
 
         if (false == updateHandlers.hasNext()) { // No middleware to run.
             if (callAtBottom != null) {
-                return completedFuture(await(callAtBottom.call()));
+                return completedFuture(callAtBottom.call().join());
             }
             return completedFuture(null);
         }
 
         // Default to "No more Middleware after this".
-        Callable<CompletableFuture<ResourceResponse[]>> next = () -> {
+        Callable<CompletableFuture<ResourceResponse>> next = () -> {
             // Remove the first item from the list of middleware to call,
             // so that the next call just has the remaining items to worry about.
             if (updateHandlers.hasNext())
@@ -475,7 +442,7 @@ public class TurnContextImpl implements TurnContext, AutoCloseable {
             ResourceResponse result = null;
             result = UpdateActivityInternal(activity, updateHandlers, callAtBottom).join();
             activity.withId(result.id());
-            return completedFuture(new ResourceResponse[] { result });
+            return completedFuture(result);
         };
 
         // Grab the current middleware, which is the 1st element in the array, and execute it

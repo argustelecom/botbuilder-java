@@ -145,7 +145,7 @@ public final class MessageFactory
 			cardActions.add(ca);
 		}
 
-		return SuggestedActions(cardActions, text, ssml, inputHint);
+		return SuggestedActionsCard(cardActions, text, ssml, inputHint);
 	}
 
 	/** 
@@ -299,7 +299,7 @@ public final class MessageFactory
 			throw new NullPointerException("attachments");
 		}
 
-		return AttachmentActivity(AttachmentLayoutTypes.LIST, attachments, text, ssml, inputHint);
+		return AttachmentActivity(AttachmentLayoutTypes.LIST.toString(), attachments, text, ssml, inputHint);
 	}
 
 	/** 
@@ -446,26 +446,26 @@ public final class MessageFactory
 	}
 
 
-	private static Activity AttachmentActivity(String attachmentLayout, java.lang.Iterable<Attachment> attachments, String text, String ssml)
+	private static Activity AttachmentActivity(String attachmentLayout, Iterable<Attachment> attachments, String text, String ssml)
 	{
 		return AttachmentActivity(attachmentLayout, attachments, text, ssml, null);
 	}
 
-	private static Activity AttachmentActivity(String attachmentLayout, java.lang.Iterable<Attachment> attachments, String text)
+	private static Activity AttachmentActivity(String attachmentLayout, Iterable<Attachment> attachments, String text)
 	{
 		return AttachmentActivity(attachmentLayout, attachments, text, null, null);
 	}
 
-	private static Activity AttachmentActivity(String attachmentLayout, java.lang.Iterable<Attachment> attachments)
+	private static Activity AttachmentActivity(String attachmentLayout, Iterable<Attachment> attachments)
 	{
 		return AttachmentActivity(attachmentLayout, attachments, null, null, null);
 	}
 
-	private static Activity AttachmentActivity(String attachmentLayout, java.lang.Iterable<Attachment> attachments, String text, String ssml, String inputHint)
+	private static Activity AttachmentActivity(String attachmentLayout, Iterable<Attachment> attachments, String text, String ssml, String inputHint)
 	{
 		Activity ma = ActivityImpl.CreateMessageActivity();
-		ma.withAttachmentLayout(attachmentLayout);
-		ma.withAttachments(attachments);
+		ma.withAttachmentLayout(AttachmentLayoutTypes.fromString(attachmentLayout));
+		ma.withAttachments(StreamSupport.stream(attachments.spliterator(), false).collect(Collectors.toList()));
 		SetTextAndSpeak(ma, text, ssml, inputHint);
 		return ma;
 	}

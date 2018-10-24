@@ -113,8 +113,10 @@ public class RecognizerResult implements RecognizerConvert
 
 	/** <inheritdoc />
 	*/
-	public final void Convert(RecognizerResult result)
+
+	public final void Convert(Object objResult)
 	{
+	    RecognizerResult result = (RecognizerResult)objResult;
 		setText(result.Text);
 		setAlteredText(result.AlteredText);
 		setIntents(result.Intents);

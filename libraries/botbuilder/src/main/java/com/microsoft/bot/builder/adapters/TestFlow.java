@@ -290,7 +290,7 @@ public class TestFlow {
 				System.out.flush();
 
 				try {
-					this.adapter.SendTextToBot(userSays, this.callback);
+					this.adapter.SendTextToBotAsync(userSays, this.callback).join();
 					return null;
 				} catch (Exception e) {
 					return e.getMessage();

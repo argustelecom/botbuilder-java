@@ -116,7 +116,7 @@ public class MemoryTranscriptStore implements ITranscriptStore {
 	 * @return A task that represents the work queued to execute.
 	 * If the task completes successfully, the result contains the matching activities.
 	 */
-	public final CompletableFuture<PagedResult<Activity>> GetTranscriptActivitiesAsync(String channelId, String conversationId, String continuationToken, DateTime startDate) {
+	public final CompletableFuture<PagedResult<Activity>> GetTranscriptActivitiesAsync(String channelId, String conversationId, String continuationToken, OffsetDateTime startDate) {
 		return CompletableFuture.supplyAsync(() -> {
 			if (channelId == null) {
 				throw new NullPointerException(String.format("missing %1$s", "channelId"));
@@ -156,7 +156,7 @@ public class MemoryTranscriptStore implements ITranscriptStore {
 				} else {
 					List<Activity> items = transcript.stream()
 							.sorted(Comparator.comparing(Activity::timestamp))
-							.filter(a -> a.timestamp().compareTo((startDate == null) ? new DateTime(Long.MIN_VALUE) : startDate) >= 0)
+							.filter(a -> a.timestamp().compareTo((startDate == null) ? OffsetDateTime.MIN : startDate) >= 0)
 							.limit(20)
 							.collect(Collectors.toList());
 					pagedResult.items(items.toArray(new Activity[items.size()]));
@@ -207,7 +207,7 @@ public class MemoryTranscriptStore implements ITranscriptStore {
 	 * @return A task that represents the work queued to execute.
 	 */
 
-	public final CompletableFuture<PagedResult<Transcript>> ListTranscriptsAsync(String channelId) {
+	public final CompletableFuture<PagedResult<TranscriptInfo>> ListTranscriptsAsync(String channelId) {
 		return ListTranscriptsAsync(channelId, null);
 	}
 
@@ -219,13 +219,14 @@ public class MemoryTranscriptStore implements ITranscriptStore {
 	 * @return A task that represents the work queued to execute.
 	 */
 
-	public final CompletableFuture<PagedResult<Transcript>> ListTranscriptsAsync(String channelId, String continuationToken) {
+
+	public CompletableFuture<PagedResult<TranscriptInfo>> ListTranscriptsAsync(String channelId, String continuationToken) {
 		return CompletableFuture.supplyAsync(() -> {
 			if (channelId == null) {
 				throw new NullPointerException(String.format("missing %1$s", "channelId"));
 			}
 
-			PagedResult<Transcript> pagedResult = new PagedResult<Transcript>();
+			PagedResult<TranscriptInfo> pagedResult = new PagedResult<TranscriptInfo>();
 			synchronized (channels) {
 
 				if (!channels.containsKey(channelId)) {
@@ -234,59 +235,61 @@ public class MemoryTranscriptStore implements ITranscriptStore {
 
 				HashMap<String, ArrayList<Activity>> channel = channels.get(channelId);
 				if (continuationToken != null) {
-					List<Transcript> items = channel.entrySet().stream()
+					List<TranscriptInfo> items = channel.entrySet().stream()
 							.map(c -> {
 										OffsetDateTime offsetDateTime = null;
 										if (c.getValue().stream().findFirst().isPresent()) {
 											OffsetDateTime dt = c.getValue().stream().findFirst().get().timestamp();
 											// convert to DateTime to OffsetDateTime
-											Instant instant = Instant.ofEpochMilli(dt.getMillis());
-											ZoneOffset offset = ZoneId.of(dt.getZone().getID()).getRules().getOffset(instant);
-											offsetDateTime = instant.atOffset(offset);
+											//Instant instant = Instant.ofEpochMilli(dt.getMillis());
+											//ZoneOffset offset = ZoneId.of(dt.getZone().getID()).getRules().getOffset(instant);
+											//offsetDateTime = instant.atOffset(offset);
+											offsetDateTime = dt;
 										} else {
 											offsetDateTime = OffsetDateTime.now();
 										}
-										return new Transcript()
+										return new TranscriptInfo()
 												.withChannelId(channelId)
 												.withId(c.getKey())
 												.withCreated(offsetDateTime);
 									}
 							)
-							.sorted(Comparator.comparing(Transcript::getCreated))
-							.filter(skipwhile(c -> !c.getId().equals(continuationToken)))
+							.sorted(Comparator.comparing(TranscriptInfo::created))
+							.filter(skipwhile(c -> !c.id().equals(continuationToken)))
 							.skip(1)
 							.limit(20)
 							.collect(Collectors.toList());
-					pagedResult.items(items.toArray(new Transcript[items.size()]));
+					pagedResult.items(items.toArray(new TranscriptInfo[items.size()]));
 					if (items.size() == 20) {
-						pagedResult.withContinuationToken(items.get(items.size() - 1).getId());
+						pagedResult.withContinuationToken(items.get(items.size() - 1).id());
 					}
 				} else {
 
-					List<Transcript> items = channel.entrySet().stream()
+					List<TranscriptInfo> items = channel.entrySet().stream()
 							.map(c -> {
 										OffsetDateTime offsetDateTime = null;
 										if (c.getValue().stream().findFirst().isPresent()) {
-											DateTime dt = c.getValue().stream().findFirst().get().timestamp();
+											//DateTime dt = c.getValue().stream().findFirst().get().timestamp();
 											// convert to DateTime to OffsetDateTime
-											Instant instant = Instant.ofEpochMilli(dt.getMillis());
-											ZoneOffset offset = ZoneId.of(dt.getZone().getID()).getRules().getOffset(instant);
-											offsetDateTime = instant.atOffset(offset);
+											//Instant instant = Instant.ofEpochMilli(dt.getMillis());
+											//ZoneOffset offset = ZoneId.of(dt.getZone().getID()).getRules().getOffset(instant);
+											//offsetDateTime = instant.atOffset(offset);
+											offsetDateTime = c.getValue().stream().findFirst().get().timestamp();
 										} else {
 											offsetDateTime = OffsetDateTime.now();
 										}
-										return new Transcript()
+										return new TranscriptInfo()
 												.withChannelId(channelId)
 												.withId(c.getKey())
 												.withCreated(offsetDateTime);
 									}
 							)
-							.sorted(Comparator.comparing(Transcript::getCreated))
+							.sorted(Comparator.comparing(TranscriptInfo::created))
 							.limit(20)
 							.collect(Collectors.toList());
-					pagedResult.items(items.toArray(new Transcript[items.size()]));
+					pagedResult.items(items.toArray(new TranscriptInfo[items.size()]));
 					if (items.size() == 20) {
-						pagedResult.withContinuationToken(items.get(items.size() - 1).getId());
+						pagedResult.withContinuationToken(items.get(items.size() - 1).id());
 					}
 				}
 			}

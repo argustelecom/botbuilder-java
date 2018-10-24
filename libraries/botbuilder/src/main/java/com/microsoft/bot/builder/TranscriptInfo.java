@@ -16,13 +16,14 @@ public class TranscriptInfo
 	 <value>The ID of the channel in which the conversation occurred.</value>
 	*/
 	private String ChannelId;
-	public final String getChannelId()
+	public final String channelId()
 	{
 		return ChannelId;
 	}
-	public final void setChannelId(String value)
+	public final TranscriptInfo withChannelId(String value)
 	{
 		ChannelId = value;
+		return this;
 	}
 
 	/** 
@@ -31,13 +32,14 @@ public class TranscriptInfo
 	 <value>The ID of the conversation.</value>
 	*/
 	private String Id;
-	public final String getId()
+	public final String id()
 	{
 		return Id;
 	}
-	public final void setId(String value)
+	public final TranscriptInfo withId(String value)
 	{
 		Id = value;
+		return this;
 	}
 
 	/** 
@@ -46,12 +48,13 @@ public class TranscriptInfo
 	 <value>The date then conversation began.</value>
 	*/
 	private OffsetDateTime Created = OffsetDateTime.now();
-	public final OffsetDateTime getCreated()
+	public final OffsetDateTime created()
 	{
 		return Created;
 	}
-	public final void setCreated(OffsetDateTime value)
+	public final TranscriptInfo withCreated(OffsetDateTime value)
 	{
 		Created = value;
+		return this;
 	}
 }

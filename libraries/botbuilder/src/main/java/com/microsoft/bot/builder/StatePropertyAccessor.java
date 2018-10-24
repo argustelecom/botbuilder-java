@@ -22,7 +22,7 @@ public interface StatePropertyAccessor<T> extends StatePropertyInfo
 	 @return A <see cref="Task"/> representing the result of the asynchronous operation.
 	*/
 
-	CompletableFuture<T> GetAsync(TurnContext turnContext, Supplier<T> defaultValueFactory);
+	CompletableFuture<Object> GetAsync(TurnContext turnContext, Supplier<T> defaultValueFactory);
 
 	/** 
 	 Delete the property from the source.
@@ -40,5 +40,5 @@ public interface StatePropertyAccessor<T> extends StatePropertyInfo
 	 @return A <see cref="Task"/> representing the asynchronous operation.
 	*/
 
-	CompletableFuture SetAsync(TurnContext turnContext, T value);
+	CompletableFuture SetAsync(TurnContext turnContext, Object value);
 }

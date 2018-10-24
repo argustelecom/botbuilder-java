@@ -59,7 +59,7 @@ public interface TurnContext
 	 * @return {@code true} if at least one response was sent for the current turn.
 	 */
 	boolean responded();
-	//void withResponded(boolean responded);
+	TurnContext withResponded(boolean responded);
 
 	/**
 	 * Sends a message activity to the sender of the incoming activity.

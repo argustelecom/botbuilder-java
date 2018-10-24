@@ -135,7 +135,12 @@ public abstract class BotState implements PropertyManager
                     e.printStackTrace();
                     throw new CompletionException(e);
                 }
-                cachedState.setHash(cachedState.ComputeHash(cachedState.getState()));
+                try {
+                    cachedState.setHash(cachedState.ComputeHash(cachedState.getState()));
+                } catch (JsonProcessingException e) {
+                    e.printStackTrace();
+                    throw new CompletionException(e);
+                }
                 return;
             }
         });

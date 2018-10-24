@@ -14,7 +14,7 @@ public class UserState extends BotState
 	 
 	 @param storage The storage provider to use.
 	*/
-	public UserState(IStorage storage)
+	public UserState(Storage storage)
 	{
 		super(storage, "UserState");
 	}

@@ -120,31 +120,37 @@ public class TestAdapter extends BotAdapter
 
 	public final CompletableFuture ProcessActivityAsync(Activity activity, BotCallbackHandler callback)
 	{
-		synchronized (_conversationLock)
-		{
-			// ready for next reply
-			if (activity.type() == null)
-			{
-				activity.withType(ActivityTypes.MESSAGE.toString());
-			}
+	    return CompletableFuture.runAsync(() -> {
+            synchronized (_conversationLock)
+            {
+                // ready for next reply
+                if (activity.type() == null)
+                {
+                    activity.withType(ActivityTypes.MESSAGE.toString());
+                }
 
-			activity.withChannelId(getConversation().channelId());
-			activity.withFrom(getConversation().user());
-			activity.withRecipient(getConversation().bot());
-			activity.withConversation(getConversation().conversation());
-			activity.withServiceUrl(getConversation().serviceUrl());
-			activity.withId(Integer.toString(_nextId++));
-		}
+                activity.withChannelId(getConversation().channelId());
+                activity.withFrom(getConversation().user());
+                activity.withRecipient(getConversation().bot());
+                activity.withConversation(getConversation().conversation());
+                activity.withServiceUrl(getConversation().serviceUrl());
+                activity.withId(Integer.toString(_nextId++));
+            }
 
-		if (activity.timestamp() == null || activity.timestamp() == null)
-		{
-			activity.withTimestamp(OffsetDateTime.now());
-		}
+            if (activity.timestamp() == null || activity.timestamp() == null)
+            {
+                activity.withTimestamp(OffsetDateTime.now());
+            }
 
-		try (TurnContext context = new TurnContextImpl(this, activity))
-		{
-			RunPipelineAsync(context, callback).join();
-		}
+            try (TurnContextImpl context = new TurnContextImpl(this, (ActivityImpl)activity))
+            {
+                RunPipelineAsync(context, callback).join();
+            } catch (Exception e) {
+                e.printStackTrace();
+                throw new CompletionException(e);
+            }
+
+        });
 	}
 
 	/** 
@@ -326,10 +332,10 @@ public class TestAdapter extends BotAdapter
 	public final CompletableFuture CreateConversationAsync(String channelId, BotCallbackHandler callback)
 	{
 		getActiveQueue().clear();
-        Activity update = ActivityImpl.CreateConversationUpdateActivity();
+        ActivityImpl update = ActivityImpl.CreateConversationUpdateActivity();
 		update.withConversation(new ConversationAccount());
 		update.conversation().withId(UUID.randomUUID().toString());
-		TurnContext context = new TurnContext(this, (Activity)update);
+		TurnContextImpl context = new TurnContextImpl(this, update);
 		return callback.invoke(context);
 	}
 
