@@ -123,17 +123,18 @@ public abstract class BotAdapter {
 	 *                              initiated by a call to {@link ContinueConversation(ConversationReference, Func{TurnContext, Task})}
 	 *                              (proactive messaging), the callback method is the callback method that was provided in the call.</p>
 	 */
-	protected CompletableFuture RunPipelineAsync(TurnContext context, Consumer<TurnContext> callback) throws Exception {
+	protected CompletableFuture RunPipelineAsync(TurnContext context, BotCallbackHandler callback) throws Exception {
 		return CompletableFuture.runAsync(() -> {
 			BotAssert.ContextNotNull(context);
 
 			// Call any registered Middleware Components looking for ReceiveActivity()
 			if (context.activity() != null) {
-				_middlewareSet.ReceiveActivityWithStatus(context, callback);
+				// TODO: Add exception handler
+				_middlewareSet.ReceiveActivityWithStatusAsync(context, callback).join();
 			} else {
 				// call back to caller on proactive case
 				if (callback != null) {
-					callback.accept(context);
+					callback.invoke(context).join();
 				}
 			}
 			return;
@@ -154,7 +155,7 @@ public abstract class BotAdapter {
 	 * before the bot can send activities to the user.
 	 * {@linkalso RunPipeline(TurnContext, Func { TurnContext, Task })}
 	 */
-	public CompletableFuture ContinueConversationAsync(String botId, ConversationReference reference, Consumer<TurnContext> callback) throws Exception {
+	public CompletableFuture ContinueConversationAsync(String botId, ConversationReference reference, BotCallbackHandler callback) throws Exception {
 
 		ConversationReferenceHelper conv = new ConversationReferenceHelper(reference);
 		ActivityImpl activity = conv.GetPostToBotMessage();

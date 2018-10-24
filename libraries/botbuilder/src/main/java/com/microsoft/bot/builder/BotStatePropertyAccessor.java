@@ -1,6 +1,9 @@
 package com.microsoft.bot.builder;
 
+
 import java.util.concurrent.CompletableFuture;
+import java.util.function.Function;
+import java.util.function.Supplier;
 
 /**
  Implements IPropertyAccessor for an IPropertyContainer.
@@ -11,7 +14,7 @@ import java.util.concurrent.CompletableFuture;
 
  <typeparam name="T">type of value the propertyAccessor accesses.</typeparam>
  */
-class BotStatePropertyAccessor<T> implements StatePropertyAccessor<T>
+class BotStatePropertyAccessor<T extends Object> implements StatePropertyAccessor<T>
 {
     private BotState _botState;
 
@@ -46,8 +49,10 @@ class BotStatePropertyAccessor<T> implements StatePropertyAccessor<T>
      */
     public final CompletableFuture DeleteAsync(TurnContext turnContext)
     {
-        _botState.LoadAsync(turnContext, false).join();
-        _botState.DeletePropertyValueAsync(turnContext, getName()).join();
+        return CompletableFuture.runAsync(() -> {
+            _botState.LoadAsync(turnContext, false).join();
+            _botState.DeletePropertyValueAsync(turnContext, getName()).join();
+        });
     }
 
     /**
@@ -57,27 +62,23 @@ class BotStatePropertyAccessor<T> implements StatePropertyAccessor<T>
      @param defaultValueFactory Defines the default value. Invoked when no value been set for the requested state property.  If defaultValueFactory is defined as null, the MissingMemberException will be thrown if the underlying property is not set.
      @return A <see cref="Task"/> representing the asynchronous operation.
      */
-    public final CompletableFuture<T> GetAsync(TurnContext turnContext, tangible.Func0Param<T> defaultValueFactory)
+    public final CompletableFuture<Object> GetAsync(TurnContext turnContext, Supplier<T> defaultValueFactory)
     {
-        _botState.LoadAsync(turnContext, false).join();
-        try
-        {
-            return _botState.<T>GetPropertyValueAsync(turnContext, getName()).join();
-        }
-        catch (KeyNotFoundException e)
-        {
-            // ask for default value from factory
-            if (defaultValueFactory == null)
-            {
-                throw new MissingMemberException("Property not set and no default provided.");
+        return CompletableFuture.supplyAsync(() -> {
+            _botState.LoadAsync(turnContext, false).join();
+            Object obj = _botState.<T>GetPropertyValueAsync(turnContext, getName()).join();
+            if (obj == null) {
+                // ask for default value from factory
+                if (defaultValueFactory == null) {
+                    throw new IllegalStateException("Property not set and no default provided.");
+                }
+                Object result = defaultValueFactory.get();
+                // save default value for any further calls
+                SetAsync(turnContext, result).join();
+                return result;
             }
-
-            var result = defaultValueFactory.invoke();
-
-            // save default value for any further calls
-            SetAsync(turnContext, result).join();
-            return result;
-        }
+            return obj;
+        });
     }
 
     /**
@@ -87,11 +88,11 @@ class BotStatePropertyAccessor<T> implements StatePropertyAccessor<T>
      @param value value.
      @return A <see cref="Task"/> representing the asynchronous operation.
      */
-//C# TO JAVA CONVERTER TODO TASK: There is no equivalent in Java to the 'async' keyword:
-//ORIGINAL LINE: public async Task SetAsync(ITurnContext turnContext, T value, CancellationToken cancellationToken)
-    public final CompletableFuture SetAsync(TurnContext turnContext, T value)
+    public final CompletableFuture SetAsync(TurnContext turnContext, Object value)
     {
-        _botState.LoadAsync(turnContext, false).join();
-        _botState.SetPropertyValueAsync(turnContext, getName(), value).join();
+        return CompletableFuture.runAsync(() -> {
+            _botState.LoadAsync(turnContext, false).join();
+            _botState.SetPropertyValueAsync(turnContext, getName(), value).join();
+        });
     }
 }

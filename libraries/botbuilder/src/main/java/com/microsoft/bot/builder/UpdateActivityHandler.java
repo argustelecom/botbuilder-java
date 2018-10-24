@@ -3,6 +3,7 @@ package com.microsoft.bot.builder;
 import com.microsoft.bot.schema.models.Activity;
 import com.microsoft.bot.schema.models.ResourceResponse;
 
+import java.util.concurrent.Callable;
 import java.util.concurrent.CompletableFuture;
 import java.util.function.Supplier;
 
@@ -31,5 +32,5 @@ import java.util.function.Supplier;
 @FunctionalInterface
 public interface UpdateActivityHandler
 {
-	CompletableFuture<ResourceResponse> invoke(TurnContext turnContext, Activity activity, Supplier<CompletableFuture<ResourceResponse>> next);
+	CompletableFuture<ResourceResponse> invoke(TurnContext turnContext, Activity activity, Callable<CompletableFuture<ResourceResponse>> next);
 }

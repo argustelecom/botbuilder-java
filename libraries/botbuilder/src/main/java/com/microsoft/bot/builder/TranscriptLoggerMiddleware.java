@@ -17,7 +17,9 @@ import org.apache.logging.log4j.Logger;
 import org.joda.time.DateTime;
 import org.joda.time.DateTimeZone;
 
+import java.time.OffsetDateTime;
 import java.util.LinkedList;
+import java.util.concurrent.CompletableFuture;
 
 
 /**
@@ -61,104 +63,103 @@ public class TranscriptLoggerMiddleware implements Middleware {
 	@Override
 	public void OnTurn(TurnContext context, NextDelegate next) throws Exception {
 		// log incoming activity at beginning of turn
-		if (context.getActivity() != null) {
+		if (context.activity() != null) {
 			JsonNode role = null;
-			if (context.getActivity().from() == null) {
+			if (context.activity().from() == null) {
 				throw new RuntimeException("Activity does not contain From field");
 			}
-			if (context.getActivity().from().properties().containsKey("role")) {
-				role = context.getActivity().from().properties().get("role");
+			if (context.activity().from().properties().containsKey("role")) {
+				role = context.activity().from().properties().get("role");
 			}
 
 			if (role == null || StringUtils.isBlank(role.asText())) {
-				context.getActivity().from().properties().put("role", mapper.createObjectNode().with("user"));
+				context.activity().from().properties().put("role", mapper.createObjectNode().with("user"));
 			}
-			Activity activityTemp = ActivityImpl.CloneActity(context.getActivity());
+			Activity activityTemp = ActivityImpl.CloneActity(context.activity());
 
-			LogActivity(ActivityImpl.CloneActity(context.getActivity()));
+			LogActivity(ActivityImpl.CloneActity(context.activity()));
 		}
 
 		// hook up onSend pipeline
 		context.OnSendActivities((ctx, activities, nextSend) ->
 		{
 
-			// run full pipeline
-			ResourceResponse[] responses = new ResourceResponse[0];
-			try {
-				if (nextSend != null) {
-					responses = nextSend.call();
+			return CompletableFuture.supplyAsync(() -> {
+				// run full pipeline
+				ResourceResponse[] responses = new ResourceResponse[0];
+				try {
+					if (nextSend != null) {
+						responses = nextSend.get().join();
+					}
+				} catch (Exception e) {
+					e.printStackTrace();
 				}
-			} catch (Exception e) {
-				e.printStackTrace();
-			}
 
-			for (Activity activity : activities) {
-				LogActivity(ActivityImpl.CloneActity(activity));
-			}
+				for (Activity activity : activities) {
+					LogActivity(ActivityImpl.CloneActity(activity));
+				}
 
-			return responses;
-
-
+				return responses;
+			});
 		});
 
 		// hook up update activity pipeline
 		context.OnUpdateActivity((ctx, activity, nextUpdate) ->
 		{
-
-			// run full pipeline
-			ResourceResponse response = null;
-			try {
-				if (nextUpdate != null) {
-					response = nextUpdate.call();
+			return CompletableFuture.supplyAsync(() -> {
+				// run full pipeline
+				ResourceResponse response = null;
+				try {
+					if (nextUpdate != null) {
+						response = nextUpdate.get().join();
+					}
+				} catch (Exception e) {
+					e.printStackTrace();
+					throw new RuntimeException(String.format("Error on Logging.OnUpdateActivity : %s", e.toString()));
 				}
-			} catch (Exception e) {
-				e.printStackTrace();
 
-
-				throw new RuntimeException(String.format("Error on Logging.OnUpdateActivity : %s", e.toString()));
-			}
-
-			// add Message Update activity
-			Activity updateActivity = ActivityImpl.CloneActity(activity);
-			updateActivity.withType(ActivityTypes.MESSAGE_UPDATE);
-			LogActivity(updateActivity);
-			return response;
-
-
+				// add Message Update activity
+				Activity updateActivity = ActivityImpl.CloneActity(activity);
+				updateActivity.withType(ActivityTypes.MESSAGE_UPDATE.toString());
+				LogActivity(updateActivity);
+				return response;
+			});
 		});
 
 		// hook up delete activity pipeline
 		context.OnDeleteActivity((ctxt, reference, nextDel) -> {
-			// run full pipeline
+			CompletableFuture.runAsync(() -> {
+				// run full pipeline
 
-			try {
-				if (nextDel != null) {
-					log4j.error(String.format("Transcript logActivity next delegate: %s)", nextDel));
-					nextDel.run();
+				try {
+					if (nextDel != null) {
+						log4j.error(String.format("Transcript logActivity next delegate: %s)", nextDel));
+						nextDel.run();
+					}
+				} catch (Exception e) {
+					e.printStackTrace();
+					log4j.error(String.format("Transcript logActivity failed with %s (next delegate: %s)", e.toString(), nextDel));
+					throw new RuntimeException(String.format("Transcript logActivity failed with %s", e.getMessage()));
+
 				}
-			} catch (Exception e) {
-				e.printStackTrace();
-				log4j.error(String.format("Transcript logActivity failed with %s (next delegate: %s)", e.toString(), nextDel));
-				throw new RuntimeException(String.format("Transcript logActivity failed with %s", e.getMessage()));
 
-			}
+				// add MessageDelete activity
+				// log as MessageDelete activity
+				Activity deleteActivity = new Activity()
+						.withType(ActivityTypes.MESSAGE_DELETE.toString())
+						.withId(reference.activityId())
+						.applyConversationReference(reference, false);
 
-			// add MessageDelete activity
-			// log as MessageDelete activity
-			Activity deleteActivity = new Activity()
-					.withType(ActivityTypes.MESSAGE_DELETE)
-					.withId(reference.activityId())
-					.applyConversationReference(reference, false);
-
-			LogActivity(deleteActivity);
-			return;
+				LogActivity(deleteActivity);
+				return;
+			});
 
 		});
 
 
 		// process bot logic
 		try {
-			next.next();
+			next.invoke().join();
 		} catch (Exception e) {
 			e.printStackTrace();
 			throw new RuntimeException(String.format("Error on Logging.next : %s", e.toString()));
@@ -168,7 +169,7 @@ public class TranscriptLoggerMiddleware implements Middleware {
 		while (!transcript.isEmpty()) {
 			Activity activity = transcript.poll();
 			try {
-				this.logger.LogActivityAsync(activity);
+				this.logger.LogActivityAsync(activity).join();
 			} catch (RuntimeException err) {
 				log4j.error(String.format("Transcript poll failed : %1$s", err));
 			}
@@ -180,7 +181,7 @@ public class TranscriptLoggerMiddleware implements Middleware {
 	private void LogActivity(Activity activity) {
 		synchronized (transcript) {
 			if (activity.timestamp() == null) {
-				activity.withTimestamp(DateTime.now(DateTimeZone.UTC));
+				activity.withTimestamp(OffsetDateTime.now());
 			}
 			transcript.offer(activity);
 		}

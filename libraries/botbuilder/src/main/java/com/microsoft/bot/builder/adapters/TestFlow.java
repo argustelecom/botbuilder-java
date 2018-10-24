@@ -1,10 +1,13 @@
 package com.microsoft.bot.builder.adapters;
 
+import com.microsoft.bot.builder.BotCallbackHandler;
 import com.microsoft.bot.builder.TurnContext;
 import com.microsoft.bot.schema.ActivityImpl;
 import com.microsoft.bot.schema.models.Activity;
 import org.joda.time.DateTime;
+import org.junit.Assert;
 
+import static org.junit.Assert.*;
 
 import java.lang.management.ManagementFactory;
 import java.util.ArrayList;
@@ -18,7 +21,7 @@ import static java.util.concurrent.CompletableFuture.completedFuture;
 public class TestFlow {
 	final TestAdapter adapter;
 	CompletableFuture<String> testTask;
-	Consumer<TurnContext> callback;
+	BotCallbackHandler callback;
 
 	ArrayList<Supplier<String>> tasks = new ArrayList<Supplier<String>>();
 	ForkJoinPool.ForkJoinWorkerThreadFactory factory = new ForkJoinPool.ForkJoinWorkerThreadFactory()
@@ -39,7 +42,7 @@ public class TestFlow {
 		this(adapter, null);
 	}
 
-	public TestFlow(TestAdapter adapter, Consumer<TurnContext> callback) {
+	public TestFlow(TestAdapter adapter, BotCallbackHandler callback) {
 		this.adapter = adapter;
 		this.callback = callback;
 		this.testTask = completedFuture(null);
@@ -91,7 +94,7 @@ public class TestFlow {
 			System.out.print(String.format("USER SAYS: %s (Thread Id: %s)\n", userSays, Thread.currentThread().getId()));
 			System.out.flush();
 			try {
-				this.adapter.SendTextToBot(userSays, this.callback);
+				this.adapter.SendTextToBotAsync(userSays, this.callback);
 				return "Successfully sent " + userSays;
 			} catch (Exception e) {
 				Assert.fail(e.getMessage());
@@ -116,7 +119,7 @@ public class TestFlow {
 
 
 			try {
-				this.adapter.ProcessActivity((ActivityImpl) userActivity, this.callback);
+				this.adapter.ProcessActivityAsync((ActivityImpl) userActivity, this.callback);
 				return "TestFlow: Send() -> ProcessActivity: " + userActivity.text();
 			} catch (Exception e) {
 				return e.getMessage();

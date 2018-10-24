@@ -5,6 +5,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 
 import java.util.*;
 import java.util.concurrent.CompletableFuture;
+import java.util.function.Supplier;
 
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License.
@@ -46,15 +47,17 @@ public class MemoryStorage implements IStorage
 	 {@link ReadAsync(string[] )}
 	 {@link WriteAsync(IDictionary{string, object} )}
 	*/
-	public final void DeleteAsync(String[] keys)
+	public final CompletableFuture DeleteAsync(String[] keys)
 	{
-		synchronized (_syncroot)
-		{
-			for (String key : keys)
-			{
-				_memory.remove(key);
-			}
-		}
+	    return CompletableFuture.supplyAsync(() -> {
+            synchronized (_syncroot)
+            {
+                for (String key : keys)
+                {
+                    _memory.remove(key);
+                }
+            }
+        });
 	}
 
 	/** 
@@ -71,24 +74,25 @@ public class MemoryStorage implements IStorage
 
 	public final CompletableFuture<Map<String, Object>> ReadAsync(String[] keys)
 	{
-		HashMap<String, Object> storeItems = new HashMap<String, Object>(keys.length);
-		synchronized (_syncroot)
-		{
-			for (String key : keys)
-			{
-				Object state;
-				if (_memory.containsKey(key))
+	    return CompletableFuture.supplyAsync(() -> {
+            HashMap<String, Object> storeItems = new HashMap<String, Object>(keys.length);
+            synchronized (_syncroot)
+            {
+                for (String key : keys)
                 {
-				    state = _memory.get(key);
-					if (state != null)
-					{
-						storeItems.put(key, state);
-					}
-				}
-			}
-		}
-
-		return storeItems;
+                    Object state;
+                    if (_memory.containsKey(key))
+                    {
+                        state = _memory.get(key);
+                        if (state != null)
+                        {
+                            storeItems.put(key, state);
+                        }
+                    }
+                }
+            }
+            return storeItems;
+        });
 	}
 
 	/** 

@@ -14,7 +14,7 @@ public class PrivateConversationState extends BotState
 	 
 	 @param storage The storage provider to use.
 	*/
-	public PrivateConversationState(IStorage storage)
+	public PrivateConversationState(Storage storage)
 	{
 		super(storage, "PrivateConversationState");
 	}

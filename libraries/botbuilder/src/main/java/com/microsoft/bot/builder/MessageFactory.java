@@ -299,7 +299,7 @@ public final class MessageFactory
 			throw new NullPointerException("attachments");
 		}
 
-		return AttachmentActivity(AttachmentLayoutTypes.List, attachments, text, ssml, inputHint);
+		return AttachmentActivity(AttachmentLayoutTypes.LIST, attachments, text, ssml, inputHint);
 	}
 
 	/** 

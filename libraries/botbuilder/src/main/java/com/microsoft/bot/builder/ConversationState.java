@@ -6,6 +6,7 @@ package com.microsoft.bot.builder.integration;
 
 import com.microsoft.bot.builder.BotState;
 import com.microsoft.bot.builder.IStorage;
+import com.microsoft.bot.builder.Storage;
 import com.microsoft.bot.builder.TurnContext;
 
 /**
@@ -18,7 +19,7 @@ public class ConversationState extends BotState
 	 
 	 @param storage The storage provider to use.
 	*/
-	public ConversationState(IStorage storage)
+	public ConversationState(Storage storage)
 	{
 		super(storage, "ConversationState");
 	}

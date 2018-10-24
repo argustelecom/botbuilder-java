@@ -2,6 +2,9 @@ package com.microsoft.bot.builder;
 
 import com.microsoft.bot.schema.models.ConversationReference;
 
+import java.util.concurrent.Callable;
+import java.util.concurrent.CompletableFuture;
+
 /**
  A method that can participate in delete activity events for the current turn.
  
@@ -24,5 +27,5 @@ import com.microsoft.bot.schema.models.ConversationReference;
 @FunctionalInterface
 public interface DeleteActivityHandler
 {
-	void invoke(TurnContext turnContext, ConversationReference reference, Runnable next);
+	CompletableFuture invoke(TurnContext turnContext, ConversationReference reference, Callable next);
 }

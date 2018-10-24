@@ -60,9 +60,9 @@ public class BotStateSet
 
 	 @return A task that represents the work queued to execute.
 	*/
-	public final void LoadAllAsync(TurnContext turnContext)
+	public final CompletableFuture LoadAllAsync(TurnContext turnContext)
 	{
-		return LoadAllAsync(turnContext, false, null);
+		return LoadAllAsync(turnContext, false);
 	}
 
 	/**
@@ -75,9 +75,10 @@ public class BotStateSet
 	 */
 	public final CompletableFuture LoadAllAsync(TurnContext turnContext, boolean force)
 	{
-		CompletableFuture[] tasks = this.getBotStates().stream().map(bs -> bs.LoadAsync(turnContext, force)).toArray(CompletableFuture[]::new);
-		CompletableFuture.allOf(tasks).join();
-		return CompletableFuture.completedFuture(null);
+		return CompletableFuture.runAsync(() -> {
+			CompletableFuture[] tasks = this.getBotStates().stream().map(bs -> bs.LoadAsync(turnContext, force)).toArray(CompletableFuture[]::new);
+			CompletableFuture.allOf(tasks).join();
+		});
 	}
 
 	/** 
@@ -102,8 +103,9 @@ public class BotStateSet
 	 */
 	public final CompletableFuture SaveAllChangesAsync(TurnContext turnContext, boolean force)
 	{
-		CompletableFuture[] tasks = this.getBotStates().stream().map(bs -> bs.SaveChangesAsync(turnContext, force)).toArray(CompletableFuture[]::new);
-		CompletableFuture.allOf(tasks).join();
-		return CompletableFuture.completedFuture(null);
+		return CompletableFuture.runAsync(() -> {
+			CompletableFuture[] tasks = this.getBotStates().stream().map(bs -> bs.SaveChangesAsync(turnContext, force)).toArray(CompletableFuture[]::new);
+			CompletableFuture.allOf(tasks).join();
+		});
 	}
 }

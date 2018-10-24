@@ -60,6 +60,10 @@ public class TurnContextImpl implements TurnContext, AutoCloseable {
     }
 
 
+    /**
+     *  Gets the services registered on this context object.
+     */
+    TurnContextStateCollection turnState() { return turnServices; }
 
     /**
      * Adds a response handler for send activity operations.
@@ -203,7 +207,7 @@ public class TurnContextImpl implements TurnContext, AutoCloseable {
                 activityToSend.withInputHint(InputHints.fromString(inputHint));
 
             try {
-                return SendActivityAsync(activityToSend);
+                return SendActivityAsync(activityToSend).join();
             } catch (Exception e) {
                 e.printStackTrace();
                 throw new CompletionException(e);
@@ -280,14 +284,14 @@ public class TurnContextImpl implements TurnContext, AutoCloseable {
             // so the "Responded" flag should not be set by Trace messages being
             // sent out.
             boolean sentNonTraceActivities = false;
-            if (!activityList.stream().anyMatch((a) -> a.type() == TRACE)) {
+            if (!activityList.stream().anyMatch((a) -> a.type() == TRACE.toString())) {
                 sentNonTraceActivities = true;
             }
             // Send from the list, which may have been manipulated via the event handlers.
             // Note that 'responses' was captured from the root of the call, and will be
             // returned to the original caller.
             ResourceResponse[] responses = new ResourceResponse[0];
-            responses = await(this.adapter().SendActivities(this,  activityList.toArray(new ActivityImpl[activityList.size()])));
+            responses = this.adapter().SendActivitiesAsync(this,  activityList.toArray(new ActivityImpl[activityList.size()])).join();
             if (responses != null && responses.length == activityList.size())  {
                 // stitch up activity ids
                 for (int i = 0; i < responses.length; i++) {
@@ -305,7 +309,7 @@ public class TurnContextImpl implements TurnContext, AutoCloseable {
         };
 
         List<Activity> act_list = new ArrayList<>(activityList);
-        return completedFuture(await(SendActivitiesInternal(act_list, onSendActivities.iterator(), ActuallySendStuff)));
+        return completedFuture(SendActivitiesInternal(act_list, onSendActivities.iterator(), ActuallySendStuff).join());
     }
 
     /**
@@ -328,10 +332,10 @@ public class TurnContextImpl implements TurnContext, AutoCloseable {
 
 
         Callable<CompletableFuture<ResourceResponse>> ActuallyUpdateStuff = () -> {
-            return completedFuture(await(this.adapter().UpdateActivity(this, activity)));
+            return completedFuture(this.adapter().UpdateActivityAsync(this, activity).join());
         };
 
-        return await(UpdateActivityInternal(activity, onUpdateActivity.iterator(), ActuallyUpdateStuff));
+        return UpdateActivityInternal(activity, onUpdateActivity.iterator(), ActuallyUpdateStuff).join();
     }
 
     /**
@@ -349,11 +353,11 @@ public class TurnContextImpl implements TurnContext, AutoCloseable {
         cr.withActivityId(activityId);
 
         Callable<CompletableFuture> ActuallyDeleteStuff = () -> {
-            await(this.adapter().DeleteActivity(this, cr));
+            this.adapter().DeleteActivityAsync(this, cr).join();
             return completedFuture(null);
         };
 
-        await(DeleteActivityInternal(cr, onDeleteActivity.iterator(), ActuallyDeleteStuff));
+        DeleteActivityInternal(cr, onDeleteActivity.iterator(), ActuallyDeleteStuff).join();
         return completedFuture(null);
     }
 
@@ -371,10 +375,10 @@ public class TurnContextImpl implements TurnContext, AutoCloseable {
             throw new IllegalArgumentException("conversationReference");
 
         Callable<CompletableFuture> ActuallyDeleteStuff = () -> {
-            return completedFuture(await(this.adapter().DeleteActivity(this, conversationReference)));
+            return completedFuture(this.adapter().DeleteActivityAsync(this, conversationReference).join());
         };
 
-        await(DeleteActivityInternal(conversationReference, onDeleteActivity.iterator(), ActuallyDeleteStuff));
+        DeleteActivityInternal(conversationReference, onDeleteActivity.iterator(), ActuallyDeleteStuff).join();
         return completedFuture(null);
     }
 
@@ -389,7 +393,7 @@ public class TurnContextImpl implements TurnContext, AutoCloseable {
 
         if (false == sendHandlers.hasNext()) { // No middleware to run.
             if (callAtBottom != null)
-                return completedFuture(await(callAtBottom.call()));
+                return completedFuture(callAtBottom.call().join());
             return completedFuture(new ResourceResponse[0]);
         }
 
@@ -401,12 +405,12 @@ public class TurnContextImpl implements TurnContext, AutoCloseable {
             //Iterator<SendActivitiesHandler> remaining = sendHandlers.iterator();
             if (sendHandlers.hasNext())
                 sendHandlers.next();
-            return completedFuture(await(SendActivitiesInternal(activities, sendHandlers, callAtBottom)));
+            return completedFuture(SendActivitiesInternal(activities, sendHandlers, callAtBottom).join());
         };
 
         // Grab the current middleware, which is the 1st element in the array, and execute it
         SendActivitiesHandler caller = sendHandlers.next();
-        return completedFuture(await(caller.handle(this, activities, next)));
+        return completedFuture(caller.invoke(this, activities, next).join());
     }
 
     //         private async Task<ResourceResponse> UpdateActivityInternal(Activity activity,
@@ -469,14 +473,14 @@ public class TurnContextImpl implements TurnContext, AutoCloseable {
             if (updateHandlers.hasNext())
                 updateHandlers.next();
             ResourceResponse result = null;
-            result = await(UpdateActivityInternal(activity, updateHandlers, callAtBottom));
+            result = UpdateActivityInternal(activity, updateHandlers, callAtBottom).join();
             activity.withId(result.id());
             return completedFuture(new ResourceResponse[] { result });
         };
 
         // Grab the current middleware, which is the 1st element in the array, and execute it
         UpdateActivityHandler toCall = updateHandlers.next();
-        return completedFuture(await(toCall.handle(this, activity, next)));
+        return completedFuture(toCall.invoke(this, activity, next).join());
     }
 
 
@@ -490,7 +494,7 @@ public class TurnContextImpl implements TurnContext, AutoCloseable {
 
         if (updateHandlers.hasNext() == false) { // No middleware to run.
             if (callAtBottom != null) {
-                await(callAtBottom.call());
+                callAtBottom.call().join();
             }
             return completedFuture(null);
         }
@@ -502,13 +506,13 @@ public class TurnContextImpl implements TurnContext, AutoCloseable {
             if (updateHandlers.hasNext())
                 updateHandlers.next();
 
-            await(DeleteActivityInternal(cr, updateHandlers, callAtBottom));
+            DeleteActivityInternal(cr, updateHandlers, callAtBottom).join();
             return completedFuture(null);
         };
 
         // Grab the current middleware, which is the 1st element in the array, and execute it.
         DeleteActivityHandler toCall = updateHandlers.next();
-        await(toCall.handle(this, cr, next));
+        toCall.invoke(this, cr, next).join();
         return completedFuture(null);
     }
 

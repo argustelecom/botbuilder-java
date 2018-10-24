@@ -5,10 +5,10 @@ package com.microsoft.bot.builder;
 
 import java.util.*;
 import java.util.concurrent.CompletableFuture;
+import java.util.function.Consumer;
 
 
-
-/** 
+/**
  Contains an ordered set of <see cref="Middleware"/>.
 */
 public class MiddlewareSet implements Middleware
@@ -37,10 +37,12 @@ public class MiddlewareSet implements Middleware
 
 	 @return A task that represents the work queued to execute.
 	*/
-	public final void OnTurnAsync(TurnContext turnContext, NextDelegate next)
+	public final CompletableFuture OnTurnAsync(TurnContext turnContext, NextDelegate next)
 	{
-		ReceiveActivityInternalAsync(turnContext, null, 0).join();
-		next.invoke().join();
+		return CompletableFuture.runAsync(() -> {
+			ReceiveActivityInternalAsync(turnContext, null, 0).join();
+			next.invoke().join();
+		});
 	}
 
 	/** 
@@ -71,7 +73,11 @@ public class MiddlewareSet implements Middleware
 			// to run as expected.
 
 			// If a callback was provided invoke it now and return its task, otherwise just return the completed task
-			return callback == null ? null : (callback.invoke(turnContext) != null) ? callback.invoke(turnContext) : CompletableFuture.completedFuture(null);
+			if (callback == null)
+			{
+				return CompletableFuture.completedFuture(null);
+			}
+			return callback.invoke(turnContext);
 		}
 
 		// Get the next piece of middleware
@@ -80,7 +86,7 @@ public class MiddlewareSet implements Middleware
 		// Execute the next middleware passing a closure that will recurse back into this method at the next piece of middlware as the NextDelegate
 		return nextMiddleware.OnTurnAsync(turnContext, () ->
 				{
-					ReceiveActivityInternalAsync(turnContext, callback, nextMiddlewareIndex + 1).join();
+					return ReceiveActivityInternalAsync(turnContext, callback, nextMiddlewareIndex + 1);
 				});
 
 	}

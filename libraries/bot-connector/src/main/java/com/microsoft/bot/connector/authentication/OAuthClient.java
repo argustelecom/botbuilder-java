@@ -167,14 +167,14 @@ public class OAuthClient extends ServiceClient {
      * @return True on successful sign-out; False otherwise.
      */
     public CompletableFuture<Boolean> SignOutUserAsync(String userId, String connectionName) throws URISyntaxException, IOException {
-        if (StringUtils.isEmpty(userId)) {
-            throw new IllegalArgumentException("userId");
-        }
-        if (StringUtils.isEmpty(connectionName)) {
-            throw new IllegalArgumentException("connectionName");
-        }
-
         return CompletableFuture.supplyAsync(() -> {
+            if (StringUtils.isEmpty(userId)) {
+                throw new IllegalArgumentException("userId");
+            }
+            if (StringUtils.isEmpty(connectionName)) {
+                throw new IllegalArgumentException("connectionName");
+            }
+
             String invocationId = null;
 
             // Construct URL

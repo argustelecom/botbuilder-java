@@ -238,7 +238,7 @@ public class MemoryTranscriptStore implements ITranscriptStore {
 							.map(c -> {
 										OffsetDateTime offsetDateTime = null;
 										if (c.getValue().stream().findFirst().isPresent()) {
-											DateTime dt = c.getValue().stream().findFirst().get().timestamp();
+											OffsetDateTime dt = c.getValue().stream().findFirst().get().timestamp();
 											// convert to DateTime to OffsetDateTime
 											Instant instant = Instant.ofEpochMilli(dt.getMillis());
 											ZoneOffset offset = ZoneId.of(dt.getZone().getID()).getRules().getOffset(instant);
