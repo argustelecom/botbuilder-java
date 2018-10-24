@@ -234,8 +234,14 @@ public class BotFrameworkAdapter extends BotAdapter
 	    return CompletableFuture.supplyAsync(() -> {
             BotAssert.ActivityNotNull(activity);
 
-            ClaimsIdentity claimsIdentity = JwtTokenValidation.authenticateRequest(activity, authHeader, _credentialProvider, _channelProvider, _httpClient);
-            return ProcessActivityAsync(claimsIdentity, activity, callback).join();
+            ClaimsIdentity claimsIdentity = null;
+            try {
+                claimsIdentity = JwtTokenValidation.authenticateRequest(activity, authHeader, _credentialProvider);
+            } catch (InterruptedException|ExecutionException e) {
+                e.printStackTrace();
+                throw new CompletionException(e);
+            }
+            return ProcessActivityAsync(claimsIdentity, (ActivityImpl)activity, callback).join();
         });
 	}
 
@@ -248,7 +254,7 @@ public class BotFrameworkAdapter extends BotAdapter
 
 	 @return A task that represents the work queued to execute.
 	*/
-	public final CompletableFuture<InvokeResponse> ProcessActivity(ClaimsIdentity identity, ActivityImpl activity, BotCallbackHandler callback)
+	public final CompletableFuture<InvokeResponse> ProcessActivityAsync(ClaimsIdentity identity, ActivityImpl activity, BotCallbackHandler callback)
 	{
 	    return CompletableFuture.supplyAsync(() -> {
             BotAssert.ActivityNotNull(activity);
@@ -337,7 +343,12 @@ public class BotFrameworkAdapter extends BotAdapter
                     // The Activity Schema doesn't have a delay type build in, so it's simulated
                     // here in the Bot. This matches the behavior in the Node connector.
                     int delayMs = (int)activity.value();
-                    Thread.sleep(delayMs);
+                    try {
+                        Thread.sleep(delayMs);
+                    } catch (InterruptedException e) {
+                        e.printStackTrace();
+                        // Swallow the sleep interruption.
+                    }
 
                     // No need to create a response. One will be created below.
                 }
@@ -467,10 +478,11 @@ public class BotFrameworkAdapter extends BotAdapter
 	public final CompletableFuture<List<ChannelAccount>> GetActivityMembersAsync(TurnContext turnContext, final String activityId)
 	{
 	    return CompletableFuture.supplyAsync(() -> {
+	        String tempActivityId = activityId;
             // If no activity was passed in, use the current activity.
             if (activityId == null)
             {
-                activityId = turnContext.activity().id();
+                tempActivityId = turnContext.activity().id();
             }
 
             if (turnContext.activity().conversation() == null)
@@ -486,7 +498,7 @@ public class BotFrameworkAdapter extends BotAdapter
             ConnectorClient connectorClient = turnContext.turnState().Get(ConnectorClientImpl.class.getName());
             String conversationId = turnContext.activity().conversation().id();
 
-            List<ChannelAccount> accounts = connectorClient.conversations().getActivityMembers(conversationId, activityId);
+            List<ChannelAccount> accounts = connectorClient.conversations().getActivityMembers(conversationId, tempActivityId);
 
             return accounts;
         });
@@ -705,7 +717,7 @@ public class BotFrameworkAdapter extends BotAdapter
 
      @return A task that represents the work queued to execute.
      */
-	public final CompletableFuture<Boolean> SignOutUserAsync(TurnContext turnContext, String connectionName, String userId) throws IOException, URISyntaxException {
+	public final CompletableFuture<Boolean> SignOutUserAsync(TurnContext turnContext, String connectionName, String userId) {
 	    final String finalUserId = userId;
 	    return CompletableFuture.supplyAsync(() -> {
             BotAssert.ContextNotNull(turnContext);
@@ -799,9 +811,11 @@ public class BotFrameworkAdapter extends BotAdapter
      @param userId The user Id for which tokens are retrieved. If passing in null the userId is taken from the Activity in the ITurnContext.
      @return Dictionary of resourceUrl to the corresponding TokenResponse.
      */
-	public final CompletableFuture<HashMap<String, TokenResponse>> GetAadTokensAsync(TurnContext context, String connectionName, String[] resourceUrls, final String userId) throws URISyntaxException, InterruptedException, ExecutionException, IOException {
+	public final CompletableFuture<HashMap<String, TokenResponse>> GetAadTokensAsync(TurnContext context, String connectionName, String[] resourceUrls, final String userId)  {
 	    return CompletableFuture.supplyAsync(() -> {
             BotAssert.ContextNotNull(context);
+
+            String tempUserId = userId;
 
             if (StringUtils.isBlank(connectionName))
             {
@@ -813,9 +827,9 @@ public class BotFrameworkAdapter extends BotAdapter
                 throw new NullPointerException("userId");
             }
 
-            if (StringUtils.isBlank(userId))
+            if (StringUtils.isBlank(tempUserId))
             {
-                userId = context.activity() == null ? null : (context.activity().from() == null ? null : context.activity().from().id());
+                tempUserId = context.activity() == null ? null : (context.activity().from() == null ? null : context.activity().from().id());
             }
 
             OAuthClient client = null;
@@ -825,7 +839,7 @@ public class BotFrameworkAdapter extends BotAdapter
                 e.printStackTrace();
             }
             try {
-                return client.GetAadTokensAsync(userId, connectionName, resourceUrls).join();
+                return client.GetAadTokensAsync(tempUserId, connectionName, resourceUrls).join();
             } catch (URISyntaxException e) {
                 e.printStackTrace();
                 throw new CompletionException(e);

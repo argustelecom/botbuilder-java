@@ -14,23 +14,23 @@ class CachedBotState
 
     public CachedBotState()
     {
-        this(null);
+        State = null;
     }
 
-    public CachedBotState(Map<String, Object> state)
-    {
-        setState((state != null) ? state : new ConcurrentHashMap<String, Object>());
-        setHash(ComputeHash(getState()));
-    }
+    //public CachedBotState(Map<String, Object> state)
+    //{
+//        setState((state != null) ? state : new ConcurrentHashMap<String, Object>());
+//        setHash(ComputeHash(getState()));
+//    }
 
     private Map<String, Object> State;
     public final Map<String, Object> getState()
     {
         return State;
     }
-    public final void setState(Map<String, Object> value)
-    {
+    public final void setState(Map<String, Object> value) throws JsonProcessingException {
         State = value;
+        setHash(ComputeHash(getState()));
     }
 
     private String Hash;
@@ -43,8 +43,7 @@ class CachedBotState
         Hash = value;
     }
 
-    public final boolean IsChanged()
-    {
+    public final boolean IsChanged() throws JsonProcessingException {
         return !getHash().equals(ComputeHash(getState()));
     }
 

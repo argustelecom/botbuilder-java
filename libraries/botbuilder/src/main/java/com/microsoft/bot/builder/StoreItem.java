@@ -5,7 +5,7 @@ import java.util.*;
 /** 
  Exposes an ETag for concurrency control.
 */
-public interface IStoreItem
+public interface StoreItem
 {
 	/** 
 	 Gets or sets the ETag for concurrency control.

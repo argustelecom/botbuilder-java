@@ -89,7 +89,15 @@ public abstract class BotState implements PropertyManager
                 {
                     val = items.get(storageKey);
                 }
-                turnContext.turnState().Add(_contextServiceKey, new CachedBotState((Map<String, Object>) val));
+
+                CachedBotState bs = new CachedBotState();
+                try {
+                    bs.setState(new HashMap<String, Object>());
+                } catch (JsonProcessingException e) {
+                    e.printStackTrace();
+                    throw new CompletionException(e);
+                }
+                turnContext.turnState().Add(_contextServiceKey, bs);
             }
         });
     }
@@ -121,27 +129,32 @@ public abstract class BotState implements PropertyManager
             }
 
             CachedBotState cachedState = turnContext.turnState().<CachedBotState>Get(_contextServiceKey);
-            if (force || (cachedState != null && cachedState.IsChanged())) {
-                String key = GetStorageKey(turnContext);
-                HashMap<String, Object> changes = new HashMap<String, Object>() {
-                    {
-                        put(key, cachedState.getState());
-                    }
-                };
+            try {
+                if (force || (cachedState != null && cachedState.IsChanged())) {
+                    String key = GetStorageKey(turnContext);
+                    HashMap<String, Object> changes = new HashMap<String, Object>() {
+                        {
+                            put(key, cachedState.getState());
+                        }
+                    };
 
-                try {
-                    _storage.WriteAsync(changes).join();
-                } catch (Exception e) {
-                    e.printStackTrace();
-                    throw new CompletionException(e);
+                    try {
+                        _storage.WriteAsync(changes).join();
+                    } catch (Exception e) {
+                        e.printStackTrace();
+                        throw new CompletionException(e);
+                    }
+                    try {
+                        cachedState.setHash(cachedState.ComputeHash(cachedState.getState()));
+                    } catch (JsonProcessingException e) {
+                        e.printStackTrace();
+                        throw new CompletionException(e);
+                    }
+                    return;
                 }
-                try {
-                    cachedState.setHash(cachedState.ComputeHash(cachedState.getState()));
-                } catch (JsonProcessingException e) {
-                    e.printStackTrace();
-                    throw new CompletionException(e);
-                }
-                return;
+            } catch (JsonProcessingException e) {
+                e.printStackTrace();
+                throw new CompletionException(e);
             }
         });
     }

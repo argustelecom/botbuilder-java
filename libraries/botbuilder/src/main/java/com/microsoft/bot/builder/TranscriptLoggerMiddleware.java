@@ -22,6 +22,7 @@ import java.time.OffsetDateTime;
 import java.util.LinkedList;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.CompletionException;
+import java.util.concurrent.ExecutionException;
 
 
 /**
@@ -162,7 +163,7 @@ public class TranscriptLoggerMiddleware implements Middleware {
 
             // process bot logic
             try {
-                next.invoke().join();
+                next.invoke().get();
             } catch (Exception e) {
                 e.printStackTrace();
                 throw new RuntimeException(String.format("Error on Logging.next : %s", e.toString()));
@@ -172,8 +173,8 @@ public class TranscriptLoggerMiddleware implements Middleware {
             while (!transcript.isEmpty()) {
                 Activity activity = transcript.poll();
                 try {
-                    this.logger.LogActivityAsync(activity).join();
-                } catch (RuntimeException|JsonProcessingException err) {
+                    this.logger.LogActivityAsync(activity).get();
+                } catch (RuntimeException|JsonProcessingException|InterruptedException|ExecutionException err) {
                     err.printStackTrace();
                     log4j.error(String.format("Transcript poll failed : %1$s", err));
                     throw new CompletionException(err);

@@ -51,31 +51,33 @@ public class MemoryTranscriptStore implements ITranscriptStore {
 	 * @return A CompletableFuture that represents the work queued to execute.
 	 */
 	public final CompletableFuture LogActivityAsync(Activity activity) {
-		if (activity == null) {
-			throw new NullPointerException("activity cannot be null for LogActivity()");
-		}
+	    return CompletableFuture.runAsync(() -> {
+            if (activity == null) {
+                throw new NullPointerException("activity cannot be null for LogActivity()");
+            }
 
-		synchronized (this.channels) {
-			HashMap<String, ArrayList<Activity>> channel;
-			if (!this.channels.containsKey(activity.channelId())) {
-				channel = new HashMap<String, ArrayList<Activity>>();
-				this.channels.put(activity.channelId(), channel);
-			} else {
-				channel = this.channels.get(activity.channelId());
-			}
+            synchronized (this.channels) {
+                HashMap<String, ArrayList<Activity>> channel;
+                if (!this.channels.containsKey(activity.channelId())) {
+                    channel = new HashMap<String, ArrayList<Activity>>();
+                    this.channels.put(activity.channelId(), channel);
+                } else {
+                    channel = this.channels.get(activity.channelId());
+                }
 
-			ArrayList<Activity> transcript = null;
+                ArrayList<Activity> transcript = null;
 
 
-			if (!channel.containsKey(activity.conversation().id())) {
-				transcript = new ArrayList<Activity>();
-				channel.put(activity.conversation().id(), transcript);
-			} else {
-				transcript = channel.get(activity.conversation().id());
-			}
+                if (!channel.containsKey(activity.conversation().id())) {
+                    transcript = new ArrayList<Activity>();
+                    channel.put(activity.conversation().id(), transcript);
+                } else {
+                    transcript = channel.get(activity.conversation().id());
+                }
 
-			transcript.add(activity);
-		}
+                transcript.add(activity);
+            }
+        });
 
 	}
 

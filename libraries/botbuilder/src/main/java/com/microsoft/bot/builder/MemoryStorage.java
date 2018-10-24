@@ -130,10 +130,10 @@ public class MemoryStorage implements IStorage
                     }
 
                     // Set ETag if applicable
-                    IStoreItem newStoreItem = null;
-                    if (newValue instanceof IStoreItem )
+                    StoreItem newStoreItem = null;
+                    if (newValue instanceof StoreItem )
                     {
-                        newStoreItem = (IStoreItem)newValue;
+                        newStoreItem = (StoreItem)newValue;
                         if (oldStateETag != null && !newStoreItem.getETag().equals("*") && newStoreItem.getETag() != oldStateETag)
                         {
                             throw new RuntimeException(String.format("Etag conflict.\r\n\r\nOriginal: %1$s\r\nCurrent: %2$s", newStoreItem.getETag(), oldStateETag));

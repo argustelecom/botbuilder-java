@@ -75,7 +75,7 @@ public class BotFrameworkOptions
 	{
 		return OnTurnError;
 	}
-	public final CompletableFuture setOnTurnError(BiFunction<TurnContext, RuntimeException, CompletableFuture> value)
+	public final void setOnTurnError(BiFunction<TurnContext, RuntimeException, CompletableFuture> value)
 	{
 		OnTurnError = (TurnContext arg1, RuntimeException arg2) -> value.apply(arg1, arg2);
 	}
