@@ -8,12 +8,15 @@ import com.microsoft.bot.connector.implementation.ConnectorClientImpl;
 import com.microsoft.bot.schema.models.*;
 import com.microsoft.bot.schema.TokenStatus;
 import com.microsoft.rest.retry.RetryStrategy;
+import okhttp3.OkHttpClient;
 import org.apache.commons.lang3.StringUtils;
 
 import java.io.IOException;
+import java.net.MalformedURLException;
 import java.net.URISyntaxException;
 import java.util.*;
 import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.CompletionException;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.atomic.AtomicReference;
@@ -50,7 +53,7 @@ public class BotFrameworkAdapter extends BotAdapter
 
 	private CredentialProvider _credentialProvider;
 	private ChannelProvider  _channelProvider;
-	//private HttpClient _httpClient;
+	private OkHttpClient _httpClient;
 	private final RetryStrategy _connectorClientRetryStrategy;
 	private java.util.concurrent.ConcurrentHashMap<String, MicrosoftAppCredentials> _appCredentialMap = new ConcurrentHashMap<String, MicrosoftAppCredentials>();
 
@@ -75,7 +78,7 @@ public class BotFrameworkAdapter extends BotAdapter
 	 
 	*/
 
-	public BotFrameworkAdapter(CredentialProvider credentialProvider, ChannelProvider channelProvider, RetryStrategy  connectorClientRetryPolicy, HttpClient customHttpClient)
+	public BotFrameworkAdapter(CredentialProvider credentialProvider, ChannelProvider channelProvider, RetryStrategy  connectorClientRetryPolicy, OkHttpClient customHttpClient)
 	{
 		this(credentialProvider, channelProvider, connectorClientRetryPolicy, customHttpClient, null);
 	}
@@ -99,14 +102,14 @@ public class BotFrameworkAdapter extends BotAdapter
 			CredentialProvider credentialProvider,
 			ChannelProvider channelProvider,
 			RetryStrategy connectorClientRetryPolicy,
-			HttpClient customHttpClient,
+			OkHttpClient customHttpClient,
 			Middleware middleware)
 	{
         if (credentialProvider == null)
             throw new NullPointerException("credentialProvider");
 		_credentialProvider =  credentialProvider;
 		_channelProvider  = channelProvider;
-		_httpClient = (customHttpClient != null) ? customHttpClient : DefaultHttpClient;
+		_httpClient = (customHttpClient != null) ? customHttpClient : null;
 		_connectorClientRetryStrategy  = connectorClientRetryPolicy;
 
 		if (middleware != null)
@@ -392,7 +395,7 @@ public class BotFrameworkAdapter extends BotAdapter
 	 of the activity to replace.</p>
 	 {@link ITurnContext.OnUpdateActivity(UpdateActivityHandler)}
 	*/
-	public ResourceResponse UpdateActivity(TurnContext turnContext, Activity activity)
+	public CompletableFuture<ResourceResponse> UpdateActivityAsync(TurnContext turnContext, Activity activity)
 	{
 		ConnectorClient connectorClient = turnContext.getTurnState().<ConnectorClient>Get();
 		return connectorClient.conversations().updateActivity(activity.conversation().id(), activity.id(), activity);
@@ -590,15 +593,26 @@ public class BotFrameworkAdapter extends BotAdapter
 	 If the task completes successfully, the result contains the raw signin link.
 	*/
 	public final CompletableFuture<String> GetOauthSignInLinkAsync(TurnContext turnContext, String connectionName) throws URISyntaxException, JsonProcessingException {
-		BotAssert.ContextNotNull(turnContext);
-		if (StringUtils.isBlank(connectionName))
-		{
-			throw new NullPointerException("connectionName");
-		}
+	    return CompletableFuture.supplyAsync(() ->
+        {
+            BotAssert.ContextNotNull(turnContext);
+            if (StringUtils.isBlank(connectionName))
+            {
+                throw new NullPointerException("connectionName");
+            }
 
-		Activity activity = turnContext.activity();
-		OAuthClient client = CreateOAuthApiClientAsync(turnContext);
-		return client.GetSignInLinkAsync(activity, connectionName);
+            Activity activity = turnContext.activity();
+            OAuthClient client = null;
+            try {
+                client = CreateOAuthApiClientAsync(turnContext).join();
+            } catch (InterruptedException|IOException|URISyntaxException|ExecutionException e) {
+                e.printStackTrace();
+                throw new CompletionException(e);
+            }
+
+            return client.GetSignInLinkAsync(activity, connectionName);
+
+        });
 	}
 
 	/** 
@@ -620,7 +634,7 @@ public class BotFrameworkAdapter extends BotAdapter
 
 	public final CompletableFuture<String> GetOauthSignInLinkAsync(TurnContext turnContext, String connectionName, String userId)
 	{
-		return GetOauthSignInLinkAsync(turnContext, connectionName, userId, null, null);
+		return GetOauthSignInLinkAsync(turnContext, connectionName, userId, null);
 	}
 
 
@@ -635,7 +649,7 @@ public class BotFrameworkAdapter extends BotAdapter
 	*/
 	public final void SignOutUserAsync(TurnContext turnContext, String connectionName, String userId)
 	{
-		return SignOutUserAsync(turnContext, connectionName, userId, null);
+		return SignOutUserAsync(turnContext, connectionName, userId);
 	}
 
     /**
@@ -648,7 +662,7 @@ public class BotFrameworkAdapter extends BotAdapter
      */
     public final void SignOutUserAsync(TurnContext turnContext, String connectionName)
 	{
-		return SignOutUserAsync(turnContext, connectionName, null, null);
+		return SignOutUserAsync(turnContext, connectionName, null);
 	}
 
 
@@ -661,19 +675,31 @@ public class BotFrameworkAdapter extends BotAdapter
      */
 	public final void SignOutUserAsync(TurnContext turnContext)
 	{
-		return SignOutUserAsync(turnContext, null, null, null);
+		return SignOutUserAsync(turnContext, null, null);
 	}
 
 	public final CompletableFuture<Boolean> SignOutUserAsync(TurnContext turnContext, String connectionName, String userId) throws IOException, URISyntaxException {
-		BotAssert.ContextNotNull(turnContext);
+	    final String finalUserId = userId;
+	    return CompletableFuture.supplyAsync(() -> {
+            BotAssert.ContextNotNull(turnContext);
 
-		if (StringUtils.isBlank(userId))
-		{
-			userId = turnContext.activity() == null ? null : (turnContext.activity().from() == null ? null : turnContext.activity().from().id());
-		}
+            String supplyUserId = finalUserId;
+            if (StringUtils.isBlank(finalUserId))
+            {
+                supplyUserId = turnContext.activity() == null ? null : (turnContext.activity().from() == null ? null : turnContext.activity().from().id());
+            }
 
-		OAuthClient client = CreateOAuthApiClientAsync(turnContext);
-		return client.SignOutUserAsync(userId, connectionName);
+            OAuthClient client = null;
+            try {
+                client = CreateOAuthApiClientAsync(turnContext).join();
+            } catch (ExecutionException e) {
+                e.printStackTrace();
+            } catch (InterruptedException e) {
+                e.printStackTrace();
+            }
+            return client.SignOutUserAsync(supplyUserId, connectionName);
+
+        });
 	}
 
 	/** 
@@ -773,33 +799,35 @@ public class BotFrameworkAdapter extends BotAdapter
 	 will contain the ID of the new conversation.</p>
 	 
 	*/
-	public void CreateConversationAsync(String channelId, String serviceUrl, MicrosoftAppCredentials credentials, ConversationParameters conversationParameters, BotCallbackHandler callback)
+	public CompletableFuture CreateConversationAsync(String channelId, String serviceUrl, MicrosoftAppCredentials credentials, ConversationParameters conversationParameters, BotCallbackHandler callback)
 	{
-		ConnectorClient connectorClient = CreateConnectorClient(serviceUrl, credentials);
+	    return CompletableFuture.runAsync(() -> {
+            ConnectorClient connectorClient = CreateConnectorClient(serviceUrl, credentials);
 
-		ConversationResourceResponse result = connectorClient.conversations().createConversation(conversationParameters);
+            ConversationResourceResponse result = connectorClient.conversations().createConversation(conversationParameters);
 
-		// Create a conversation update activity to represent the result.
-		Activity eventActivity = new Activity().withType(ActivityTypes.EVENT)
-				.withName("CreateConversation")
-				.withChannelId(channelId)
-				.withServiceUrl((serviceUrl))
-				.withId((result.activityId() != null) ? result.activityId() : UUID.randomUUID().toString())
-				.withConversation(new ConversationAccount().withId(result.id()))
-				.withRecipient(conversationParameters.bot());
+            // Create a conversation update activity to represent the result.
+            Activity eventActivity = new Activity().withType(ActivityTypes.EVENT.toString())
+                    .withName("CreateConversation")
+                    .withChannelId(channelId)
+                    .withServiceUrl((serviceUrl))
+                    .withId((result.activityId() != null) ? result.activityId() : UUID.randomUUID().toString())
+                    .withConversation(new ConversationAccount().withId(result.id()))
+                    .withRecipient(conversationParameters.bot());
 
-		try (TurnContext context = new TurnContext(this, (Activity)eventActivity))
-		{
-			ClaimsIdentity claimsIdentity = new ClaimsIdentityImpl();
-			claimsIdentity.claims().put(AuthenticationConstants.AudienceClaim, credentials.microsoftAppId());
-			claimsIdentity.claims().put(AuthenticationConstants.AppIdClaim, credentials.microsoftAppId());
-			claimsIdentity.claims().put(AuthenticationConstants.ServiceUrlClaim, serviceUrl);
+            try (TurnContext context = new TurnContext(this, (Activity)eventActivity))
+            {
+                ClaimsIdentity claimsIdentity = new ClaimsIdentityImpl();
+                claimsIdentity.claims().put(AuthenticationConstants.AudienceClaim, credentials.microsoftAppId());
+                claimsIdentity.claims().put(AuthenticationConstants.AppIdClaim, credentials.microsoftAppId());
+                claimsIdentity.claims().put(AuthenticationConstants.ServiceUrlClaim, serviceUrl);
 
-			context.getTurnState().put(BotIdentityKey, claimsIdentity);
-			context.getTurnState().put("ConnectorClient", connectorClient);
+                context.turnState().Add(BotIdentityKey, claimsIdentity);
+                context.turnState().Add("ConnectorClient", connectorClient);
 
-			RunPipeline(context, callback);
-		}
+                RunPipelineAsync(context, callback).join();
+            }
+            });
 	}
 
 	/** 
@@ -808,29 +836,47 @@ public class BotFrameworkAdapter extends BotAdapter
 	 @param turnContext The context object for the current turn.
 	 @return An OAuth client for the bot.
 	*/
-	protected final OAuthClient CreateOAuthApiClientAsync(TurnContext turnContext) throws ExecutionException, InterruptedException, IOException, URISyntaxException {
-		ConnectorClient tempVar = turnContext.getTurnState().<ConnectorClient>Get();
-		ConnectorClient client = tempVar instanceof ConnectorClient ? (ConnectorClient)tempVar : null;
-		if (client == null)
-		{
-			throw new NullPointerException("CreateOAuthApiClient: OAuth requires a valid ConnectorClient instance");
-		}
+	protected final CompletableFuture<OAuthClient> CreateOAuthApiClientAsync(TurnContext turnContext) throws ExecutionException, InterruptedException, IOException, URISyntaxException {
+	    return CompletableFuture.supplyAsync(() -> {
+            ConnectorClientImpl tempVar = turnContext.turnState().<ConnectorClientImpl>Get();
+            ConnectorClientImpl client = tempVar instanceof ConnectorClientImpl ? (ConnectorClientImpl)tempVar : null;
+            if (client == null)
+            {
+                throw new NullPointerException("CreateOAuthApiClient: OAuth requires a valid ConnectorClient instance");
+            }
 
-		if (!OAuthClient.getEmulateOAuthCards() && turnContext.activity().channelId().equalsIgnoreCase("emulator")
-				&& (_credentialProvider.isAuthenticationDisabledAsync().get() == false))
-		{
-			OAuthClient.setEmulateOAuthCards(true);
-		}
+            if (!OAuthClient.getEmulateOAuthCards() && turnContext.activity().channelId().equalsIgnoreCase("emulator")
+                    && (_credentialProvider.isAuthenticationDisabledAsync().get() == false))
+            {
+                OAuthClient.setEmulateOAuthCards(true);
+            }
 
-		if (OAuthClient.getEmulateOAuthCards())
-		{
-			OAuthClient oauthClient = new OAuthClient(client, turnContext.activity().serviceUrl());
+            if (OAuthClient.getEmulateOAuthCards())
+            {
+                OAuthClient oauthClient = null;
+                try {
+                    oauthClient = new OAuthClient(client, turnContext.activity().serviceUrl());
+                } catch (URISyntaxException|MalformedURLException e) {
+                    e.printStackTrace();
+                    throw new CompletionException(e);
+                }
 
-			oauthClient.SendEmulateOAuthCardsAsync(OAuthClient.getEmulateOAuthCards()).get();
-			return oauthClient;
-		}
+                try {
+                    oauthClient.SendEmulateOAuthCardsAsync(OAuthClient.getEmulateOAuthCards()).get();
+                } catch (InterruptedException|IOException|ExecutionException|URISyntaxException e) {
+                    e.printStackTrace();
+                    throw new CompletionException(e);
+                }
+                return oauthClient;
+            }
 
-		return new OAuthClient(client, OAuthClient.getOAuthEndpoint());
+            try {
+                return new OAuthClient(client, OAuthClient.getOAuthEndpoint());
+            } catch (URISyntaxException|MalformedURLException e) {
+                e.printStackTrace();
+                throw new CompletionException(e);
+            }
+        });
 	}
 
 	/** 

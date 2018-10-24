@@ -70,7 +70,7 @@ public abstract class BotAdapter {
 	 * the receiving channel assigned to the activities.
 	 * {@linkalso TurnContext.OnSendActivities(SendActivitiesHandler)}
 	 */
-	public abstract ResourceResponse[] SendActivities(TurnContext context, Activity[] activities) throws InterruptedException;
+	public abstract CompletableFuture<ResourceResponse[]> SendActivitiesAsync(TurnContext context, Activity[] activities) throws InterruptedException;
 
 	/**
 	 * When overridden in a derived class, replaces an existing activity in the
@@ -86,7 +86,7 @@ public abstract class BotAdapter {
 	 * of the activity to replace.</p>
 	 * {@linkalso TurnContext.OnUpdateActivity(UpdateActivityHandler)}
 	 */
-	public abstract ResourceResponse UpdateActivity(TurnContext context, Activity activity);
+	public abstract CompletableFuture<ResourceResponse> UpdateActivityAsync(TurnContext context, Activity activity);
 
 	/**
 	 * When overridden in a derived class, deletes an existing activity in the
@@ -99,7 +99,7 @@ public abstract class BotAdapter {
 	 * reference identifies the activity to delete.
 	 * {@linkalso TurnContext.OnDeleteActivity(DeleteActivityHandler)}
 	 */
-	public abstract void DeleteActivity(TurnContext context, ConversationReference reference) throws ExecutionException, InterruptedException;
+	public abstract CompletableFuture DeleteActivityAsync(TurnContext context, ConversationReference reference) throws ExecutionException, InterruptedException;
 
 
 	/**
@@ -138,19 +138,6 @@ public abstract class BotAdapter {
 			}
 			return;
 		});
-	}
-
-
-	/**
-	 * Creates a conversation on the specified channel.
-	 *
-	 * @param channelId The ID of the channel.
-	 * @param callback  A method to call when the new conversation is available.
-	 * @return A task that represents the work queued to execute.
-	 * @throws UnsupportedOperationException No base implementation is provided.
-	 */
-	public CompletableFuture CreateConversation(String channelId, Function<TurnContext, CompletableFuture> callback) {
-		throw new UnsupportedOperationException("Adapter does not support CreateConversation with this arguments");
 	}
 
 	/**
