@@ -1,9 +1,12 @@
+// Copyright (c) Microsoft Corporation. All rights reserved.
+// Licensed under the MIT License.
+
 package com.microsoft.bot.builder.dialogs;
+
+import com.microsoft.bot.builder.dialogs.choices.ChoiceFactoryOptions;
 
 import java.util.*;
 
-// Copyright (c) Microsoft Corporation. All rights reserved.
-// Licensed under the MIT License.
 
 
 /** 
@@ -45,8 +48,6 @@ public class ConfirmPrompt extends Prompt<Boolean>
 		this(dialogId, null, null);
 	}
 
-//C# TO JAVA CONVERTER NOTE: Java does not support optional parameters. Overloaded method(s) are created above:
-//ORIGINAL LINE: public ConfirmPrompt(string dialogId, PromptValidator<bool> validator = null, string defaultLocale = null)
 	public ConfirmPrompt(String dialogId, PromptValidator<Boolean> validator, String defaultLocale)
 	{
 		super(dialogId, validator);
@@ -118,7 +119,7 @@ public class ConfirmPrompt extends Prompt<Boolean>
 		return OnPromptAsync(turnContext, state, options, isRetry, null);
 	}
 
-//C# TO JAVA CONVERTER TODO TASK: There is no equivalent in Java to the 'async' keyword:
+
 //ORIGINAL LINE: protected override async CompletableFuture OnPromptAsync(TurnContext turnContext, IDictionary<string, object> state, PromptOptions options, bool isRetry, CancellationToken cancellationToken = default(CancellationToken))
 //C# TO JAVA CONVERTER NOTE: Java does not support optional parameters. Overloaded method(s) are created above:
 	@Override
@@ -160,7 +161,7 @@ public class ConfirmPrompt extends Prompt<Boolean>
 		}
 
 		// Send prompt
-//C# TO JAVA CONVERTER TODO TASK: There is no equivalent to 'await' in Java:
+
 		await turnContext.SendActivityAsync(prompt).get();
 	}
 

@@ -1,12 +1,12 @@
-package com.microsoft.bot.builder.dialogs.choices;
-
-import com.microsoft.bot.builder.dialogs.*;
-import java.util.*;
-
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License.
 
+package com.microsoft.bot.builder.dialogs.choices;
 
+import com.microsoft.bot.builder.dialogs.*;
+import com.microsoft.bot.schema.models.CardAction;
+
+import java.util.*;
 
 public class Choice
 {
@@ -15,9 +15,6 @@ public class Choice
 	{
 		this(null);
 	}
-
-//C# TO JAVA CONVERTER NOTE: Java does not support optional parameters. Overloaded method(s) are created above:
-//ORIGINAL LINE: public Choice(string value = null)
 	public Choice(String value)
 	{
 		setValue(value);

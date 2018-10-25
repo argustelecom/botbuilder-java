@@ -1,10 +1,12 @@
-package com.microsoft.bot.builder.dialogs;
-
-import java.util.*;
-
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License.
 
+package com.microsoft.bot.builder.dialogs;
+
+import com.microsoft.bot.builder.dialogs.choices.Choice;
+import com.microsoft.bot.schema.models.Activity;
+
+import java.util.*;
 
 public class PromptOptions
 {

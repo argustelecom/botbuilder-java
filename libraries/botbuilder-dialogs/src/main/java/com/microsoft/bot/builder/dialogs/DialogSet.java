@@ -1,23 +1,26 @@
-package com.microsoft.bot.builder.dialogs;
-
-import java.util.*;
-
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License.
 
+package com.microsoft.bot.builder.dialogs;
 
-/** 
+import com.microsoft.bot.builder.BotAssert;
+import com.microsoft.bot.builder.StatePropertyAccessor;
+import com.microsoft.bot.builder.TurnContext;
+import org.apache.commons.lang3.StringUtils;
+
+import java.util.*;
+import java.util.concurrent.CompletableFuture;
+
+/**
  A related set of dialogs that can all call each other.
 */
 public class DialogSet
 {
-	private IStatePropertyAccessor<DialogState> _dialogState;
+	private StatePropertyAccessor<DialogState> _dialogState;
 	private final Map<String, Dialog> _dialogs = new HashMap<String, Dialog>();
 
-	public DialogSet(IStatePropertyAccessor<DialogState> dialogState)
+	public DialogSet(StatePropertyAccessor<DialogState> dialogState)
 	{
-//C# TO JAVA CONVERTER TODO TASK: Throw expressions are not converted by C# to Java Converter:
-//ORIGINAL LINE: _dialogState = dialogState ?? throw new ArgumentNullException(string.Format("missing {0}", nameof(dialogState)));
 		_dialogState = (dialogState != null) ? dialogState : throw new NullPointerException(String.format("missing %1$s", "dialogState"));
 	}
 
@@ -56,9 +59,7 @@ public class DialogSet
 		return CreateContextAsync(turnContext, null);
 	}
 
-//C# TO JAVA CONVERTER TODO TASK: There is no equivalent in Java to the 'async' keyword:
-//ORIGINAL LINE: public async CompletableFuture<DialogContext> CreateContextAsync(TurnContext turnContext, CancellationToken cancellationToken = default(CancellationToken))
-//C# TO JAVA CONVERTER NOTE: Java does not support optional parameters. Overloaded method(s) are created above:
+
 	public final CompletableFuture<DialogContext> CreateContextAsync(TurnContext turnContext )
 	{
 		BotAssert.ContextNotNull(turnContext);
@@ -71,9 +72,7 @@ public class DialogSet
 		}
 
 		// Load/initialize dialog state
-//C# TO JAVA CONVERTER TODO TASK: There is no equivalent to implicit typing in Java unless the Java 10 inferred typing option is selected:
-//C# TO JAVA CONVERTER TODO TASK: There is no equivalent to 'await' in Java:
-		var state = await _dialogState.GetAsync(turnContext, () ->
+		Object state = _dialogState.GetAsync(turnContext, () ->
 		{
 				return new DialogState();
 		}).get();
@@ -90,7 +89,7 @@ public class DialogSet
 	*/
 	public final Dialog Find(String dialogId)
 	{
-		if (tangible.StringHelper.isNullOrWhiteSpace(dialogId))
+		if (StringUtils.isBlank(dialogId))
 		{
 			throw new NullPointerException("dialogId");
 		}

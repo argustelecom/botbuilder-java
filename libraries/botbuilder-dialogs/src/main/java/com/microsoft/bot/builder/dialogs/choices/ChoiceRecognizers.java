@@ -15,8 +15,6 @@ public class ChoiceRecognizers
 		return RecognizeChoices(utterance, choices, null);
 	}
 
-//C# TO JAVA CONVERTER NOTE: Java does not support optional parameters. Overloaded method(s) are created above:
-//ORIGINAL LINE: public static List<ModelResult<FoundChoice>> RecognizeChoices(string utterance, IList<string> choices, FindChoicesOptions options = null)
 	public static ArrayList<ModelResult<FoundChoice>> RecognizeChoices(String utterance, List<String> choices, FindChoicesOptions options)
 	{
 		Choice tempVar = new Choice();
@@ -30,8 +28,6 @@ public class ChoiceRecognizers
 		return RecognizeChoices(utterance, list, null);
 	}
 
-//C# TO JAVA CONVERTER NOTE: Java does not support optional parameters. Overloaded method(s) are created above:
-//ORIGINAL LINE: public static List<ModelResult<FoundChoice>> RecognizeChoices(string utterance, IList<Choice> list, FindChoicesOptions options = null)
 	public static ArrayList<ModelResult<FoundChoice>> RecognizeChoices(String utterance, List<Choice> list, FindChoicesOptions options)
 	{
 		// Try finding choices by text search first
@@ -101,7 +97,6 @@ public class ChoiceRecognizers
 	private static ArrayList<ModelResult<FoundChoice>> RecognizeOrdinal(String utterance, String culture)
 	{
 		NumberRecognizer model = (new NumberRecognizer(culture)).GetOrdinalModel(culture);
-//C# TO JAVA CONVERTER TODO TASK: There is no equivalent to implicit typing in Java unless the Java 10 inferred typing option is selected:
 		var result = model.Parse(utterance);
 		ModelResult<FoundChoice> tempVar = new ModelResult<FoundChoice>();
 		tempVar.setStart(r.Start);
@@ -116,7 +111,6 @@ public class ChoiceRecognizers
 	private static ArrayList<ModelResult<FoundChoice>> RecognizeNumber(String utterance, String culture)
 	{
 		NumberRecognizer model = (new NumberRecognizer(culture)).GetNumberModel(culture);
-//C# TO JAVA CONVERTER TODO TASK: There is no equivalent to implicit typing in Java unless the Java 10 inferred typing option is selected:
 		var result = model.Parse(utterance);
 		ModelResult<FoundChoice> tempVar = new ModelResult<FoundChoice>();
 		tempVar.setStart(r.Start);

@@ -1,14 +1,23 @@
-package com.microsoft.bot.builder.dialogs;
-
-import Newtonsoft.Json.Linq.*;
-import java.util.*;
-import java.time.*;
-
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License.
 
+package com.microsoft.bot.builder.dialogs;
 
-/** 
+import Newtonsoft.Json.Linq.*;
+import com.microsoft.bot.builder.BotAssert;
+import com.microsoft.bot.builder.TurnContext;
+import com.microsoft.bot.schema.models.Activity;
+import com.microsoft.bot.schema.models.ActivityTypes;
+import com.microsoft.bot.schema.models.Attachment;
+import com.microsoft.bot.schema.models.TokenResponse;
+import org.apache.commons.lang3.StringUtils;
+
+import java.util.*;
+import java.time.*;
+import java.util.concurrent.CompletableFuture;
+
+
+/**
  Creates a new prompt that asks the user to sign in using the Bot Frameworks Single Sign On (SSO)
  service.
 
@@ -63,13 +72,9 @@ public class OAuthPrompt extends Dialog
 		this(dialogId, settings, null);
 	}
 
-//C# TO JAVA CONVERTER NOTE: Java does not support optional parameters. Overloaded method(s) are created above:
-//ORIGINAL LINE: public OAuthPrompt(string dialogId, OAuthPromptSettings settings, PromptValidator<TokenResponse> validator = null)
 	public OAuthPrompt(String dialogId, OAuthPromptSettings settings, PromptValidator<TokenResponse> validator)
 	{
 		super(dialogId);
-//C# TO JAVA CONVERTER TODO TASK: Throw expressions are not converted by C# to Java Converter:
-//ORIGINAL LINE: _settings = settings ?? throw new ArgumentNullException(nameof(settings));
 		_settings = (settings != null) ? settings : throw new NullPointerException("settings");
 		_validator = (PromptValidatorContext promptContext ) -> validator.invoke(promptContext);
 	}
@@ -87,9 +92,7 @@ public class OAuthPrompt extends Dialog
 		return BeginDialogAsync(dc, null, null);
 	}
 
-//C# TO JAVA CONVERTER TODO TASK: There is no equivalent in Java to the 'async' keyword:
-//ORIGINAL LINE: public override async CompletableFuture<DialogTurnResult> BeginDialogAsync(DialogContext dc, object options = null, CancellationToken cancellationToken = default(CancellationToken))
-//C# TO JAVA CONVERTER NOTE: Java does not support optional parameters. Overloaded method(s) are created above:
+
 	@Override
 	public CompletableFuture<DialogTurnResult> BeginDialogAsync(DialogContext dc, Object options )
 	{
@@ -131,18 +134,18 @@ public class OAuthPrompt extends Dialog
 
 		// Attempt to get the users token
 //C# TO JAVA CONVERTER TODO TASK: There is no equivalent to implicit typing in Java unless the Java 10 inferred typing option is selected:
-//C# TO JAVA CONVERTER TODO TASK: There is no equivalent to 'await' in Java:
-		var output = await GetUserTokenAsync(dc.getContext()).get();
+
+		var output = GetUserTokenAsync(dc.getContext()).get();
 		if (output != null)
 		{
 			// Return token
-//C# TO JAVA CONVERTER TODO TASK: There is no equivalent to 'await' in Java:
+
 			return await dc.EndDialogAsync(output).get();
 		}
 		else
 		{
 			// Prompt user to login
-//C# TO JAVA CONVERTER TODO TASK: There is no equivalent to 'await' in Java:
+
 			await SendOAuthCardAsync(dc.getContext(), opt == null ? null : opt.getPrompt()).get();
 			return Dialog.EndOfTurn;
 		}
@@ -155,7 +158,7 @@ public class OAuthPrompt extends Dialog
 		return ContinueDialogAsync(dc, null);
 	}
 
-//C# TO JAVA CONVERTER TODO TASK: There is no equivalent in Java to the 'async' keyword:
+
 //ORIGINAL LINE: public override async CompletableFuture<DialogTurnResult> ContinueDialogAsync(DialogContext dc, CancellationToken cancellationToken = default(CancellationToken))
 //C# TO JAVA CONVERTER NOTE: Java does not support optional parameters. Overloaded method(s) are created above:
 	@Override
@@ -168,7 +171,7 @@ public class OAuthPrompt extends Dialog
 
 		// Recognize token
 //C# TO JAVA CONVERTER TODO TASK: There is no equivalent to implicit typing in Java unless the Java 10 inferred typing option is selected:
-//C# TO JAVA CONVERTER TODO TASK: There is no equivalent to 'await' in Java:
+
 		var recognized = await RecognizeTokenAsync(dc.getContext()).get();
 
 		// Check for timeout
@@ -180,7 +183,7 @@ public class OAuthPrompt extends Dialog
 		if (hasTimedOut)
 		{
 			// if the token fetch request timesout, complete the prompt with no result.
-//C# TO JAVA CONVERTER TODO TASK: There is no equivalent to 'await' in Java:
+
 			return await dc.EndDialogAsync(cancellationToken).get();
 		}
 		else
@@ -193,7 +196,7 @@ public class OAuthPrompt extends Dialog
 			if (_validator != null)
 			{
 				PromptValidatorContext<TokenResponse> promptContext = new PromptValidatorContext<TokenResponse>(dc.getContext(), recognized, promptState, promptOptions);
-//C# TO JAVA CONVERTER TODO TASK: There is no equivalent to 'await' in Java:
+
 				isValid = await _validator.invoke(promptContext).get();
 			}
 			else if (recognized.Succeeded)
@@ -204,14 +207,14 @@ public class OAuthPrompt extends Dialog
 			// Return recognized value or re-prompt
 			if (isValid)
 			{
-//C# TO JAVA CONVERTER TODO TASK: There is no equivalent to 'await' in Java:
+
 				return await dc.EndDialogAsync(recognized.Value).get();
 			}
 			else
 			{
 				if (!dc.getContext().Responded && isMessage && promptOptions != null && promptOptions.getRetryPrompt() != null)
 				{
-//C# TO JAVA CONVERTER TODO TASK: There is no equivalent to 'await' in Java:
+
 					await dc.getContext().SendActivityAsync(promptOptions.getRetryPrompt()).get();
 				}
 
@@ -224,7 +227,6 @@ public class OAuthPrompt extends Dialog
 	 Get a token for a user signed in.
 	 
 	 @param turnContext Context for the current turn of the conversation with the user.
-	 @param cancellationToken The cancellation token.
 	 @return A <see cref="Task"/> representing the asynchronous operation.
 	*/
 
@@ -233,22 +235,18 @@ public class OAuthPrompt extends Dialog
 		return GetUserTokenAsync(turnContext, null);
 	}
 
-//C# TO JAVA CONVERTER TODO TASK: There is no equivalent in Java to the 'async' keyword:
-//ORIGINAL LINE: public async CompletableFuture<TokenResponse> GetUserTokenAsync(TurnContext turnContext, CancellationToken cancellationToken = default(CancellationToken))
-//C# TO JAVA CONVERTER NOTE: Java does not support optional parameters. Overloaded method(s) are created above:
+
 	public final CompletableFuture<TokenResponse> GetUserTokenAsync(TurnContext turnContext )
 	{
 		String magicCode = null;
-//C# TO JAVA CONVERTER TODO TASK: Java has no equivalent to C# pattern variables in 'is' expressions:
-//ORIGINAL LINE: if (!(turnContext.Adapter is BotFrameworkAdapter adapter))
-		if (!(turnContext.Adapter instanceof BotFrameworkAdapter adapter))
+		if (!(turnContext.adapter() instanceof BotFrameworkAdapter adapter))
 		{
 			throw new IllegalStateException("OAuthPrompt.GetUserToken(): not supported by the current adapter");
 		}
 
 		if (IsTeamsVerificationInvoke(turnContext))
 		{
-			JObject value = turnContext.Activity.Value instanceof JObject ? (JObject)turnContext.Activity.Value : null;
+			JObject value = turnContext.activity().Value instanceof JObject ? (JObject)turnContext.Activity.Value : null;
 			magicCode = value.GetValue("state") == null ? null : value.GetValue("state").toString();
 		}
 
@@ -257,15 +255,14 @@ public class OAuthPrompt extends Dialog
 			magicCode = turnContext.Activity.Text;
 		}
 
-//C# TO JAVA CONVERTER TODO TASK: There is no equivalent to 'await' in Java:
-		return await adapter.GetUserTokenAsync(turnContext, _settings.getConnectionName(), magicCode).get();
+
+		return adapter.GetUserTokenAsync(turnContext, _settings.getConnectionName(), magicCode).get();
 	}
 
 	/** 
 	 Sign Out the User.
 	 
 	 @param turnContext Context for the current turn of the conversation with the user.
-	 @param cancellationToken The cancellation token.
 	 @return A <see cref="Task"/> representing the asynchronous operation.
 	*/
 
@@ -274,21 +271,17 @@ public class OAuthPrompt extends Dialog
 		return SignOutUserAsync(turnContext, null);
 	}
 
-//C# TO JAVA CONVERTER TODO TASK: There is no equivalent in Java to the 'async' keyword:
-//ORIGINAL LINE: public async CompletableFuture SignOutUserAsync(TurnContext turnContext, CancellationToken cancellationToken = default(CancellationToken))
-//C# TO JAVA CONVERTER NOTE: Java does not support optional parameters. Overloaded method(s) are created above:
+
 	public final CompletableFuture SignOutUserAsync(TurnContext turnContext )
 	{
-//C# TO JAVA CONVERTER TODO TASK: Java has no equivalent to C# pattern variables in 'is' expressions:
-//ORIGINAL LINE: if (!(turnContext.Adapter is BotFrameworkAdapter adapter))
-		if (!(turnContext.Adapter instanceof BotFrameworkAdapter adapter))
+		if (!(turnContext.adapter() instanceof BotFrameworkAdapter adapter))
 		{
 			throw new IllegalStateException("OAuthPrompt.SignOutUser(): not supported by the current adapter");
 		}
 
 		// Sign out user
-//C# TO JAVA CONVERTER TODO TASK: There is no equivalent to 'await' in Java:
-		await adapter.SignOutUserAsync(turnContext, _settings.getConnectionName(), turnContext.Activity == null ? null : (turnContext.Activity.From == null ? null : turnContext.Activity.From.Id)).get();
+
+		adapter.SignOutUserAsync(turnContext, _settings.getConnectionName(), turnContext.activity() == null ? null : (turnContext.Activity.From == null ? null : turnContext.Activity.From.Id)).get();
 	}
 
 
@@ -297,16 +290,12 @@ public class OAuthPrompt extends Dialog
 		return SendOAuthCardAsync(turnContext, prompt, null);
 	}
 
-//C# TO JAVA CONVERTER TODO TASK: There is no equivalent in Java to the 'async' keyword:
-//ORIGINAL LINE: private async CompletableFuture SendOAuthCardAsync(TurnContext turnContext, IMessageActivity prompt, CancellationToken cancellationToken = default(CancellationToken))
-//C# TO JAVA CONVERTER NOTE: Java does not support optional parameters. Overloaded method(s) are created above:
+
 	private CompletableFuture SendOAuthCardAsync(TurnContext turnContext, IMessageActivity prompt )
 	{
 		BotAssert.ContextNotNull(turnContext);
 
-//C# TO JAVA CONVERTER TODO TASK: Java has no equivalent to C# pattern variables in 'is' expressions:
-//ORIGINAL LINE: if (!(turnContext.Adapter is BotFrameworkAdapter adapter))
-		if (!(turnContext.Adapter instanceof BotFrameworkAdapter adapter))
+		if (!(turnContext.adapter() instanceof BotFrameworkAdapter adapter))
 		{
 			throw new IllegalStateException("OAuthPrompt.Prompt(): not supported by the current adapter");
 		}
@@ -314,7 +303,7 @@ public class OAuthPrompt extends Dialog
 		// Ensure prompt initialized
 		if (prompt == null)
 		{
-			prompt = Activity.CreateMessageActivity();
+			prompt = ActivityImpl.CreateMessageActivity();
 		}
 
 		if (prompt.Attachments == null)
@@ -323,12 +312,12 @@ public class OAuthPrompt extends Dialog
 		}
 
 		// Append appropriate card if missing
-		if (!ChannelSupportsOAuthCard(turnContext.Activity.ChannelId))
+		if (!ChannelSupportsOAuthCard(turnContext.activity().channelId()))
 		{
 			if (!prompt.Attachments.Any(a -> a.Content instanceof SigninCard))
 			{
 //C# TO JAVA CONVERTER TODO TASK: There is no equivalent to implicit typing in Java unless the Java 10 inferred typing option is selected:
-//C# TO JAVA CONVERTER TODO TASK: There is no equivalent to 'await' in Java:
+
 				var link = await adapter.GetOauthSignInLinkAsync(turnContext, _settings.getConnectionName()).get();
 				Attachment tempVar = new Attachment();
 				tempVar.setContentType(SigninCard.ContentType);
@@ -363,8 +352,8 @@ public class OAuthPrompt extends Dialog
 			prompt.InputHint = InputHints.ExpectingInput;
 		}
 
-//C# TO JAVA CONVERTER TODO TASK: There is no equivalent to 'await' in Java:
-		await turnContext.SendActivityAsync(prompt).get();
+
+		turnContext.SendActivityAsync(prompt).get();
 	}
 
 
@@ -373,9 +362,7 @@ public class OAuthPrompt extends Dialog
 		return RecognizeTokenAsync(turnContext, null);
 	}
 
-//C# TO JAVA CONVERTER TODO TASK: There is no equivalent in Java to the 'async' keyword:
-//ORIGINAL LINE: private async CompletableFuture<PromptRecognizerResult<TokenResponse>> RecognizeTokenAsync(TurnContext turnContext, CancellationToken cancellationToken = default(CancellationToken))
-//C# TO JAVA CONVERTER NOTE: Java does not support optional parameters. Overloaded method(s) are created above:
+
 	private CompletableFuture<PromptRecognizerResult<TokenResponse>> RecognizeTokenAsync(TurnContext turnContext )
 	{
 		PromptRecognizerResult<TokenResponse> result = new PromptRecognizerResult<TokenResponse>();
@@ -391,23 +378,20 @@ public class OAuthPrompt extends Dialog
 			JObject magicCodeObject = turnContext.Activity.Value instanceof JObject ? (JObject)turnContext.Activity.Value : null;
 			String magicCode = magicCodeObject.GetValue("state") == null ? null : magicCodeObject.GetValue("state").toString();
 
-//C# TO JAVA CONVERTER TODO TASK: Java has no equivalent to C# pattern variables in 'is' expressions:
-//ORIGINAL LINE: if (!(turnContext.Adapter is BotFrameworkAdapter adapter))
-			if (!(turnContext.Adapter instanceof BotFrameworkAdapter adapter))
+			if (!(turnContext.adapter() instanceof BotFrameworkAdapter adapter))
 			{
 				throw new IllegalStateException("OAuthPrompt.Recognize(): not supported by the current adapter");
 			}
 
-//C# TO JAVA CONVERTER TODO TASK: There is no equivalent to implicit typing in Java unless the Java 10 inferred typing option is selected:
-//C# TO JAVA CONVERTER TODO TASK: There is no equivalent to 'await' in Java:
-			var token = await adapter.GetUserTokenAsync(turnContext, _settings.getConnectionName(), magicCode).get();
+
+			var token = adapter.GetUserTokenAsync(turnContext, _settings.getConnectionName(), magicCode).get();
 			if (token != null)
 			{
 				result.setSucceeded(true);
 				result.setValue(token);
 			}
 		}
-		else if (turnContext.Activity.Type == ActivityTypes.Message)
+		else if (turnContext.activity().type() == ActivityTypes.MESSAGE)
 		{
 			System.Text.RegularExpressions.Match matched = _magicCodeRegex.Match(turnContext.Activity.Text);
 			if (matched.Success)
@@ -420,8 +404,8 @@ public class OAuthPrompt extends Dialog
 				}
 
 //C# TO JAVA CONVERTER TODO TASK: There is no equivalent to implicit typing in Java unless the Java 10 inferred typing option is selected:
-//C# TO JAVA CONVERTER TODO TASK: There is no equivalent to 'await' in Java:
-				var token = await adapter.GetUserTokenAsync(turnContext, _settings.getConnectionName(), matched.Value).get();
+
+				var token = adapter.GetUserTokenAsync(turnContext, _settings.getConnectionName(), matched.Value).get();
 				if (token != null)
 				{
 					result.setSucceeded(true);
@@ -435,16 +419,14 @@ public class OAuthPrompt extends Dialog
 
 	private boolean IsTokenResponseEvent(TurnContext turnContext)
 	{
-//C# TO JAVA CONVERTER TODO TASK: There is no equivalent to implicit typing in Java unless the Java 10 inferred typing option is selected:
-		var activity = turnContext.Activity;
-		return activity.Type == ActivityTypes.Event && activity.Name.equals("tokens/response");
+		Activity activity = turnContext.activity();
+		return activity.type() == ActivityTypes.EVENT && activity.name().equals("tokens/response");
 	}
 
 	private boolean IsTeamsVerificationInvoke(TurnContext turnContext)
 	{
-//C# TO JAVA CONVERTER TODO TASK: There is no equivalent to implicit typing in Java unless the Java 10 inferred typing option is selected:
-		var activity = turnContext.Activity;
-		return activity.Type == ActivityTypes.Invoke && activity.Name.equals("signin/verifyState");
+		Activity activity = turnContext.activity();
+		return activity.type() == ActivityTypes.INVOKE && activity.name().equals("signin/verifyState");
 	}
 
 	private boolean ChannelSupportsOAuthCard(String channelId)

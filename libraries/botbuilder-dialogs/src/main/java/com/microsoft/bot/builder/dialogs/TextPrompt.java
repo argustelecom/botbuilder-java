@@ -3,13 +3,11 @@
 
 package com.microsoft.bot.builder.dialogs;
 
+import java.util.*;
+import java.util.concurrent.CompletableFuture;
 import com.microsoft.bot.builder.TurnContext;
 import com.microsoft.bot.schema.models.Activity;
 import com.microsoft.bot.schema.models.ActivityTypes;
-
-import java.util.*;
-import java.util.concurrent.CompletableFuture;
-
 
 public class TextPrompt extends Prompt<String>
 {
@@ -19,8 +17,6 @@ public class TextPrompt extends Prompt<String>
 		this(dialogId, null);
 	}
 
-//C# TO JAVA CONVERTER NOTE: Java does not support optional parameters. Overloaded method(s) are created above:
-//ORIGINAL LINE: public TextPrompt(string dialogId, PromptValidator<string> validator = null)
 	public TextPrompt(String dialogId, PromptValidator<String> validator)
 	{
 		super(dialogId, validator);
@@ -33,9 +29,7 @@ public class TextPrompt extends Prompt<String>
 		return OnPromptAsync(turnContext, state, options, isRetry, null);
 	}
 
-//C# TO JAVA CONVERTER TODO TASK: There is no equivalent in Java to the 'async' keyword:
-//ORIGINAL LINE: protected override async CompletableFuture OnPromptAsync(TurnContext turnContext, IDictionary<string, object> state, PromptOptions options, bool isRetry, CancellationToken cancellationToken = default(CancellationToken))
-//C# TO JAVA CONVERTER NOTE: Java does not support optional parameters. Overloaded method(s) are created above:
+
 	@Override
 	protected CompletableFuture OnPromptAsync(TurnContext turnContext, Map<String, Object> state, PromptOptions options, boolean isRetry )
 	{
@@ -77,7 +71,6 @@ public class TextPrompt extends Prompt<String>
 		PromptRecognizerResult<String> result = new PromptRecognizerResult<String>();
 		if (turnContext.activity().type() == ActivityTypes.MESSAGE.toString())
 		{
-//C# TO JAVA CONVERTER TODO TASK: There is no equivalent to implicit typing in Java unless the Java 10 inferred typing option is selected:
 			Activity message = turnContext.activity().AsMessageActivity();
 			if (message.text() != null)
 			{

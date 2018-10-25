@@ -1,14 +1,15 @@
+// Copyright (c) Microsoft Corporation. All rights reserved.
+// Licensed under the MIT License.
 package com.microsoft.bot.builder.dialogs;
-
-import com.microsoft.bot.schema.models.Activity;
 
 import java.util.*;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.CompletionException;
 import java.util.concurrent.ExecutionException;
+import com.microsoft.bot.schema.models.Activity;
+import org.apache.commons.lang3.StringUtils;
 
-// Copyright (c) Microsoft Corporation. All rights reserved.
-// Licensed under the MIT License.
+
 
 
 /** 
@@ -55,7 +56,7 @@ public abstract class ActivityPrompt extends Dialog
 
             if (opt.getRetryPrompt() != null && StringUtils.isBlank(opt.getRetryPrompt().InputHint))
             {
-                opt.getRetryPrompt().InputHint = InputHints.ExpectingInput;
+                opt.getRetryPrompt().withInputHint() = InputHints.ExpectingInput;
             }
 
             // Initialize prompt state
@@ -122,7 +123,7 @@ public abstract class ActivityPrompt extends Dialog
 		return ResumeDialogAsync(dc, reason, null, null);
 	}
 
-//C# TO JAVA CONVERTER TODO TASK: There is no equivalent in Java to the 'async' keyword:
+
 //ORIGINAL LINE: public override async CompletableFuture<DialogTurnResult> ResumeDialogAsync(DialogContext dc, DialogReason reason, object result = null, CancellationToken cancellationToken = default(CancellationToken))
 //C# TO JAVA CONVERTER NOTE: Java does not support optional parameters. Overloaded method(s) are created above:
 	@Override
@@ -133,7 +134,7 @@ public abstract class ActivityPrompt extends Dialog
 		// dialogResume() when the pushed on dialog ends.
 		// To avoid the prompt prematurely ending we need to implement this method and
 		// simply re-prompt the user.
-//C# TO JAVA CONVERTER TODO TASK: There is no equivalent to 'await' in Java:
+
 		await RepromptDialogAsync(dc.getContext(), dc.getActiveDialog()).get();
 		return Dialog.EndOfTurn;
 	}
@@ -145,7 +146,7 @@ public abstract class ActivityPrompt extends Dialog
 		return RepromptDialogAsync(turnContext, instance, null);
 	}
 
-//C# TO JAVA CONVERTER TODO TASK: There is no equivalent in Java to the 'async' keyword:
+
 //ORIGINAL LINE: public override async CompletableFuture RepromptDialogAsync(TurnContext turnContext, DialogInstance instance, CancellationToken cancellationToken = default(CancellationToken))
 //C# TO JAVA CONVERTER NOTE: Java does not support optional parameters. Overloaded method(s) are created above:
 	@Override
@@ -153,7 +154,7 @@ public abstract class ActivityPrompt extends Dialog
 	{
 		Map<String, Object> state = (Map<String, Object>)instance.getState().get(PersistedState);
 		PromptOptions options = (PromptOptions)instance.getState().get(PersistedOptions);
-//C# TO JAVA CONVERTER TODO TASK: There is no equivalent to 'await' in Java:
+
 		await OnPromptAsync(turnContext, state, options).get();
 	}
 
@@ -163,7 +164,7 @@ public abstract class ActivityPrompt extends Dialog
 		return OnPromptAsync(turnContext, state, options, null);
 	}
 
-//C# TO JAVA CONVERTER TODO TASK: There is no equivalent in Java to the 'async' keyword:
+
 //ORIGINAL LINE: protected virtual async CompletableFuture OnPromptAsync(TurnContext turnContext, IDictionary<string, object> state, PromptOptions options, CancellationToken cancellationToken = default(CancellationToken))
 //C# TO JAVA CONVERTER NOTE: Java does not support optional parameters. Overloaded method(s) are created above:
 	protected CompletableFuture OnPromptAsync(TurnContext turnContext, Map<String, Object> state, PromptOptions options )
@@ -180,7 +181,7 @@ public abstract class ActivityPrompt extends Dialog
 
 		if (options.getPrompt() != null)
 		{
-//C# TO JAVA CONVERTER TODO TASK: There is no equivalent to 'await' in Java:
+
 			await turnContext.SendActivityAsync(options.getPrompt()).get();
 		}
 	}

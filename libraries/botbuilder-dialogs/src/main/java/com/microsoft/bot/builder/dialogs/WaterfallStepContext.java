@@ -4,6 +4,7 @@
 package com.microsoft.bot.builder.dialogs;
 
 import java.util.*;
+import java.util.concurrent.CompletableFuture;
 
 
 public class WaterfallStepContext extends DialogContext
@@ -17,8 +18,6 @@ public class WaterfallStepContext extends DialogContext
 		this(parent, dc, options, values, index, reason, null);
 	}
 
-//C# TO JAVA CONVERTER NOTE: Java does not support optional parameters. Overloaded method(s) are created above:
-//ORIGINAL LINE: internal WaterfallStepContext(WaterfallDialog parent, DialogContext dc, object options, IDictionary<string, object> values, int index, DialogReason reason, object result = null)
 	public WaterfallStepContext(WaterfallDialog parent, DialogContext dc, Object options, Map<String, Object> values, int index, DialogReason reason, Object result)
 	{
 		super(dc.getDialogs(), dc.getContext(), new DialogState(dc.getStack()));
@@ -80,24 +79,21 @@ public class WaterfallStepContext extends DialogContext
 	 Used to skip to the next waterfall step.
 	 
 	 @param result Optional result to pass to next step.
-	 @param cancellationToken The cancellation token.
 	 @return A <see cref="Task"/> of <see cref="DialogTurnResult"/> representing the asynchronous operation.
 	*/
 
 	public final CompletableFuture<DialogTurnResult> NextAsync(Object result)
 	{
-		return NextAsync(result, null);
+		return NextAsync(result);
 	}
 
 	public final CompletableFuture<DialogTurnResult> NextAsync()
 	{
-		return NextAsync(null, null);
+		return NextAsync(null);
 	}
 
-//C# TO JAVA CONVERTER TODO TASK: There is no equivalent in Java to the 'async' keyword:
-//ORIGINAL LINE: public async CompletableFuture<DialogTurnResult> NextAsync(object result = null, CancellationToken cancellationToken = default(CancellationToken))
-//C# TO JAVA CONVERTER NOTE: Java does not support optional parameters. Overloaded method(s) are created above:
-	public final CompletableFuture<Microsoft.Bot.Builder.Dialogs.DialogTurnResult> NextAsync(Object result )
+
+	public final CompletableFuture<DialogTurnResult> NextAsync(Object result )
 	{
 		// Ensure next hasn't been called
 		if (_nextCalled)
@@ -107,7 +103,7 @@ public class WaterfallStepContext extends DialogContext
 
 		// Trigger next step
 		_nextCalled = true;
-//C# TO JAVA CONVERTER TODO TASK: There is no equivalent to 'await' in Java:
-		return await _parent.ResumeDialogAsync(this, DialogReason.NextCalled, result).get();
+
+		return _parent.ResumeDialogAsync(this, DialogReason.NextCalled, result).get();
 	}
 }

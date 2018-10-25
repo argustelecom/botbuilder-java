@@ -1,7 +1,8 @@
-package com.microsoft.bot.builder.dialogs;
-
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License.
+
+package com.microsoft.bot.builder.dialogs;
+
 
 /** 
  Result returned to the caller of one of the various stack manipulation methods and used to
@@ -15,8 +16,6 @@ public class DialogTurnResult
 		this(status, null);
 	}
 
-//C# TO JAVA CONVERTER NOTE: Java does not support optional parameters. Overloaded method(s) are created above:
-//ORIGINAL LINE: public DialogTurnResult(DialogTurnStatus status, object result = null)
 	public DialogTurnResult(DialogTurnStatus status, Object result)
 	{
 		setStatus(status);

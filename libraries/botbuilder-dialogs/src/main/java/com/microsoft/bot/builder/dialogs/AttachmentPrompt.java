@@ -3,13 +3,13 @@
 
 package com.microsoft.bot.builder.dialogs;
 
+import java.util.*;
+import java.util.concurrent.CompletableFuture;
 import com.microsoft.bot.builder.TurnContext;
 import com.microsoft.bot.schema.models.Activity;
 import com.microsoft.bot.schema.models.ActivityTypes;
 import com.microsoft.bot.schema.models.Attachment;
 
-import java.util.*;
-import java.util.concurrent.CompletableFuture;
 
 
 public class AttachmentPrompt extends Prompt<List<Attachment>>
@@ -20,8 +20,6 @@ public class AttachmentPrompt extends Prompt<List<Attachment>>
 		this(dialogId, null);
 	}
 
-//C# TO JAVA CONVERTER NOTE: Java does not support optional parameters. Overloaded method(s) are created above:
-//ORIGINAL LINE: public AttachmentPrompt(string dialogId, PromptValidator<IList<Attachment>> validator = null)
 	public AttachmentPrompt(String dialogId, PromptValidator<List<Attachment>> validator)
 	{
 		super(dialogId, validator);

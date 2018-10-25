@@ -1,23 +1,22 @@
-package com.microsoft.bot.builder.dialogs.choices;
-
-import com.microsoft.bot.builder.dialogs.*;
-import java.util.*;
-
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License.
 
+package com.microsoft.bot.builder.dialogs.choices;
+
+import com.microsoft.bot.builder.dialogs.*;
+import org.apache.commons.lang3.StringUtils;
+
+import java.util.*;
 
 
 public final class Find
 {
 
-	public static java.util.ArrayList<ModelResult<FoundChoice>> FindChoices(String utterance, java.util.List<String> choices)
+	public static ArrayList<ModelResult<FoundChoice>> FindChoices(String utterance, java.util.List<String> choices)
 	{
 		return FindChoices(utterance, choices, null);
 	}
 
-//C# TO JAVA CONVERTER NOTE: Java does not support optional parameters. Overloaded method(s) are created above:
-//ORIGINAL LINE: public static List<ModelResult<FoundChoice>> FindChoices(string utterance, IList<string> choices, FindChoicesOptions options = null)
 	public static ArrayList<ModelResult<FoundChoice>> FindChoices(String utterance, List<String> choices, FindChoicesOptions options)
 	{
 		if (choices == null)
@@ -31,13 +30,11 @@ public final class Find
 	}
 
 
-	public static java.util.ArrayList<ModelResult<FoundChoice>> FindChoices(String utterance, java.util.List<Choice> choices)
+	public static ArrayList<ModelResult<FoundChoice>> FindChoices(String utterance, java.util.List<Choice> choices)
 	{
 		return FindChoices(utterance, choices, null);
 	}
 
-//C# TO JAVA CONVERTER NOTE: Java does not support optional parameters. Overloaded method(s) are created above:
-//ORIGINAL LINE: public static List<ModelResult<FoundChoice>> FindChoices(string utterance, IList<Choice> choices, FindChoicesOptions options = null)
 	public static ArrayList<ModelResult<FoundChoice>> FindChoices(String utterance, List<Choice> choices, FindChoicesOptions options)
 	{
 		if (StringUtils.isBlank(utterance))
@@ -69,10 +66,10 @@ public final class Find
 				synonyms.add(tempVar);
 			}
 
-			if (choice.getAction() != null && choice.getAction().Title != null && !opt.getNoAction())
+			if (choice.getAction() != null && choice.getAction().title() != null && !opt.getNoAction())
 			{
 				SortedValue tempVar2 = new SortedValue();
-				tempVar2.setValue(choice.getAction().Title);
+				tempVar2.setValue(choice.getAction().title());
 				tempVar2.setIndex(index);
 				synonyms.add(tempVar2);
 			}
@@ -114,8 +111,6 @@ public final class Find
 		return FindValues(utterance, values, null);
 	}
 
-//C# TO JAVA CONVERTER NOTE: Java does not support optional parameters. Overloaded method(s) are created above:
-//ORIGINAL LINE: public static List<ModelResult<FoundValue>> FindValues(string utterance, List<SortedValue> values, FindValuesOptions options = null)
 	public static ArrayList<ModelResult<FoundValue>> FindValues(String utterance, ArrayList<SortedValue> values, FindValuesOptions options)
 	{
 		// Sort values in descending order by length so that the longest value is searched over first.
@@ -127,7 +122,6 @@ public final class Find
 		FindValuesOptions opt = (options != null) ? options : new FindValuesOptions();
 		TokenizerFunction tempVar = opt.getTokenizer();
 		TokenizerFunction tokenizer = (tempVar != null) ? tempVar : Tokenizer.getDefaultTokenizer();
-//C# TO JAVA CONVERTER TODO TASK: There is no equivalent to implicit typing in Java unless the Java 10 inferred typing option is selected:
 		var tokens = tokenizer(utterance, opt.getLocale());
 		Nullable<Integer> tempVar2 = opt.getMaxTokenDistance();
 		int maxDistance = (tempVar2 != null) ? tempVar2 : 2;
@@ -141,11 +135,10 @@ public final class Find
 			//   to re-search the string starting from the end of the previous match.
 			// - The start & end position returned for the match are token positions.
 			int startPos = 0;
-//C# TO JAVA CONVERTER TODO TASK: There is no equivalent to implicit typing in Java unless the Java 10 inferred typing option is selected:
 			var searchedTokens = tokenizer(entry.getValue().trim(), opt.getLocale());
 			while (startPos < tokens.size())
 			{
-				Microsoft.Bot.Builder.Dialogs.Choices.ModelResult<FoundValue> match = MatchValue(tokens, maxDistance, opt, entry.getIndex(), entry.getValue(), searchedTokens, startPos);
+				ModelResult<FoundValue> match = MatchValue(tokens, maxDistance, opt, entry.getIndex(), entry.getValue(), searchedTokens, startPos);
 				if (match != null)
 				{
 					startPos = match.getEnd() + 1;

@@ -1,14 +1,17 @@
-package com.microsoft.bot.builder.dialogs;
-
-import java.util.*;
-import java.math.*;
-
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License.
 
+package com.microsoft.bot.builder.dialogs;
 
-//C# TO JAVA CONVERTER TODO TASK: The C# 'struct' constraint has no equivalent in Java:
-//ORIGINAL LINE: public class NumberPrompt<T> : Prompt<T> where T : struct
+import com.microsoft.bot.builder.TurnContext;
+import com.microsoft.bot.schema.models.Activity;
+import com.microsoft.bot.schema.models.ActivityTypes;
+
+import java.util.*;
+import java.math.*;
+import java.util.concurrent.CompletableFuture;
+
+
 public class NumberPrompt<T> extends Prompt<T>
 {
 
@@ -22,8 +25,6 @@ public class NumberPrompt<T> extends Prompt<T>
 		this(dialogId, null, null);
 	}
 
-//C# TO JAVA CONVERTER NOTE: Java does not support optional parameters. Overloaded method(s) are created above:
-//ORIGINAL LINE: public NumberPrompt(string dialogId, PromptValidator<T> validator = null, string defaultLocale = null)
 	public NumberPrompt(String dialogId, PromptValidator<T> validator, String defaultLocale)
 	{
 		super(dialogId, validator);
@@ -47,9 +48,7 @@ public class NumberPrompt<T> extends Prompt<T>
 		return OnPromptAsync(turnContext, state, options, isRetry, null);
 	}
 
-//C# TO JAVA CONVERTER TODO TASK: There is no equivalent in Java to the 'async' keyword:
-//ORIGINAL LINE: protected override async CompletableFuture OnPromptAsync(TurnContext turnContext, IDictionary<string, object> state, PromptOptions options, bool isRetry, CancellationToken cancellationToken = default(CancellationToken))
-//C# TO JAVA CONVERTER NOTE: Java does not support optional parameters. Overloaded method(s) are created above:
+
 	@Override
 	protected CompletableFuture OnPromptAsync(TurnContext turnContext, Map<String, Object> state, PromptOptions options, boolean isRetry )
 	{
@@ -65,13 +64,13 @@ public class NumberPrompt<T> extends Prompt<T>
 
 		if (isRetry && options.getRetryPrompt() != null)
 		{
-//C# TO JAVA CONVERTER TODO TASK: There is no equivalent to 'await' in Java:
-			await turnContext.SendActivityAsync(options.getRetryPrompt()).get();
+
+			turnContext.SendActivityAsync(options.getRetryPrompt()).get();
 		}
 		else if (options.getPrompt() != null)
 		{
-//C# TO JAVA CONVERTER TODO TASK: There is no equivalent to 'await' in Java:
-			await turnContext.SendActivityAsync(options.getPrompt()).get();
+
+			turnContext.SendActivityAsync(options.getPrompt()).get();
 		}
 	}
 
@@ -82,8 +81,6 @@ public class NumberPrompt<T> extends Prompt<T>
 		return OnRecognizeAsync(turnContext, state, options, null);
 	}
 
-//C# TO JAVA CONVERTER NOTE: Java does not support optional parameters. Overloaded method(s) are created above:
-//ORIGINAL LINE: protected override CompletableFuture<PromptRecognizerResult<T>> OnRecognizeAsync(TurnContext turnContext, IDictionary<string, object> state, PromptOptions options, CancellationToken cancellationToken = default(CancellationToken))
 	@Override
 	protected CompletableFuture<PromptRecognizerResult<T>> OnRecognizeAsync(TurnContext turnContext, Map<String, Object> state, PromptOptions options )
 	{
@@ -93,15 +90,12 @@ public class NumberPrompt<T> extends Prompt<T>
 		}
 
 		PromptRecognizerResult<T> result = new PromptRecognizerResult<T>();
-		if (turnContext.Activity.Type == ActivityTypes.Message)
+		if (turnContext.activity().type() == ActivityTypes.MESSAGE.toString())
 		{
-//C# TO JAVA CONVERTER TODO TASK: There is no equivalent to implicit typing in Java unless the Java 10 inferred typing option is selected:
-			var message = turnContext.Activity.AsMessageActivity();
+			Activity message = turnContext.activity().AsMessageActivity();
 			String tempVar = getDefaultLocale();
-//C# TO JAVA CONVERTER TODO TASK: There is no equivalent to implicit typing in Java unless the Java 10 inferred typing option is selected:
-			var culture = (turnContext.Activity.Locale != null) ? turnContext.Activity.Locale : (tempVar != null) ? tempVar : English;
-//C# TO JAVA CONVERTER TODO TASK: There is no equivalent to implicit typing in Java unless the Java 10 inferred typing option is selected:
-			var results = NumberRecognizer.RecognizeNumber(message.Text, culture);
+			String culture = (turnContext.activity().locale() != null) ? turnContext.activity().locale() : (tempVar != null) ? tempVar : English;
+			var results = NumberRecognizer.RecognizeNumber(message.text(), culture);
 			if (results.size() > 0)
 			{
 				// Try to parse value based on type

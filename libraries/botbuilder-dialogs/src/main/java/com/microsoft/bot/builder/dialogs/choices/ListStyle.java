@@ -1,12 +1,11 @@
+// Copyright (c) Microsoft Corporation. All rights reserved.
+// Licensed under the MIT License.
+
 package com.microsoft.bot.builder.dialogs.choices;
 
 import com.microsoft.bot.builder.dialogs.*;
 
-// Copyright (c) Microsoft Corporation. All rights reserved.
-// Licensed under the MIT License.
-
-
-/** 
+/**
  Controls the way that choices for a `ChoicePrompt` or yes/no options for a `ConfirmPrompt` are
  presented to a user.
 */

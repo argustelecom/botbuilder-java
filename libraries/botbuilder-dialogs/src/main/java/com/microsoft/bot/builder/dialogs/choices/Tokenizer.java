@@ -26,13 +26,11 @@ public class Tokenizer
 	 @return A list of tokens.
 	*/
 
-	public static java.util.ArrayList<Token> DefaultTokenizerImpl(String text)
+	public static ArrayList<Token> DefaultTokenizerImpl(String text)
 	{
 		return DefaultTokenizerImpl(text, null);
 	}
 
-//C# TO JAVA CONVERTER NOTE: Java does not support optional parameters. Overloaded method(s) are created above:
-//ORIGINAL LINE: public static List<Token> DefaultTokenizerImpl(string text, string locale = null)
 	public static ArrayList<Token> DefaultTokenizerImpl(String text, String locale)
 	{
 		ArrayList<Token> tokens = new ArrayList<Token>();

@@ -4,6 +4,12 @@
 package com.microsoft.bot.builder.dialogs;
 
 import java.util.*;
+import java.util.concurrent.CompletableFuture;
+import com.microsoft.bot.builder.TurnContext;
+import com.microsoft.bot.builder.dialogs.choices.*;
+import com.microsoft.bot.schema.models.Activity;
+import com.microsoft.bot.schema.models.ActivityTypes;
+import org.apache.commons.lang3.StringUtils;
 
 
 
@@ -22,8 +28,6 @@ public class ChoicePrompt extends Prompt<FoundChoice>
 		this(dialogId, null, null);
 	}
 
-//C# TO JAVA CONVERTER NOTE: Java does not support optional parameters. Overloaded method(s) are created above:
-//ORIGINAL LINE: public ChoicePrompt(string dialogId, PromptValidator<FoundChoice> validator = null, string defaultLocale = null)
 	public ChoicePrompt(String dialogId, PromptValidator<FoundChoice> validator, String defaultLocale)
 	{
 		super(dialogId, validator);
@@ -78,9 +82,7 @@ public class ChoicePrompt extends Prompt<FoundChoice>
 		return OnPromptAsync(turnContext, state, options, isRetry, null);
 	}
 
-//C# TO JAVA CONVERTER TODO TASK: There is no equivalent in Java to the 'async' keyword:
-//ORIGINAL LINE: protected override async CompletableFuture OnPromptAsync(TurnContext turnContext, IDictionary<string, object> state, PromptOptions options, bool isRetry, CancellationToken cancellationToken = default(CancellationToken))
-//C# TO JAVA CONVERTER NOTE: Java does not support optional parameters. Overloaded method(s) are created above:
+
 	@Override
 	protected CompletableFuture OnPromptAsync(TurnContext turnContext, Map<String, Object> state, PromptOptions options, boolean isRetry )
 	{
@@ -95,7 +97,7 @@ public class ChoicePrompt extends Prompt<FoundChoice>
 		}
 
 		// Determine culture
-		String culture = (turnContext.Activity.Locale != null) ? turnContext.Activity.Locale : getDefaultLocale();
+		String culture = (turnContext.activity().locale() != null) ? turnContext.activity().locale() : getDefaultLocale();
 		if (StringUtils.isBlank(culture) || !DefaultChoiceOptions.containsKey(culture))
 		{
 			culture = English;
@@ -105,9 +107,8 @@ public class ChoicePrompt extends Prompt<FoundChoice>
 		IMessageActivity prompt;
 		java.util.List<Choice> tempVar = options.getChoices();
 		ArrayList<Choice> choices = (tempVar != null) ? tempVar : new ArrayList<Choice>();
-//C# TO JAVA CONVERTER TODO TASK: There is no equivalent to implicit typing in Java unless the Java 10 inferred typing option is selected:
-		var channelId = turnContext.Activity.ChannelId;
-		Microsoft.Bot.Builder.Dialogs.Choices.ChoiceFactoryOptions tempVar2 = getChoiceOptions();
+		String channelId = turnContext.activity().channelId();
+		ChoiceFactoryOptions tempVar2 = getChoiceOptions();
 		ChoiceFactoryOptions choiceOptions = (tempVar2 != null) ? tempVar2 : DefaultChoiceOptions.get(culture);
 		if (isRetry && options.getRetryPrompt() != null)
 		{
@@ -119,8 +120,8 @@ public class ChoicePrompt extends Prompt<FoundChoice>
 		}
 
 		// Send prompt
-//C# TO JAVA CONVERTER TODO TASK: There is no equivalent to 'await' in Java:
-		await turnContext.SendActivityAsync(prompt).get();
+
+		turnContext.SendActivityAsync(prompt).get();
 	}
 
 
@@ -130,8 +131,6 @@ public class ChoicePrompt extends Prompt<FoundChoice>
 		return OnRecognizeAsync(turnContext, state, options, null);
 	}
 
-//C# TO JAVA CONVERTER NOTE: Java does not support optional parameters. Overloaded method(s) are created above:
-//ORIGINAL LINE: protected override CompletableFuture<PromptRecognizerResult<FoundChoice>> OnRecognizeAsync(TurnContext turnContext, IDictionary<string, object> state, PromptOptions options, CancellationToken cancellationToken = default(CancellationToken))
 	@Override
 	protected CompletableFuture<PromptRecognizerResult<FoundChoice>> OnRecognizeAsync(TurnContext turnContext, Map<String, Object> state, PromptOptions options )
 	{
@@ -144,16 +143,15 @@ public class ChoicePrompt extends Prompt<FoundChoice>
 		ArrayList<Choice> choices = (tempVar != null) ? tempVar : new ArrayList<Choice>();
 
 		PromptRecognizerResult<FoundChoice> result = new PromptRecognizerResult<FoundChoice>();
-		if (turnContext.Activity.Type == ActivityTypes.Message)
+		if (turnContext.activity().type() == ActivityTypes.MESSAGE.toString())
 		{
-//C# TO JAVA CONVERTER TODO TASK: There is no equivalent to implicit typing in Java unless the Java 10 inferred typing option is selected:
-			var activity = turnContext.Activity;
-			String utterance = activity.Text;
-			Microsoft.Bot.Builder.Dialogs.Choices.FindChoicesOptions tempVar2 = getRecognizerOptions();
+			Activity activity = turnContext.activity();
+			String utterance = ((Activity) activity).text();
+			FindChoicesOptions tempVar2 = getRecognizerOptions();
 			FindChoicesOptions opt = (tempVar2 != null) ? tempVar2 : new FindChoicesOptions();
 			String tempVar3 = opt.getLocale();
 			String tempVar4 = getDefaultLocale();
-			opt.setLocale((activity.Locale != null) ? activity.Locale : (tempVar3 != null) ? tempVar3 : (tempVar4 != null) ? tempVar4 : English);
+			opt.setLocale((activity.locale() != null) ? activity.locale() : (tempVar3 != null) ? tempVar3 : (tempVar4 != null) ? tempVar4 : English);
 			ArrayList<ModelResult<FoundChoice>> results = ChoiceRecognizers.RecognizeChoices(utterance, choices, opt);
 			if (results != null && !results.isEmpty())
 			{

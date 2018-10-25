@@ -1,10 +1,15 @@
-package com.microsoft.bot.builder.dialogs;
-
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License.
 
+package com.microsoft.bot.builder.dialogs;
 
-/** 
+
+import com.microsoft.bot.builder.TurnContext;
+import org.apache.commons.lang3.StringUtils;
+
+import java.util.concurrent.CompletableFuture;
+
+/**
  Base class for all dialogs.
 */
 public abstract class Dialog
@@ -13,7 +18,7 @@ public abstract class Dialog
 
 	public Dialog(String dialogId)
 	{
-		if (tangible.StringHelper.isNullOrWhiteSpace(dialogId))
+		if (StringUtils.isBlank(dialogId))
 		{
 			throw new NullPointerException("dialogId");
 		}
@@ -32,14 +37,11 @@ public abstract class Dialog
 	 
 	 @param dc The dialog context for the current turn of conversation.
 	 @param options (Optional) arguments that were passed to the dialog during `begin()` call that started the instance.
-	 @param cancellationToken The cancellation token.
 	 @return A <see cref="Task"/> representing the asynchronous operation.
 	*/
 
 	public final abstract CompletableFuture<DialogTurnResult> BeginDialogAsync(DialogContext dc, Object options);
 	public final abstract CompletableFuture<DialogTurnResult> BeginDialogAsync(DialogContext dc);
-//C# TO JAVA CONVERTER NOTE: Java does not support optional parameters. Overloaded method(s) are created above:
-//ORIGINAL LINE: public abstract CompletableFuture<DialogTurnResult> BeginDialogAsync(DialogContext dc, object options = null, CancellationToken cancellationToken = default(CancellationToken));
 	public abstract CompletableFuture<DialogTurnResult> BeginDialogAsync(DialogContext dc, Object options );
 
 	/** 
@@ -49,7 +51,6 @@ public abstract class Dialog
 	 If this method is NOT implemented then the dialog will automatically be ended when the user replies.
 	 
 	 @param dc The dialog context for the current turn of conversation.
-	 @param cancellationToken The cancellation token.
 	 @return A <see cref="Task"/> representing the asynchronous operation.
 	*/
 
@@ -58,14 +59,12 @@ public abstract class Dialog
 		return ContinueDialogAsync(dc, null);
 	}
 
-//C# TO JAVA CONVERTER TODO TASK: There is no equivalent in Java to the 'async' keyword:
-//ORIGINAL LINE: public virtual async CompletableFuture<DialogTurnResult> ContinueDialogAsync(DialogContext dc, CancellationToken cancellationToken = default(CancellationToken))
-//C# TO JAVA CONVERTER NOTE: Java does not support optional parameters. Overloaded method(s) are created above:
+
 	public CompletableFuture<DialogTurnResult> ContinueDialogAsync(DialogContext dc )
 	{
 		// By default just end the current dialog.
-//C# TO JAVA CONVERTER TODO TASK: There is no equivalent to 'await' in Java:
-		return await dc.EndDialogAsync(cancellationToken).get();
+
+		return dc.EndDialogAsync().get();
 	}
 
 	/** 
@@ -78,7 +77,6 @@ public abstract class Dialog
 	 @param dc The dialog context for the current turn of conversation.
 	 @param reason Reason why the dialog resumed.
 	 @param result (Optional) value returned from the dialog that was called. The type of the value returned is dependant on the dialog that was called.
-	 @param cancellationToken The cancellation token.
 	 @return A <see cref="Task"/> representing the asynchronous operation.
 	*/
 
@@ -92,14 +90,12 @@ public abstract class Dialog
 		return ResumeDialogAsync(dc, reason, null, null);
 	}
 
-//C# TO JAVA CONVERTER TODO TASK: There is no equivalent in Java to the 'async' keyword:
-//ORIGINAL LINE: public virtual async CompletableFuture<DialogTurnResult> ResumeDialogAsync(DialogContext dc, DialogReason reason, object result = null, CancellationToken cancellationToken = default(CancellationToken))
-//C# TO JAVA CONVERTER NOTE: Java does not support optional parameters. Overloaded method(s) are created above:
+
 	public CompletableFuture<DialogTurnResult> ResumeDialogAsync(DialogContext dc, DialogReason reason, Object result )
 	{
 		// By default just end the current dialog and return result to parent.
-//C# TO JAVA CONVERTER TODO TASK: There is no equivalent to 'await' in Java:
-		return await dc.EndDialogAsync(result).get();
+
+		return dc.EndDialogAsync(result).get();
 	}
 
 
@@ -108,12 +104,10 @@ public abstract class Dialog
 		return RepromptDialogAsync(turnContext, instance, null);
 	}
 
-//C# TO JAVA CONVERTER NOTE: Java does not support optional parameters. Overloaded method(s) are created above:
-//ORIGINAL LINE: public virtual CompletableFuture RepromptDialogAsync(TurnContext turnContext, DialogInstance instance, CancellationToken cancellationToken = default(CancellationToken))
 	public CompletableFuture RepromptDialogAsync(TurnContext turnContext, DialogInstance instance )
 	{
 		// No-op by default
-		return Task.CompletedTask;
+		return CompletableFuture.completedFuture(null);
 	}
 
 
@@ -122,11 +116,9 @@ public abstract class Dialog
 		return EndDialogAsync(turnContext, instance, reason, null);
 	}
 
-//C# TO JAVA CONVERTER NOTE: Java does not support optional parameters. Overloaded method(s) are created above:
-//ORIGINAL LINE: public virtual CompletableFuture EndDialogAsync(TurnContext turnContext, DialogInstance instance, DialogReason reason, CancellationToken cancellationToken = default(CancellationToken))
 	public CompletableFuture EndDialogAsync(TurnContext turnContext, DialogInstance instance, DialogReason reason )
 	{
 		// No-op by default
-		return Task.CompletedTask;
+		return CompletableFuture.completedFuture(null);
 	}
 }
