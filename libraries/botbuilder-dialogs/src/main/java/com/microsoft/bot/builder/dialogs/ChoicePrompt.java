@@ -1,9 +1,10 @@
+// Copyright (c) Microsoft Corporation. All rights reserved.
+// Licensed under the MIT License.
+
 package com.microsoft.bot.builder.dialogs;
 
 import java.util.*;
 
-// Copyright (c) Microsoft Corporation. All rights reserved.
-// Licensed under the MIT License.
 
 
 public class ChoicePrompt extends Prompt<FoundChoice>
@@ -72,16 +73,16 @@ public class ChoicePrompt extends Prompt<FoundChoice>
 
 
 	@Override
-	protected Task OnPromptAsync(ITurnContext turnContext, java.util.Map<String, Object> state, PromptOptions options, boolean isRetry)
+	protected CompletableFuture OnPromptAsync(TurnContext turnContext, java.util.Map<String, Object> state, PromptOptions options, boolean isRetry)
 	{
 		return OnPromptAsync(turnContext, state, options, isRetry, null);
 	}
 
 //C# TO JAVA CONVERTER TODO TASK: There is no equivalent in Java to the 'async' keyword:
-//ORIGINAL LINE: protected override async Task OnPromptAsync(ITurnContext turnContext, IDictionary<string, object> state, PromptOptions options, bool isRetry, CancellationToken cancellationToken = default(CancellationToken))
+//ORIGINAL LINE: protected override async CompletableFuture OnPromptAsync(TurnContext turnContext, IDictionary<string, object> state, PromptOptions options, bool isRetry, CancellationToken cancellationToken = default(CancellationToken))
 //C# TO JAVA CONVERTER NOTE: Java does not support optional parameters. Overloaded method(s) are created above:
 	@Override
-	protected Task OnPromptAsync(ITurnContext turnContext, Map<String, Object> state, PromptOptions options, boolean isRetry, CancellationToken cancellationToken)
+	protected CompletableFuture OnPromptAsync(TurnContext turnContext, Map<String, Object> state, PromptOptions options, boolean isRetry )
 	{
 		if (turnContext == null)
 		{
@@ -95,7 +96,7 @@ public class ChoicePrompt extends Prompt<FoundChoice>
 
 		// Determine culture
 		String culture = (turnContext.Activity.Locale != null) ? turnContext.Activity.Locale : getDefaultLocale();
-		if (tangible.StringHelper.isNullOrEmpty(culture) || !DefaultChoiceOptions.containsKey(culture))
+		if (StringUtils.isBlank(culture) || !DefaultChoiceOptions.containsKey(culture))
 		{
 			culture = English;
 		}
@@ -119,20 +120,20 @@ public class ChoicePrompt extends Prompt<FoundChoice>
 
 		// Send prompt
 //C# TO JAVA CONVERTER TODO TASK: There is no equivalent to 'await' in Java:
-		await turnContext.SendActivityAsync(prompt, cancellationToken).ConfigureAwait(false);
+		await turnContext.SendActivityAsync(prompt).get();
 	}
 
 
 	@Override
-	protected CompletableFuture<PromptRecognizerResult<FoundChoice>> OnRecognizeAsync(ITurnContext turnContext, java.util.Map<String, Object> state, PromptOptions options)
+	protected CompletableFuture<PromptRecognizerResult<FoundChoice>> OnRecognizeAsync(TurnContext turnContext, java.util.Map<String, Object> state, PromptOptions options)
 	{
 		return OnRecognizeAsync(turnContext, state, options, null);
 	}
 
 //C# TO JAVA CONVERTER NOTE: Java does not support optional parameters. Overloaded method(s) are created above:
-//ORIGINAL LINE: protected override CompletableFuture<PromptRecognizerResult<FoundChoice>> OnRecognizeAsync(ITurnContext turnContext, IDictionary<string, object> state, PromptOptions options, CancellationToken cancellationToken = default(CancellationToken))
+//ORIGINAL LINE: protected override CompletableFuture<PromptRecognizerResult<FoundChoice>> OnRecognizeAsync(TurnContext turnContext, IDictionary<string, object> state, PromptOptions options, CancellationToken cancellationToken = default(CancellationToken))
 	@Override
-	protected CompletableFuture<PromptRecognizerResult<FoundChoice>> OnRecognizeAsync(ITurnContext turnContext, Map<String, Object> state, PromptOptions options, CancellationToken cancellationToken)
+	protected CompletableFuture<PromptRecognizerResult<FoundChoice>> OnRecognizeAsync(TurnContext turnContext, Map<String, Object> state, PromptOptions options )
 	{
 		if (turnContext == null)
 		{
@@ -161,6 +162,6 @@ public class ChoicePrompt extends Prompt<FoundChoice>
 			}
 		}
 
-		return Task.FromResult(result);
+		return CompletableFuture.completedFuture(result);
 	}
 }

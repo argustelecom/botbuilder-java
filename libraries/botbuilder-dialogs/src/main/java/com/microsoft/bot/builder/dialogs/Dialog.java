@@ -40,7 +40,7 @@ public abstract class Dialog
 	public final abstract CompletableFuture<DialogTurnResult> BeginDialogAsync(DialogContext dc);
 //C# TO JAVA CONVERTER NOTE: Java does not support optional parameters. Overloaded method(s) are created above:
 //ORIGINAL LINE: public abstract CompletableFuture<DialogTurnResult> BeginDialogAsync(DialogContext dc, object options = null, CancellationToken cancellationToken = default(CancellationToken));
-	public abstract CompletableFuture<DialogTurnResult> BeginDialogAsync(DialogContext dc, Object options, CancellationToken cancellationToken);
+	public abstract CompletableFuture<DialogTurnResult> BeginDialogAsync(DialogContext dc, Object options );
 
 	/** 
 	 Method called when an instance of the dialog is the "current" dialog and the
@@ -61,11 +61,11 @@ public abstract class Dialog
 //C# TO JAVA CONVERTER TODO TASK: There is no equivalent in Java to the 'async' keyword:
 //ORIGINAL LINE: public virtual async CompletableFuture<DialogTurnResult> ContinueDialogAsync(DialogContext dc, CancellationToken cancellationToken = default(CancellationToken))
 //C# TO JAVA CONVERTER NOTE: Java does not support optional parameters. Overloaded method(s) are created above:
-	public CompletableFuture<DialogTurnResult> ContinueDialogAsync(DialogContext dc, CancellationToken cancellationToken)
+	public CompletableFuture<DialogTurnResult> ContinueDialogAsync(DialogContext dc )
 	{
 		// By default just end the current dialog.
 //C# TO JAVA CONVERTER TODO TASK: There is no equivalent to 'await' in Java:
-		return await dc.EndDialogAsync(cancellationToken).ConfigureAwait(false);
+		return await dc.EndDialogAsync(cancellationToken).get();
 	}
 
 	/** 
@@ -95,36 +95,36 @@ public abstract class Dialog
 //C# TO JAVA CONVERTER TODO TASK: There is no equivalent in Java to the 'async' keyword:
 //ORIGINAL LINE: public virtual async CompletableFuture<DialogTurnResult> ResumeDialogAsync(DialogContext dc, DialogReason reason, object result = null, CancellationToken cancellationToken = default(CancellationToken))
 //C# TO JAVA CONVERTER NOTE: Java does not support optional parameters. Overloaded method(s) are created above:
-	public CompletableFuture<DialogTurnResult> ResumeDialogAsync(DialogContext dc, DialogReason reason, Object result, CancellationToken cancellationToken)
+	public CompletableFuture<DialogTurnResult> ResumeDialogAsync(DialogContext dc, DialogReason reason, Object result )
 	{
 		// By default just end the current dialog and return result to parent.
 //C# TO JAVA CONVERTER TODO TASK: There is no equivalent to 'await' in Java:
-		return await dc.EndDialogAsync(result, cancellationToken).ConfigureAwait(false);
+		return await dc.EndDialogAsync(result).get();
 	}
 
 
-	public Task RepromptDialogAsync(ITurnContext turnContext, DialogInstance instance)
+	public CompletableFuture RepromptDialogAsync(TurnContext turnContext, DialogInstance instance)
 	{
 		return RepromptDialogAsync(turnContext, instance, null);
 	}
 
 //C# TO JAVA CONVERTER NOTE: Java does not support optional parameters. Overloaded method(s) are created above:
-//ORIGINAL LINE: public virtual Task RepromptDialogAsync(ITurnContext turnContext, DialogInstance instance, CancellationToken cancellationToken = default(CancellationToken))
-	public Task RepromptDialogAsync(ITurnContext turnContext, DialogInstance instance, CancellationToken cancellationToken)
+//ORIGINAL LINE: public virtual CompletableFuture RepromptDialogAsync(TurnContext turnContext, DialogInstance instance, CancellationToken cancellationToken = default(CancellationToken))
+	public CompletableFuture RepromptDialogAsync(TurnContext turnContext, DialogInstance instance )
 	{
 		// No-op by default
 		return Task.CompletedTask;
 	}
 
 
-	public Task EndDialogAsync(ITurnContext turnContext, DialogInstance instance, DialogReason reason)
+	public CompletableFuture EndDialogAsync(TurnContext turnContext, DialogInstance instance, DialogReason reason)
 	{
 		return EndDialogAsync(turnContext, instance, reason, null);
 	}
 
 //C# TO JAVA CONVERTER NOTE: Java does not support optional parameters. Overloaded method(s) are created above:
-//ORIGINAL LINE: public virtual Task EndDialogAsync(ITurnContext turnContext, DialogInstance instance, DialogReason reason, CancellationToken cancellationToken = default(CancellationToken))
-	public Task EndDialogAsync(ITurnContext turnContext, DialogInstance instance, DialogReason reason, CancellationToken cancellationToken)
+//ORIGINAL LINE: public virtual CompletableFuture EndDialogAsync(TurnContext turnContext, DialogInstance instance, DialogReason reason, CancellationToken cancellationToken = default(CancellationToken))
+	public CompletableFuture EndDialogAsync(TurnContext turnContext, DialogInstance instance, DialogReason reason )
 	{
 		// No-op by default
 		return Task.CompletedTask;

@@ -39,16 +39,16 @@ public class DateTimePrompt extends Prompt<List<DateTimeResolution>>
 
 
 	@Override
-	protected Task OnPromptAsync(ITurnContext turnContext, java.util.Map<String, Object> state, PromptOptions options, boolean isRetry)
+	protected CompletableFuture OnPromptAsync(TurnContext turnContext, java.util.Map<String, Object> state, PromptOptions options, boolean isRetry)
 	{
 		return OnPromptAsync(turnContext, state, options, isRetry, null);
 	}
 
 //C# TO JAVA CONVERTER TODO TASK: There is no equivalent in Java to the 'async' keyword:
-//ORIGINAL LINE: protected override async Task OnPromptAsync(ITurnContext turnContext, IDictionary<string, object> state, PromptOptions options, bool isRetry, CancellationToken cancellationToken = default(CancellationToken))
+//ORIGINAL LINE: protected override async CompletableFuture OnPromptAsync(TurnContext turnContext, IDictionary<string, object> state, PromptOptions options, bool isRetry, CancellationToken cancellationToken = default(CancellationToken))
 //C# TO JAVA CONVERTER NOTE: Java does not support optional parameters. Overloaded method(s) are created above:
 	@Override
-	protected Task OnPromptAsync(ITurnContext turnContext, Map<String, Object> state, PromptOptions options, boolean isRetry, CancellationToken cancellationToken)
+	protected CompletableFuture OnPromptAsync(TurnContext turnContext, Map<String, Object> state, PromptOptions options, boolean isRetry )
 	{
 		if (turnContext == null)
 		{
@@ -63,26 +63,26 @@ public class DateTimePrompt extends Prompt<List<DateTimeResolution>>
 		if (isRetry && options.getRetryPrompt() != null)
 		{
 //C# TO JAVA CONVERTER TODO TASK: There is no equivalent to 'await' in Java:
-			await turnContext.SendActivityAsync(options.getRetryPrompt(), cancellationToken).ConfigureAwait(false);
+			await turnContext.SendActivityAsync(options.getRetryPrompt()).get();
 		}
 		else if (options.getPrompt() != null)
 		{
 //C# TO JAVA CONVERTER TODO TASK: There is no equivalent to 'await' in Java:
-			await turnContext.SendActivityAsync(options.getPrompt(), cancellationToken).ConfigureAwait(false);
+			await turnContext.SendActivityAsync(options.getPrompt()).get();
 		}
 	}
 
 
 	@Override
-	protected CompletableFuture<PromptRecognizerResult<java.util.List<DateTimeResolution>>> OnRecognizeAsync(ITurnContext turnContext, java.util.Map<String, Object> state, PromptOptions options)
+	protected CompletableFuture<PromptRecognizerResult<java.util.List<DateTimeResolution>>> OnRecognizeAsync(TurnContext turnContext, java.util.Map<String, Object> state, PromptOptions options)
 	{
 		return OnRecognizeAsync(turnContext, state, options, null);
 	}
 
 //C# TO JAVA CONVERTER NOTE: Java does not support optional parameters. Overloaded method(s) are created above:
-//ORIGINAL LINE: protected override CompletableFuture<PromptRecognizerResult<IList<DateTimeResolution>>> OnRecognizeAsync(ITurnContext turnContext, IDictionary<string, object> state, PromptOptions options, CancellationToken cancellationToken = default(CancellationToken))
+//ORIGINAL LINE: protected override CompletableFuture<PromptRecognizerResult<IList<DateTimeResolution>>> OnRecognizeAsync(TurnContext turnContext, IDictionary<string, object> state, PromptOptions options, CancellationToken cancellationToken = default(CancellationToken))
 	@Override
-	protected CompletableFuture<PromptRecognizerResult<List<DateTimeResolution>>> OnRecognizeAsync(ITurnContext turnContext, Map<String, Object> state, PromptOptions options, CancellationToken cancellationToken)
+	protected CompletableFuture<PromptRecognizerResult<List<DateTimeResolution>>> OnRecognizeAsync(TurnContext turnContext, Map<String, Object> state, PromptOptions options )
 	{
 		if (turnContext == null)
 		{
@@ -112,7 +112,7 @@ public class DateTimePrompt extends Prompt<List<DateTimeResolution>>
 			}
 		}
 
-		return Task.FromResult(result);
+		return CompletableFuture.completedFuture(result);
 	}
 
 	private DateTimeResolution ReadResolution(Map<String, String> resolution)

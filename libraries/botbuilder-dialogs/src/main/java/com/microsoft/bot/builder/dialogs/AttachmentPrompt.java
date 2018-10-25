@@ -1,9 +1,15 @@
-package com.microsoft.bot.builder.dialogs;
-
-import java.util.*;
-
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License.
+
+package com.microsoft.bot.builder.dialogs;
+
+import com.microsoft.bot.builder.TurnContext;
+import com.microsoft.bot.schema.models.Activity;
+import com.microsoft.bot.schema.models.ActivityTypes;
+import com.microsoft.bot.schema.models.Attachment;
+
+import java.util.*;
+import java.util.concurrent.CompletableFuture;
 
 
 public class AttachmentPrompt extends Prompt<List<Attachment>>
@@ -23,16 +29,13 @@ public class AttachmentPrompt extends Prompt<List<Attachment>>
 
 
 	@Override
-	protected Task OnPromptAsync(ITurnContext turnContext, java.util.Map<String, Object> state, PromptOptions options, boolean isRetry)
+	protected CompletableFuture OnPromptAsync(TurnContext turnContext, java.util.Map<String, Object> state, PromptOptions options, boolean isRetry)
 	{
 		return OnPromptAsync(turnContext, state, options, isRetry, null);
 	}
 
-//C# TO JAVA CONVERTER TODO TASK: There is no equivalent in Java to the 'async' keyword:
-//ORIGINAL LINE: protected override async Task OnPromptAsync(ITurnContext turnContext, IDictionary<string, object> state, PromptOptions options, bool isRetry, CancellationToken cancellationToken = default(CancellationToken))
-//C# TO JAVA CONVERTER NOTE: Java does not support optional parameters. Overloaded method(s) are created above:
 	@Override
-	protected Task OnPromptAsync(ITurnContext turnContext, Map<String, Object> state, PromptOptions options, boolean isRetry, CancellationToken cancellationToken)
+	protected CompletableFuture OnPromptAsync(TurnContext turnContext, Map<String, Object> state, PromptOptions options, boolean isRetry)
 	{
 		if (turnContext == null)
 		{
@@ -46,27 +49,23 @@ public class AttachmentPrompt extends Prompt<List<Attachment>>
 
 		if (isRetry && options.getRetryPrompt() != null)
 		{
-//C# TO JAVA CONVERTER TODO TASK: There is no equivalent to 'await' in Java:
-			await turnContext.SendActivityAsync(options.getRetryPrompt(), cancellationToken).ConfigureAwait(false);
+			turnContext.SendActivityAsync(options.getRetryPrompt()).get();
 		}
 		else if (options.getPrompt() != null)
 		{
-//C# TO JAVA CONVERTER TODO TASK: There is no equivalent to 'await' in Java:
-			await turnContext.SendActivityAsync(options.getPrompt(), cancellationToken).ConfigureAwait(false);
+			turnContext.SendActivityAsync(options.getPrompt()).get();
 		}
 	}
 
 
 	@Override
-	protected CompletableFuture<PromptRecognizerResult<java.util.List<Attachment>>> OnRecognizeAsync(ITurnContext turnContext, java.util.Map<String, Object> state, PromptOptions options)
+	protected CompletableFuture<PromptRecognizerResult<java.util.List<Attachment>>> OnRecognizeAsync(TurnContext turnContext, java.util.Map<String, Object> state, PromptOptions options)
 	{
 		return OnRecognizeAsync(turnContext, state, options, null);
 	}
 
-//C# TO JAVA CONVERTER NOTE: Java does not support optional parameters. Overloaded method(s) are created above:
-//ORIGINAL LINE: protected override CompletableFuture<PromptRecognizerResult<IList<Attachment>>> OnRecognizeAsync(ITurnContext turnContext, IDictionary<string, object> state, PromptOptions options, CancellationToken cancellationToken = default(CancellationToken))
 	@Override
-	protected CompletableFuture<PromptRecognizerResult<List<Attachment>>> OnRecognizeAsync(ITurnContext turnContext, Map<String, Object> state, PromptOptions options, CancellationToken cancellationToken)
+	protected CompletableFuture<PromptRecognizerResult<List<Attachment>>> OnRecognizeAsync(TurnContext turnContext, Map<String, Object> state, PromptOptions options )
 	{
 		if (turnContext == null)
 		{
@@ -74,17 +73,16 @@ public class AttachmentPrompt extends Prompt<List<Attachment>>
 		}
 
 		PromptRecognizerResult<List<Attachment>> result = new PromptRecognizerResult<List<Attachment>>();
-		if (turnContext.Activity.Type == ActivityTypes.Message)
+		if (turnContext.activity().type() == ActivityTypes.MESSAGE.toString())
 		{
-//C# TO JAVA CONVERTER TODO TASK: There is no equivalent to implicit typing in Java unless the Java 10 inferred typing option is selected:
-			var message = turnContext.Activity.AsMessageActivity();
-			if (message.Attachments != null && message.Attachments.size() > 0)
+			Activity message = turnContext.activity().AsMessageActivity();
+			if (message.attachments() != null && message.attachments().size() > 0)
 			{
 				result.setSucceeded(true);
-				result.setValue(message.Attachments);
+				result.setValue(message.attachments());
 			}
 		}
 
-		return Task.FromResult(result);
+		return CompletableFuture.completedFuture(result);
 	}
 }

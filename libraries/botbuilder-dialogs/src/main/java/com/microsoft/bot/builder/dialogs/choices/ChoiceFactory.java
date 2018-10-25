@@ -1,6 +1,6 @@
-package Microsoft.Bot.Builder.Dialogs.Choices;
+package com.microsoft.bot.builder.dialogs.choices;
 
-import Microsoft.Bot.Builder.Dialogs.*;
+import com.microsoft.bot.builder.dialogs.*;
 import java.util.*;
 
 // Copyright (c) Microsoft Corporation. All rights reserved.
@@ -38,7 +38,7 @@ public class ChoiceFactory
 		int maxTitleLength = 0;
 		for (Choice choice : list)
 		{
-			boolean l = choice.getAction() != null && tangible.StringHelper.isNullOrEmpty(choice.getAction().Title) ? choice.getAction().Title.getLength() : choice.getValue().length();
+			boolean l = choice.getAction() != null && StringUtils.isBlank(choice.getAction().Title) ? choice.getAction().Title.getLength() : choice.getValue().length();
 			if (l > maxTitleLength)
 			{
 				maxTitleLength = l;

@@ -1,17 +1,16 @@
-package Microsoft.Bot.Builder.Dialogs.Choices;
-
-import Microsoft.Bot.Builder.Dialogs.*;
-import java.util.*;
-
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License.
 
+package com.microsoft.bot.builder.dialogs.choices;
+
+import com.microsoft.bot.builder.dialogs.*;
+import java.util.*;
 
 
 public class ChoiceRecognizers
 {
 
-	public static java.util.ArrayList<ModelResult<FoundChoice>> RecognizeChoices(String utterance, java.util.List<String> choices)
+	public static ArrayList<ModelResult<FoundChoice>> RecognizeChoices(String utterance, java.util.List<String> choices)
 	{
 		return RecognizeChoices(utterance, choices, null);
 	}

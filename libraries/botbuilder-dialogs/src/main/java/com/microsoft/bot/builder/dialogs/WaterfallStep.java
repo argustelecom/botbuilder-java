@@ -14,5 +14,5 @@ package com.microsoft.bot.builder.dialogs;
 @FunctionalInterface
 public interface WaterfallStep
 {
-	CompletableFuture<DialogTurnResult> invoke(WaterfallStepContext stepContext, CancellationToken cancellationToken);
+	CompletableFuture<DialogTurnResult> invoke(WaterfallStepContext stepContext );
 }

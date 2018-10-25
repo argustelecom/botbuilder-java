@@ -1,11 +1,11 @@
-package Microsoft.Bot.Builder.Dialogs.Choices;
-
-import Microsoft.Bot.Builder.Dialogs.*;
-
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License.
 
+package com.microsoft.bot.builder.dialogs.choices;
 
+import com.microsoft.bot.builder.TurnContext;
+import com.microsoft.bot.builder.dialogs.*;
+import org.apache.commons.lang3.StringUtils;
 
 public class Channel
 {
@@ -15,8 +15,6 @@ public class Channel
 		return SupportsSuggestedActions(channelId, 100);
 	}
 
-//C# TO JAVA CONVERTER NOTE: Java does not support optional parameters. Overloaded method(s) are created above:
-//ORIGINAL LINE: public static bool SupportsSuggestedActions(string channelId, int buttonCnt = 100)
 	public static boolean SupportsSuggestedActions(String channelId, int buttonCnt)
 	{
 		switch (channelId)
@@ -86,9 +84,9 @@ public class Channel
 		return 20;
 	}
 
-	public static String GetChannelId(ITurnContext turnContext)
+	public static String GetChannelId(TurnContext turnContext)
 	{
-		return tangible.StringHelper.isNullOrEmpty(turnContext.Activity.ChannelId) ? "" : turnContext.Activity.ChannelId;
+		return StringUtils.isBlank(turnContext.Activity.ChannelId) ? "" : turnContext.Activity.ChannelId;
 	}
 
 	// This class has been deprecated in favor of the class in Microsoft.Bot.Connector.Channels located

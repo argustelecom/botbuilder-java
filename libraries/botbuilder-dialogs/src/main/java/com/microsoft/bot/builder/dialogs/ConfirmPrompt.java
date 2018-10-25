@@ -113,16 +113,16 @@ public class ConfirmPrompt extends Prompt<Boolean>
 
 
 	@Override
-	protected Task OnPromptAsync(ITurnContext turnContext, java.util.Map<String, Object> state, PromptOptions options, boolean isRetry)
+	protected CompletableFuture OnPromptAsync(TurnContext turnContext, java.util.Map<String, Object> state, PromptOptions options, boolean isRetry)
 	{
 		return OnPromptAsync(turnContext, state, options, isRetry, null);
 	}
 
 //C# TO JAVA CONVERTER TODO TASK: There is no equivalent in Java to the 'async' keyword:
-//ORIGINAL LINE: protected override async Task OnPromptAsync(ITurnContext turnContext, IDictionary<string, object> state, PromptOptions options, bool isRetry, CancellationToken cancellationToken = default(CancellationToken))
+//ORIGINAL LINE: protected override async CompletableFuture OnPromptAsync(TurnContext turnContext, IDictionary<string, object> state, PromptOptions options, bool isRetry, CancellationToken cancellationToken = default(CancellationToken))
 //C# TO JAVA CONVERTER NOTE: Java does not support optional parameters. Overloaded method(s) are created above:
 	@Override
-	protected Task OnPromptAsync(ITurnContext turnContext, Map<String, Object> state, PromptOptions options, boolean isRetry, CancellationToken cancellationToken)
+	protected CompletableFuture OnPromptAsync(TurnContext turnContext, Map<String, Object> state, PromptOptions options, boolean isRetry )
 	{
 		if (turnContext == null)
 		{
@@ -136,7 +136,7 @@ public class ConfirmPrompt extends Prompt<Boolean>
 
 		// Determine culture
 		String culture = (turnContext.Activity.Locale != null) ? turnContext.Activity.Locale : getDefaultLocale();
-		if (tangible.StringHelper.isNullOrEmpty(culture) || !DefaultChoiceOptions.containsKey(culture))
+		if (StringUtils.isBlank(culture) || !DefaultChoiceOptions.containsKey(culture))
 		{
 			culture = English;
 		}
@@ -161,20 +161,20 @@ public class ConfirmPrompt extends Prompt<Boolean>
 
 		// Send prompt
 //C# TO JAVA CONVERTER TODO TASK: There is no equivalent to 'await' in Java:
-		await turnContext.SendActivityAsync(prompt, cancellationToken).ConfigureAwait(false);
+		await turnContext.SendActivityAsync(prompt).get();
 	}
 
 
 	@Override
-	protected CompletableFuture<PromptRecognizerResult<Boolean>> OnRecognizeAsync(ITurnContext turnContext, java.util.Map<String, Object> state, PromptOptions options)
+	protected CompletableFuture<PromptRecognizerResult<Boolean>> OnRecognizeAsync(TurnContext turnContext, java.util.Map<String, Object> state, PromptOptions options)
 	{
 		return OnRecognizeAsync(turnContext, state, options, null);
 	}
 
 //C# TO JAVA CONVERTER NOTE: Java does not support optional parameters. Overloaded method(s) are created above:
-//ORIGINAL LINE: protected override CompletableFuture<PromptRecognizerResult<bool>> OnRecognizeAsync(ITurnContext turnContext, IDictionary<string, object> state, PromptOptions options, CancellationToken cancellationToken = default(CancellationToken))
+//ORIGINAL LINE: protected override CompletableFuture<PromptRecognizerResult<bool>> OnRecognizeAsync(TurnContext turnContext, IDictionary<string, object> state, PromptOptions options, CancellationToken cancellationToken = default(CancellationToken))
 	@Override
-	protected CompletableFuture<PromptRecognizerResult<Boolean>> OnRecognizeAsync(ITurnContext turnContext, Map<String, Object> state, PromptOptions options, CancellationToken cancellationToken)
+	protected CompletableFuture<PromptRecognizerResult<Boolean>> OnRecognizeAsync(TurnContext turnContext, Map<String, Object> state, PromptOptions options )
 	{
 		if (turnContext == null)
 		{
@@ -232,6 +232,6 @@ public class ConfirmPrompt extends Prompt<Boolean>
 			}
 		}
 
-		return Task.FromResult(result);
+		return CompletableFuture.completedFuture(result);
 	}
 }

@@ -1,6 +1,6 @@
-package Microsoft.Bot.Builder.Dialogs.Choices;
+package com.microsoft.bot.builder.dialogs.choices;
 
-import Microsoft.Bot.Builder.Dialogs.*;
+import com.microsoft.bot.builder.dialogs.*;
 
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License.

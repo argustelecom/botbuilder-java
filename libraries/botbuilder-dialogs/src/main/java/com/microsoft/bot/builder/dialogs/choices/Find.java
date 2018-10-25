@@ -1,6 +1,6 @@
-package Microsoft.Bot.Builder.Dialogs.Choices;
+package com.microsoft.bot.builder.dialogs.choices;
 
-import Microsoft.Bot.Builder.Dialogs.*;
+import com.microsoft.bot.builder.dialogs.*;
 import java.util.*;
 
 // Copyright (c) Microsoft Corporation. All rights reserved.
@@ -40,7 +40,7 @@ public final class Find
 //ORIGINAL LINE: public static List<ModelResult<FoundChoice>> FindChoices(string utterance, IList<Choice> choices, FindChoicesOptions options = null)
 	public static ArrayList<ModelResult<FoundChoice>> FindChoices(String utterance, List<Choice> choices, FindChoicesOptions options)
 	{
-		if (tangible.StringHelper.isNullOrEmpty(utterance))
+		if (StringUtils.isBlank(utterance))
 		{
 			throw new NullPointerException("utterance");
 		}

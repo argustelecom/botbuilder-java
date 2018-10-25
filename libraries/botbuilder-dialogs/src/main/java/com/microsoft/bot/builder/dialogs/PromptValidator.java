@@ -15,5 +15,5 @@ package com.microsoft.bot.builder.dialogs;
 @FunctionalInterface
 public interface PromptValidator<T>
 {
-	CompletableFuture<bool> invoke(PromptValidatorContext promptContext, CancellationToken cancellationToken);
+	CompletableFuture<bool> invoke(PromptValidatorContext promptContext );
 }

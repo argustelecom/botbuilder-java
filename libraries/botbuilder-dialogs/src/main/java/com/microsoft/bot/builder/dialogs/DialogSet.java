@@ -51,15 +51,15 @@ public class DialogSet
 	}
 
 
-	public final CompletableFuture<DialogContext> CreateContextAsync(ITurnContext turnContext)
+	public final CompletableFuture<DialogContext> CreateContextAsync(TurnContext turnContext)
 	{
 		return CreateContextAsync(turnContext, null);
 	}
 
 //C# TO JAVA CONVERTER TODO TASK: There is no equivalent in Java to the 'async' keyword:
-//ORIGINAL LINE: public async CompletableFuture<DialogContext> CreateContextAsync(ITurnContext turnContext, CancellationToken cancellationToken = default(CancellationToken))
+//ORIGINAL LINE: public async CompletableFuture<DialogContext> CreateContextAsync(TurnContext turnContext, CancellationToken cancellationToken = default(CancellationToken))
 //C# TO JAVA CONVERTER NOTE: Java does not support optional parameters. Overloaded method(s) are created above:
-	public final CompletableFuture<DialogContext> CreateContextAsync(ITurnContext turnContext, CancellationToken cancellationToken)
+	public final CompletableFuture<DialogContext> CreateContextAsync(TurnContext turnContext )
 	{
 		BotAssert.ContextNotNull(turnContext);
 
@@ -76,7 +76,7 @@ public class DialogSet
 		var state = await _dialogState.GetAsync(turnContext, () ->
 		{
 				return new DialogState();
-		}, cancellationToken).ConfigureAwait(false);
+		}).get();
 
 		// Create and return context
 		return new DialogContext(this, turnContext, state);

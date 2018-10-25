@@ -8,7 +8,7 @@ import java.util.*;
 
 public class PromptValidatorContext<T>
 {
-	public PromptValidatorContext(ITurnContext turnContext, PromptRecognizerResult<T> recognized, Map<String, Object> state, PromptOptions options)
+	public PromptValidatorContext(TurnContext turnContext, PromptRecognizerResult<T> recognized, Map<String, Object> state, PromptOptions options)
 	{
 		Context = turnContext;
 		Options = options;
@@ -16,8 +16,8 @@ public class PromptValidatorContext<T>
 		State = state;
 	}
 
-	private ITurnContext Context;
-	public final ITurnContext getContext()
+	private TurnContext Context;
+	public final TurnContext getContext()
 	{
 		return Context;
 	}
