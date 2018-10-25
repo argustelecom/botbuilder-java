@@ -1,4 +1,4 @@
-package Microsoft.Bot.Builder.Dialogs;
+package com.microsoft.bot.builder.dialogs;
 
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License.
@@ -14,5 +14,5 @@ package Microsoft.Bot.Builder.Dialogs;
 @FunctionalInterface
 public interface WaterfallStep
 {
-	Task<DialogTurnResult> invoke(WaterfallStepContext stepContext, CancellationToken cancellationToken);
+	CompletableFuture<DialogTurnResult> invoke(WaterfallStepContext stepContext, CancellationToken cancellationToken);
 }

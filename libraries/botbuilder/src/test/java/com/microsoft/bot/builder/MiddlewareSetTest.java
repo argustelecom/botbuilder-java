@@ -51,7 +51,7 @@ public class MiddlewareSetTest extends TestBase
         MiddlewareSet m = new MiddlewareSet();
         // No middleware. Should not explode.
         try {
-            m.ReceiveActivity(null);
+            m.ReceiveActivityWithStatusAsync(null, null).get();
             Assert.assertTrue(true);
         } catch (ExecutionException e) {
             e.printStackTrace();

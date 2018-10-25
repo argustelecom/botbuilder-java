@@ -1,4 +1,4 @@
-package Microsoft.Bot.Builder.Dialogs;
+package com.microsoft.bot.builder.dialogs;
 
 import Newtonsoft.Json.*;
 import java.util.*;
@@ -35,16 +35,16 @@ public abstract class Prompt<T> extends Dialog
 
 
 	@Override
-	public Task<DialogTurnResult> BeginDialogAsync(DialogContext dc, Object options)
+	public CompletableFuture<DialogTurnResult> BeginDialogAsync(DialogContext dc, Object options)
 	{
 		return BeginDialogAsync(dc, options, null);
 	}
 
 //C# TO JAVA CONVERTER TODO TASK: There is no equivalent in Java to the 'async' keyword:
-//ORIGINAL LINE: public override async Task<DialogTurnResult> BeginDialogAsync(DialogContext dc, object options, CancellationToken cancellationToken = default(CancellationToken))
+//ORIGINAL LINE: public override async CompletableFuture<DialogTurnResult> BeginDialogAsync(DialogContext dc, object options, CancellationToken cancellationToken = default(CancellationToken))
 //C# TO JAVA CONVERTER NOTE: Java does not support optional parameters. Overloaded method(s) are created above:
 	@Override
-	public Task<DialogTurnResult> BeginDialogAsync(DialogContext dc, Object options, CancellationToken cancellationToken)
+	public CompletableFuture<DialogTurnResult> BeginDialogAsync(DialogContext dc, Object options, CancellationToken cancellationToken)
 	{
 		if (dc == null)
 		{
@@ -81,16 +81,16 @@ public abstract class Prompt<T> extends Dialog
 
 
 	@Override
-	public Task<DialogTurnResult> ContinueDialogAsync(DialogContext dc)
+	public CompletableFuture<DialogTurnResult> ContinueDialogAsync(DialogContext dc)
 	{
 		return ContinueDialogAsync(dc, null);
 	}
 
 //C# TO JAVA CONVERTER TODO TASK: There is no equivalent in Java to the 'async' keyword:
-//ORIGINAL LINE: public override async Task<DialogTurnResult> ContinueDialogAsync(DialogContext dc, CancellationToken cancellationToken = default(CancellationToken))
+//ORIGINAL LINE: public override async CompletableFuture<DialogTurnResult> ContinueDialogAsync(DialogContext dc, CancellationToken cancellationToken = default(CancellationToken))
 //C# TO JAVA CONVERTER NOTE: Java does not support optional parameters. Overloaded method(s) are created above:
 	@Override
-	public Task<DialogTurnResult> ContinueDialogAsync(DialogContext dc, CancellationToken cancellationToken)
+	public CompletableFuture<DialogTurnResult> ContinueDialogAsync(DialogContext dc, CancellationToken cancellationToken)
 	{
 		if (dc == null)
 		{
@@ -144,22 +144,22 @@ public abstract class Prompt<T> extends Dialog
 
 
 	@Override
-	public Task<DialogTurnResult> ResumeDialogAsync(DialogContext dc, DialogReason reason, Object result)
+	public CompletableFuture<DialogTurnResult> ResumeDialogAsync(DialogContext dc, DialogReason reason, Object result)
 	{
 		return ResumeDialogAsync(dc, reason, result, null);
 	}
 
 	@Override
-	public Task<DialogTurnResult> ResumeDialogAsync(DialogContext dc, DialogReason reason)
+	public CompletableFuture<DialogTurnResult> ResumeDialogAsync(DialogContext dc, DialogReason reason)
 	{
 		return ResumeDialogAsync(dc, reason, null, null);
 	}
 
 //C# TO JAVA CONVERTER TODO TASK: There is no equivalent in Java to the 'async' keyword:
-//ORIGINAL LINE: public override async Task<DialogTurnResult> ResumeDialogAsync(DialogContext dc, DialogReason reason, object result = null, CancellationToken cancellationToken = default(CancellationToken))
+//ORIGINAL LINE: public override async CompletableFuture<DialogTurnResult> ResumeDialogAsync(DialogContext dc, DialogReason reason, object result = null, CancellationToken cancellationToken = default(CancellationToken))
 //C# TO JAVA CONVERTER NOTE: Java does not support optional parameters. Overloaded method(s) are created above:
 	@Override
-	public Task<DialogTurnResult> ResumeDialogAsync(DialogContext dc, DialogReason reason, Object result, CancellationToken cancellationToken)
+	public CompletableFuture<DialogTurnResult> ResumeDialogAsync(DialogContext dc, DialogReason reason, Object result, CancellationToken cancellationToken)
 	{
 		// Prompts are typically leaf nodes on the stack but the dev is free to push other dialogs
 		// on top of the stack which will result in the prompt receiving an unexpected call to
@@ -197,10 +197,10 @@ public abstract class Prompt<T> extends Dialog
 	protected abstract Task OnPromptAsync(ITurnContext turnContext, Map<String, Object> state, PromptOptions options, boolean isRetry, CancellationToken cancellationToken);
 
 
-	protected final abstract Task<PromptRecognizerResult<T>> OnRecognizeAsync(ITurnContext turnContext, java.util.Map<String, Object> state, PromptOptions options);
+	protected final abstract CompletableFuture<PromptRecognizerResult<T>> OnRecognizeAsync(ITurnContext turnContext, java.util.Map<String, Object> state, PromptOptions options);
 //C# TO JAVA CONVERTER NOTE: Java does not support optional parameters. Overloaded method(s) are created above:
-//ORIGINAL LINE: protected abstract Task<PromptRecognizerResult<T>> OnRecognizeAsync(ITurnContext turnContext, IDictionary<string, object> state, PromptOptions options, CancellationToken cancellationToken = default(CancellationToken));
-	protected abstract Task<PromptRecognizerResult<T>> OnRecognizeAsync(ITurnContext turnContext, Map<String, Object> state, PromptOptions options, CancellationToken cancellationToken);
+//ORIGINAL LINE: protected abstract CompletableFuture<PromptRecognizerResult<T>> OnRecognizeAsync(ITurnContext turnContext, IDictionary<string, object> state, PromptOptions options, CancellationToken cancellationToken = default(CancellationToken));
+	protected abstract CompletableFuture<PromptRecognizerResult<T>> OnRecognizeAsync(ITurnContext turnContext, Map<String, Object> state, PromptOptions options, CancellationToken cancellationToken);
 
 
 	protected final IMessageActivity AppendChoices(IMessageActivity prompt, String channelId, java.util.List<Choice> choices, ListStyle style, ChoiceFactoryOptions options)

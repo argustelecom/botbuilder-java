@@ -1,4 +1,4 @@
-package Microsoft.Bot.Builder.Dialogs;
+package com.microsoft.bot.builder.dialogs;
 
 import java.util.*;
 
@@ -51,15 +51,15 @@ public class DialogSet
 	}
 
 
-	public final Task<DialogContext> CreateContextAsync(ITurnContext turnContext)
+	public final CompletableFuture<DialogContext> CreateContextAsync(ITurnContext turnContext)
 	{
 		return CreateContextAsync(turnContext, null);
 	}
 
 //C# TO JAVA CONVERTER TODO TASK: There is no equivalent in Java to the 'async' keyword:
-//ORIGINAL LINE: public async Task<DialogContext> CreateContextAsync(ITurnContext turnContext, CancellationToken cancellationToken = default(CancellationToken))
+//ORIGINAL LINE: public async CompletableFuture<DialogContext> CreateContextAsync(ITurnContext turnContext, CancellationToken cancellationToken = default(CancellationToken))
 //C# TO JAVA CONVERTER NOTE: Java does not support optional parameters. Overloaded method(s) are created above:
-	public final Task<DialogContext> CreateContextAsync(ITurnContext turnContext, CancellationToken cancellationToken)
+	public final CompletableFuture<DialogContext> CreateContextAsync(ITurnContext turnContext, CancellationToken cancellationToken)
 	{
 		BotAssert.ContextNotNull(turnContext);
 

@@ -1,4 +1,4 @@
-package Microsoft.Bot.Builder.Dialogs;
+package com.microsoft.bot.builder.dialogs;
 
 import java.util.*;
 
@@ -62,22 +62,22 @@ public class WaterfallDialog extends Dialog
 
 
 	@Override
-	public Task<DialogTurnResult> BeginDialogAsync(DialogContext dc, Object options)
+	public CompletableFuture<DialogTurnResult> BeginDialogAsync(DialogContext dc, Object options)
 	{
 		return BeginDialogAsync(dc, options, null);
 	}
 
 	@Override
-	public Task<DialogTurnResult> BeginDialogAsync(DialogContext dc)
+	public CompletableFuture<DialogTurnResult> BeginDialogAsync(DialogContext dc)
 	{
 		return BeginDialogAsync(dc, null, null);
 	}
 
 //C# TO JAVA CONVERTER TODO TASK: There is no equivalent in Java to the 'async' keyword:
-//ORIGINAL LINE: public override async Task<DialogTurnResult> BeginDialogAsync(DialogContext dc, object options = null, CancellationToken cancellationToken = default(CancellationToken))
+//ORIGINAL LINE: public override async CompletableFuture<DialogTurnResult> BeginDialogAsync(DialogContext dc, object options = null, CancellationToken cancellationToken = default(CancellationToken))
 //C# TO JAVA CONVERTER NOTE: Java does not support optional parameters. Overloaded method(s) are created above:
 	@Override
-	public Task<DialogTurnResult> BeginDialogAsync(DialogContext dc, Object options, CancellationToken cancellationToken)
+	public CompletableFuture<DialogTurnResult> BeginDialogAsync(DialogContext dc, Object options, CancellationToken cancellationToken)
 	{
 		if (dc == null)
 		{
@@ -96,16 +96,16 @@ public class WaterfallDialog extends Dialog
 
 
 	@Override
-	public Task<DialogTurnResult> ContinueDialogAsync(DialogContext dc)
+	public CompletableFuture<DialogTurnResult> ContinueDialogAsync(DialogContext dc)
 	{
 		return ContinueDialogAsync(dc, null);
 	}
 
 //C# TO JAVA CONVERTER TODO TASK: There is no equivalent in Java to the 'async' keyword:
-//ORIGINAL LINE: public override async Task<DialogTurnResult> ContinueDialogAsync(DialogContext dc, CancellationToken cancellationToken = default(CancellationToken))
+//ORIGINAL LINE: public override async CompletableFuture<DialogTurnResult> ContinueDialogAsync(DialogContext dc, CancellationToken cancellationToken = default(CancellationToken))
 //C# TO JAVA CONVERTER NOTE: Java does not support optional parameters. Overloaded method(s) are created above:
 	@Override
-	public Task<DialogTurnResult> ContinueDialogAsync(DialogContext dc, CancellationToken cancellationToken)
+	public CompletableFuture<DialogTurnResult> ContinueDialogAsync(DialogContext dc, CancellationToken cancellationToken)
 	{
 		if (dc == null)
 		{
@@ -125,16 +125,16 @@ public class WaterfallDialog extends Dialog
 
 
 	@Override
-	public Task<DialogTurnResult> ResumeDialogAsync(DialogContext dc, DialogReason reason, Object result)
+	public CompletableFuture<DialogTurnResult> ResumeDialogAsync(DialogContext dc, DialogReason reason, Object result)
 	{
 		return ResumeDialogAsync(dc, reason, result, null);
 	}
 
 //C# TO JAVA CONVERTER TODO TASK: There is no equivalent in Java to the 'async' keyword:
-//ORIGINAL LINE: public override async Task<DialogTurnResult> ResumeDialogAsync(DialogContext dc, DialogReason reason, object result, CancellationToken cancellationToken = default(CancellationToken))
+//ORIGINAL LINE: public override async CompletableFuture<DialogTurnResult> ResumeDialogAsync(DialogContext dc, DialogReason reason, object result, CancellationToken cancellationToken = default(CancellationToken))
 //C# TO JAVA CONVERTER NOTE: Java does not support optional parameters. Overloaded method(s) are created above:
 	@Override
-	public Task<DialogTurnResult> ResumeDialogAsync(DialogContext dc, DialogReason reason, Object result, CancellationToken cancellationToken)
+	public CompletableFuture<DialogTurnResult> ResumeDialogAsync(DialogContext dc, DialogReason reason, Object result, CancellationToken cancellationToken)
 	{
 		if (dc == null)
 		{
@@ -155,16 +155,16 @@ public class WaterfallDialog extends Dialog
 	}
 
 //C# TO JAVA CONVERTER TODO TASK: There is no equivalent in Java to the 'async' keyword:
-//ORIGINAL LINE: protected virtual async Task<DialogTurnResult> OnStepAsync(WaterfallStepContext stepContext, CancellationToken cancellationToken)
-	protected Task<DialogTurnResult> OnStepAsync(WaterfallStepContext stepContext, CancellationToken cancellationToken)
+//ORIGINAL LINE: protected virtual async CompletableFuture<DialogTurnResult> OnStepAsync(WaterfallStepContext stepContext, CancellationToken cancellationToken)
+	protected CompletableFuture<DialogTurnResult> OnStepAsync(WaterfallStepContext stepContext, CancellationToken cancellationToken)
 	{
 //C# TO JAVA CONVERTER TODO TASK: There is no equivalent to 'await' in Java:
 		return await _steps.get(stepContext.getIndex())(stepContext, cancellationToken).ConfigureAwait(false);
 	}
 
 //C# TO JAVA CONVERTER TODO TASK: There is no equivalent in Java to the 'async' keyword:
-//ORIGINAL LINE: private async Task<DialogTurnResult> RunStepAsync(DialogContext dc, int index, DialogReason reason, object result, CancellationToken cancellationToken)
-	private Task<DialogTurnResult> RunStepAsync(DialogContext dc, int index, DialogReason reason, Object result, CancellationToken cancellationToken)
+//ORIGINAL LINE: private async CompletableFuture<DialogTurnResult> RunStepAsync(DialogContext dc, int index, DialogReason reason, object result, CancellationToken cancellationToken)
+	private CompletableFuture<DialogTurnResult> RunStepAsync(DialogContext dc, int index, DialogReason reason, Object result, CancellationToken cancellationToken)
 	{
 		if (dc == null)
 		{

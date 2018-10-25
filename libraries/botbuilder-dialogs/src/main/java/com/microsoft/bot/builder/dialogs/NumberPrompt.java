@@ -1,4 +1,4 @@
-package Microsoft.Bot.Builder.Dialogs;
+package com.microsoft.bot.builder.dialogs;
 
 import java.util.*;
 import java.math.*;
@@ -77,15 +77,15 @@ public class NumberPrompt<T> extends Prompt<T>
 
 
 	@Override
-	protected Task<PromptRecognizerResult<T>> OnRecognizeAsync(ITurnContext turnContext, java.util.Map<String, Object> state, PromptOptions options)
+	protected CompletableFuture<PromptRecognizerResult<T>> OnRecognizeAsync(ITurnContext turnContext, java.util.Map<String, Object> state, PromptOptions options)
 	{
 		return OnRecognizeAsync(turnContext, state, options, null);
 	}
 
 //C# TO JAVA CONVERTER NOTE: Java does not support optional parameters. Overloaded method(s) are created above:
-//ORIGINAL LINE: protected override Task<PromptRecognizerResult<T>> OnRecognizeAsync(ITurnContext turnContext, IDictionary<string, object> state, PromptOptions options, CancellationToken cancellationToken = default(CancellationToken))
+//ORIGINAL LINE: protected override CompletableFuture<PromptRecognizerResult<T>> OnRecognizeAsync(ITurnContext turnContext, IDictionary<string, object> state, PromptOptions options, CancellationToken cancellationToken = default(CancellationToken))
 	@Override
-	protected Task<PromptRecognizerResult<T>> OnRecognizeAsync(ITurnContext turnContext, Map<String, Object> state, PromptOptions options, CancellationToken cancellationToken)
+	protected CompletableFuture<PromptRecognizerResult<T>> OnRecognizeAsync(ITurnContext turnContext, Map<String, Object> state, PromptOptions options, CancellationToken cancellationToken)
 	{
 		if (turnContext == null)
 		{

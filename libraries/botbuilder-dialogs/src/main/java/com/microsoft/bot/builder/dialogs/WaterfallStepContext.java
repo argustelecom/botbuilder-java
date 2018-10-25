@@ -1,9 +1,9 @@
-package Microsoft.Bot.Builder.Dialogs;
-
-import java.util.*;
-
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License.
+
+package com.microsoft.bot.builder.dialogs;
+
+import java.util.*;
 
 
 public class WaterfallStepContext extends DialogContext
@@ -84,20 +84,20 @@ public class WaterfallStepContext extends DialogContext
 	 @return A <see cref="Task"/> of <see cref="DialogTurnResult"/> representing the asynchronous operation.
 	*/
 
-	public final Task<DialogTurnResult> NextAsync(Object result)
+	public final CompletableFuture<DialogTurnResult> NextAsync(Object result)
 	{
 		return NextAsync(result, null);
 	}
 
-	public final Task<DialogTurnResult> NextAsync()
+	public final CompletableFuture<DialogTurnResult> NextAsync()
 	{
 		return NextAsync(null, null);
 	}
 
 //C# TO JAVA CONVERTER TODO TASK: There is no equivalent in Java to the 'async' keyword:
-//ORIGINAL LINE: public async Task<DialogTurnResult> NextAsync(object result = null, CancellationToken cancellationToken = default(CancellationToken))
+//ORIGINAL LINE: public async CompletableFuture<DialogTurnResult> NextAsync(object result = null, CancellationToken cancellationToken = default(CancellationToken))
 //C# TO JAVA CONVERTER NOTE: Java does not support optional parameters. Overloaded method(s) are created above:
-	public final Task<DialogTurnResult> NextAsync(Object result, CancellationToken cancellationToken)
+	public final CompletableFuture<Microsoft.Bot.Builder.Dialogs.DialogTurnResult> NextAsync(Object result, CancellationToken cancellationToken)
 	{
 		// Ensure next hasn't been called
 		if (_nextCalled)

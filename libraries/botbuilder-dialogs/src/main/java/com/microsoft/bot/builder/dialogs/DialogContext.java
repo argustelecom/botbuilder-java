@@ -1,4 +1,4 @@
-package Microsoft.Bot.Builder.Dialogs;
+package com.microsoft.bot.builder.dialogs;
 
 import java.util.*;
 
@@ -83,20 +83,20 @@ public class DialogContext
 	 @return A <see cref="Task"/> representing the asynchronous operation.
 	*/
 
-	public final Task<DialogTurnResult> BeginDialogAsync(String dialogId, Object options)
+	public final CompletableFuture<DialogTurnResult> BeginDialogAsync(String dialogId, Object options)
 	{
 		return BeginDialogAsync(dialogId, options, null);
 	}
 
-	public final Task<DialogTurnResult> BeginDialogAsync(String dialogId)
+	public final CompletableFuture<DialogTurnResult> BeginDialogAsync(String dialogId)
 	{
 		return BeginDialogAsync(dialogId, null, null);
 	}
 
 //C# TO JAVA CONVERTER TODO TASK: There is no equivalent in Java to the 'async' keyword:
-//ORIGINAL LINE: public async Task<DialogTurnResult> BeginDialogAsync(string dialogId, object options = null, CancellationToken cancellationToken = default(CancellationToken))
+//ORIGINAL LINE: public async CompletableFuture<DialogTurnResult> BeginDialogAsync(string dialogId, object options = null, CancellationToken cancellationToken = default(CancellationToken))
 //C# TO JAVA CONVERTER NOTE: Java does not support optional parameters. Overloaded method(s) are created above:
-	public final Task<DialogTurnResult> BeginDialogAsync(String dialogId, Object options, CancellationToken cancellationToken)
+	public final CompletableFuture<DialogTurnResult> BeginDialogAsync(String dialogId, Object options, CancellationToken cancellationToken)
 	{
 		if (tangible.StringHelper.isNullOrEmpty(dialogId))
 		{
@@ -133,15 +133,15 @@ public class DialogContext
 	 @return A <see cref="Task"/> representing the asynchronous operation.
 	*/
 
-	public final Task<DialogTurnResult> PromptAsync(String dialogId, PromptOptions options)
+	public final CompletableFuture<DialogTurnResult> PromptAsync(String dialogId, PromptOptions options)
 	{
 		return PromptAsync(dialogId, options, null);
 	}
 
 //C# TO JAVA CONVERTER TODO TASK: There is no equivalent in Java to the 'async' keyword:
-//ORIGINAL LINE: public async Task<DialogTurnResult> PromptAsync(string dialogId, PromptOptions options, CancellationToken cancellationToken = default(CancellationToken))
+//ORIGINAL LINE: public async CompletableFuture<DialogTurnResult> PromptAsync(string dialogId, PromptOptions options, CancellationToken cancellationToken = default(CancellationToken))
 //C# TO JAVA CONVERTER NOTE: Java does not support optional parameters. Overloaded method(s) are created above:
-	public final Task<DialogTurnResult> PromptAsync(String dialogId, PromptOptions options, CancellationToken cancellationToken)
+	public final CompletableFuture<DialogTurnResult> PromptAsync(String dialogId, PromptOptions options, CancellationToken cancellationToken)
 	{
 		if (tangible.StringHelper.isNullOrEmpty(dialogId))
 		{
@@ -166,15 +166,15 @@ public class DialogContext
 	 @return A <see cref="Task"/> representing the asynchronous operation.
 	*/
 
-	public final Task<DialogTurnResult> ContinueDialogAsync()
+	public final CompletableFuture<DialogTurnResult> ContinueDialogAsync()
 	{
 		return ContinueDialogAsync(null);
 	}
 
 //C# TO JAVA CONVERTER TODO TASK: There is no equivalent in Java to the 'async' keyword:
-//ORIGINAL LINE: public async Task<DialogTurnResult> ContinueDialogAsync(CancellationToken cancellationToken = default(CancellationToken))
+//ORIGINAL LINE: public async CompletableFuture<DialogTurnResult> ContinueDialogAsync(CancellationToken cancellationToken = default(CancellationToken))
 //C# TO JAVA CONVERTER NOTE: Java does not support optional parameters. Overloaded method(s) are created above:
-	public final Task<DialogTurnResult> ContinueDialogAsync(CancellationToken cancellationToken)
+	public final CompletableFuture<DialogTurnResult> ContinueDialogAsync(CancellationToken cancellationToken)
 	{
 		// Check for a dialog on the stack
 		if (getActiveDialog() != null)
@@ -211,20 +211,20 @@ public class DialogContext
 	 @return A <see cref="Task"/> representing the asynchronous operation.
 	*/
 
-	public final Task<DialogTurnResult> EndDialogAsync(Object result)
+	public final CompletableFuture<DialogTurnResult> EndDialogAsync(Object result)
 	{
 		return EndDialogAsync(result, null);
 	}
 
-	public final Task<DialogTurnResult> EndDialogAsync()
+	public final CompletableFuture<DialogTurnResult> EndDialogAsync()
 	{
 		return EndDialogAsync(null, null);
 	}
 
 //C# TO JAVA CONVERTER TODO TASK: There is no equivalent in Java to the 'async' keyword:
-//ORIGINAL LINE: public async Task<DialogTurnResult> EndDialogAsync(object result = null, CancellationToken cancellationToken = default(CancellationToken))
+//ORIGINAL LINE: public async CompletableFuture<DialogTurnResult> EndDialogAsync(object result = null, CancellationToken cancellationToken = default(CancellationToken))
 //C# TO JAVA CONVERTER NOTE: Java does not support optional parameters. Overloaded method(s) are created above:
-	public final Task<DialogTurnResult> EndDialogAsync(Object result, CancellationToken cancellationToken)
+	public final CompletableFuture<DialogTurnResult> EndDialogAsync(Object result, CancellationToken cancellationToken)
 	{
 		// Pop active dialog off the stack
 		if (getStack().Any())
@@ -260,15 +260,15 @@ public class DialogContext
 	 @return The dialog context.
 	*/
 
-	public final Task<DialogTurnResult> CancelAllDialogsAsync()
+	public final CompletableFuture<DialogTurnResult> CancelAllDialogsAsync()
 	{
 		return CancelAllDialogsAsync(null);
 	}
 
 //C# TO JAVA CONVERTER TODO TASK: There is no equivalent in Java to the 'async' keyword:
-//ORIGINAL LINE: public async Task<DialogTurnResult> CancelAllDialogsAsync(CancellationToken cancellationToken = default(CancellationToken))
+//ORIGINAL LINE: public async CompletableFuture<DialogTurnResult> CancelAllDialogsAsync(CancellationToken cancellationToken = default(CancellationToken))
 //C# TO JAVA CONVERTER NOTE: Java does not support optional parameters. Overloaded method(s) are created above:
-	public final Task<DialogTurnResult> CancelAllDialogsAsync(CancellationToken cancellationToken)
+	public final CompletableFuture<DialogTurnResult> CancelAllDialogsAsync(CancellationToken cancellationToken)
 	{
 		if (getStack().Any())
 		{
@@ -296,20 +296,20 @@ public class DialogContext
 	 @return A <see cref="Task"/> representing the asynchronous operation.
 	*/
 
-	public final Task<DialogTurnResult> ReplaceDialogAsync(String dialogId, Object options)
+	public final CompletableFuture<DialogTurnResult> ReplaceDialogAsync(String dialogId, Object options)
 	{
 		return ReplaceDialogAsync(dialogId, options, null);
 	}
 
-	public final Task<DialogTurnResult> ReplaceDialogAsync(String dialogId)
+	public final CompletableFuture<DialogTurnResult> ReplaceDialogAsync(String dialogId)
 	{
 		return ReplaceDialogAsync(dialogId, null, null);
 	}
 
 //C# TO JAVA CONVERTER TODO TASK: There is no equivalent in Java to the 'async' keyword:
-//ORIGINAL LINE: public async Task<DialogTurnResult> ReplaceDialogAsync(string dialogId, object options = null, CancellationToken cancellationToken = default(CancellationToken))
+//ORIGINAL LINE: public async CompletableFuture<DialogTurnResult> ReplaceDialogAsync(string dialogId, object options = null, CancellationToken cancellationToken = default(CancellationToken))
 //C# TO JAVA CONVERTER NOTE: Java does not support optional parameters. Overloaded method(s) are created above:
-	public final Task<DialogTurnResult> ReplaceDialogAsync(String dialogId, Object options, CancellationToken cancellationToken)
+	public final CompletableFuture<DialogTurnResult> ReplaceDialogAsync(String dialogId, Object options, CancellationToken cancellationToken)
 	{
 		// Pop stack
 		if (getStack().Any())

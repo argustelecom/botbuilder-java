@@ -1,4 +1,4 @@
-package Microsoft.Bot.Builder.Dialogs;
+package com.microsoft.bot.builder.dialogs;
 
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License.
@@ -15,5 +15,5 @@ package Microsoft.Bot.Builder.Dialogs;
 @FunctionalInterface
 public interface PromptValidator<T>
 {
-	Task<bool> invoke(PromptValidatorContext promptContext, CancellationToken cancellationToken);
+	CompletableFuture<bool> invoke(PromptValidatorContext promptContext, CancellationToken cancellationToken);
 }

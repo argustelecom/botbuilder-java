@@ -1,4 +1,4 @@
-package Microsoft.Bot.Builder.Dialogs;
+package com.microsoft.bot.builder.dialogs;
 
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License.
@@ -33,22 +33,22 @@ public class ComponentDialog extends Dialog
 
 
 	@Override
-	public Task<DialogTurnResult> BeginDialogAsync(DialogContext outerDc, Object options)
+	public CompletableFuture<DialogTurnResult> BeginDialogAsync(DialogContext outerDc, Object options)
 	{
 		return BeginDialogAsync(outerDc, options, null);
 	}
 
 	@Override
-	public Task<DialogTurnResult> BeginDialogAsync(DialogContext outerDc)
+	public CompletableFuture<DialogTurnResult> BeginDialogAsync(DialogContext outerDc)
 	{
 		return BeginDialogAsync(outerDc, null, null);
 	}
 
 //C# TO JAVA CONVERTER TODO TASK: There is no equivalent in Java to the 'async' keyword:
-//ORIGINAL LINE: public override async Task<DialogTurnResult> BeginDialogAsync(DialogContext outerDc, object options = null, CancellationToken cancellationToken = default(CancellationToken))
+//ORIGINAL LINE: public override async CompletableFuture<DialogTurnResult> BeginDialogAsync(DialogContext outerDc, object options = null, CancellationToken cancellationToken = default(CancellationToken))
 //C# TO JAVA CONVERTER NOTE: Java does not support optional parameters. Overloaded method(s) are created above:
 	@Override
-	public Task<DialogTurnResult> BeginDialogAsync(DialogContext outerDc, Object options, CancellationToken cancellationToken)
+	public CompletableFuture<DialogTurnResult> BeginDialogAsync(DialogContext outerDc, Object options, CancellationToken cancellationToken)
 	{
 		if (outerDc == null)
 		{
@@ -79,16 +79,16 @@ public class ComponentDialog extends Dialog
 
 
 	@Override
-	public Task<DialogTurnResult> ContinueDialogAsync(DialogContext outerDc)
+	public CompletableFuture<DialogTurnResult> ContinueDialogAsync(DialogContext outerDc)
 	{
 		return ContinueDialogAsync(outerDc, null);
 	}
 
 //C# TO JAVA CONVERTER TODO TASK: There is no equivalent in Java to the 'async' keyword:
-//ORIGINAL LINE: public override async Task<DialogTurnResult> ContinueDialogAsync(DialogContext outerDc, CancellationToken cancellationToken = default(CancellationToken))
+//ORIGINAL LINE: public override async CompletableFuture<DialogTurnResult> ContinueDialogAsync(DialogContext outerDc, CancellationToken cancellationToken = default(CancellationToken))
 //C# TO JAVA CONVERTER NOTE: Java does not support optional parameters. Overloaded method(s) are created above:
 	@Override
-	public Task<DialogTurnResult> ContinueDialogAsync(DialogContext outerDc, CancellationToken cancellationToken)
+	public CompletableFuture<DialogTurnResult> ContinueDialogAsync(DialogContext outerDc, CancellationToken cancellationToken)
 	{
 		if (outerDc == null)
 		{
@@ -115,22 +115,22 @@ public class ComponentDialog extends Dialog
 
 
 	@Override
-	public Task<DialogTurnResult> ResumeDialogAsync(DialogContext outerDc, DialogReason reason, Object result)
+	public CompletableFuture<DialogTurnResult> ResumeDialogAsync(DialogContext outerDc, DialogReason reason, Object result)
 	{
 		return ResumeDialogAsync(outerDc, reason, result, null);
 	}
 
 	@Override
-	public Task<DialogTurnResult> ResumeDialogAsync(DialogContext outerDc, DialogReason reason)
+	public CompletableFuture<DialogTurnResult> ResumeDialogAsync(DialogContext outerDc, DialogReason reason)
 	{
 		return ResumeDialogAsync(outerDc, reason, null, null);
 	}
 
 //C# TO JAVA CONVERTER TODO TASK: There is no equivalent in Java to the 'async' keyword:
-//ORIGINAL LINE: public override async Task<DialogTurnResult> ResumeDialogAsync(DialogContext outerDc, DialogReason reason, object result = null, CancellationToken cancellationToken = default(CancellationToken))
+//ORIGINAL LINE: public override async CompletableFuture<DialogTurnResult> ResumeDialogAsync(DialogContext outerDc, DialogReason reason, object result = null, CancellationToken cancellationToken = default(CancellationToken))
 //C# TO JAVA CONVERTER NOTE: Java does not support optional parameters. Overloaded method(s) are created above:
 	@Override
-	public Task<DialogTurnResult> ResumeDialogAsync(DialogContext outerDc, DialogReason reason, Object result, CancellationToken cancellationToken)
+	public CompletableFuture<DialogTurnResult> ResumeDialogAsync(DialogContext outerDc, DialogReason reason, Object result, CancellationToken cancellationToken)
 	{
 		// Containers are typically leaf nodes on the stack but the dev is free to push other dialogs
 		// on top of the stack which will result in the container receiving an unexpected call to
@@ -221,27 +221,27 @@ public class ComponentDialog extends Dialog
 	}
 
 
-	protected Task<DialogTurnResult> OnBeginDialogAsync(DialogContext innerDc, Object options)
+	protected CompletableFuture<DialogTurnResult> OnBeginDialogAsync(DialogContext innerDc, Object options)
 	{
 		return OnBeginDialogAsync(innerDc, options, null);
 	}
 
 //C# TO JAVA CONVERTER NOTE: Java does not support optional parameters. Overloaded method(s) are created above:
-//ORIGINAL LINE: protected virtual Task<DialogTurnResult> OnBeginDialogAsync(DialogContext innerDc, object options, CancellationToken cancellationToken = default(CancellationToken))
-	protected Task<DialogTurnResult> OnBeginDialogAsync(DialogContext innerDc, Object options, CancellationToken cancellationToken)
+//ORIGINAL LINE: protected virtual CompletableFuture<DialogTurnResult> OnBeginDialogAsync(DialogContext innerDc, object options, CancellationToken cancellationToken = default(CancellationToken))
+	protected CompletableFuture<DialogTurnResult> OnBeginDialogAsync(DialogContext innerDc, Object options, CancellationToken cancellationToken)
 	{
 		return innerDc.BeginDialogAsync(getInitialDialogId(), options, cancellationToken);
 	}
 
 
-	protected Task<DialogTurnResult> OnContinueDialogAsync(DialogContext innerDc)
+	protected CompletableFuture<DialogTurnResult> OnContinueDialogAsync(DialogContext innerDc)
 	{
 		return OnContinueDialogAsync(innerDc, null);
 	}
 
 //C# TO JAVA CONVERTER NOTE: Java does not support optional parameters. Overloaded method(s) are created above:
-//ORIGINAL LINE: protected virtual Task<DialogTurnResult> OnContinueDialogAsync(DialogContext innerDc, CancellationToken cancellationToken = default(CancellationToken))
-	protected Task<DialogTurnResult> OnContinueDialogAsync(DialogContext innerDc, CancellationToken cancellationToken)
+//ORIGINAL LINE: protected virtual CompletableFuture<DialogTurnResult> OnContinueDialogAsync(DialogContext innerDc, CancellationToken cancellationToken = default(CancellationToken))
+	protected CompletableFuture<DialogTurnResult> OnContinueDialogAsync(DialogContext innerDc, CancellationToken cancellationToken)
 	{
 		return innerDc.ContinueDialogAsync(cancellationToken);
 	}
@@ -272,7 +272,7 @@ public class ComponentDialog extends Dialog
 		return Task.CompletedTask;
 	}
 
-	protected Task<DialogTurnResult> EndComponentAsync(DialogContext outerDc, Object result, CancellationToken cancellationToken)
+	protected CompletableFuture<DialogTurnResult> EndComponentAsync(DialogContext outerDc, Object result, CancellationToken cancellationToken)
 	{
 		return outerDc.EndDialogAsync(result);
 	}

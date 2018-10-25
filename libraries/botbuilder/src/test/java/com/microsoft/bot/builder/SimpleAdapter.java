@@ -8,6 +8,7 @@ import org.junit.Assert;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutionException;
 import java.util.function.Consumer;
 
@@ -37,54 +38,53 @@ public class SimpleAdapter extends BotAdapter {
 
 
     @Override
-    public ResourceResponse[] SendActivities(TurnContext context, Activity[] activities) throws InterruptedException {
-        Assert.assertNotNull("SimpleAdapter.deleteActivity: missing reference", activities);
-        Assert.assertTrue("SimpleAdapter.sendActivities: empty activities array.", activities.length > 0);
+    public CompletableFuture<ResourceResponse[]> SendActivitiesAsync(TurnContext context, Activity[] activities) {
+        return CompletableFuture.supplyAsync(() -> {
+            Assert.assertNotNull("SimpleAdapter.deleteActivity: missing reference", activities);
+            Assert.assertTrue("SimpleAdapter.sendActivities: empty activities array.", activities.length > 0);
 
-        if (this.callOnSend != null)
-            this.callOnSend.accept(activities);
+            if (this.callOnSend != null)
+                this.callOnSend.accept(activities);
 
-        List<ResourceResponse> responses = new ArrayList<ResourceResponse>();
-        for (Activity activity : activities) {
-            responses.add(new ResourceResponse().withId(activity.id()));
-        }
-        ResourceResponse[] result = new ResourceResponse[responses.size()];
-        return responses.toArray(result);
-
-
+            List<ResourceResponse> responses = new ArrayList<ResourceResponse>();
+            for (Activity activity : activities) {
+                responses.add(new ResourceResponse().withId(activity.id()));
+            }
+            ResourceResponse[] result = new ResourceResponse[responses.size()];
+            return responses.toArray(result);
+        });
     }
 
     @Override
-    public ResourceResponse UpdateActivity(TurnContext context, Activity activity) {
-
-        Assert.assertNotNull("SimpleAdapter.updateActivity: missing activity", activity);
-        if (this.callOnUpdate != null)
-            this.callOnUpdate.accept(activity);
-        return new ResourceResponse()
-                .withId(activity.id());
-
-
+    public CompletableFuture<ResourceResponse> UpdateActivityAsync(TurnContext context, Activity activity) {
+        return CompletableFuture.supplyAsync(() -> {
+            Assert.assertNotNull("SimpleAdapter.updateActivity: missing activity", activity);
+            if (this.callOnUpdate != null)
+                this.callOnUpdate.accept(activity);
+            return new ResourceResponse()
+                    .withId(activity.id());
+        });
     }
 
     @Override
-    public void DeleteActivity(TurnContext context, ConversationReference reference) throws ExecutionException, InterruptedException {
-        Assert.assertNotNull("SimpleAdapter.deleteActivity: missing reference", reference);
-        if (callOnDelete != null)
-            this.callOnDelete.accept(reference);
-
-
+    public CompletableFuture DeleteActivityAsync(TurnContext context, ConversationReference reference) {
+        return CompletableFuture.runAsync(() -> {
+            Assert.assertNotNull("SimpleAdapter.deleteActivity: missing reference", reference);
+            if (callOnDelete != null)
+                this.callOnDelete.accept(reference);
+        });
     }
 
 
-    public void ProcessRequest(ActivityImpl activty, Consumer<TurnContext> callback) throws Exception {
-
-        try (TurnContextImpl ctx = new TurnContextImpl(this, activty)) {
-            this.RunPipeline(ctx, callback);
-        } catch (Exception e) {
-            e.printStackTrace();
-            throw new RuntimeException(String.format("Error running pipeline: %s", e.toString()));
-        }
-
+    public CompletableFuture ProcessRequest(ActivityImpl activty, BotCallbackHandler callback)  {
+        return CompletableFuture.runAsync(() -> {
+            try (TurnContextImpl ctx = new TurnContextImpl(this, activty)) {
+                this.RunPipelineAsync(ctx, callback).get();
+            } catch (Exception e) {
+                e.printStackTrace();
+                throw new RuntimeException(String.format("Error running pipeline: %s", e.toString()));
+            }
+        });
     }
 }
 

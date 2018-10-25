@@ -1,4 +1,4 @@
-package Microsoft.Bot.Builder.Dialogs;
+package com.microsoft.bot.builder.dialogs;
 
 import Newtonsoft.Json.Linq.*;
 import java.util.*;
@@ -76,22 +76,22 @@ public class OAuthPrompt extends Dialog
 
 
 	@Override
-	public Task<DialogTurnResult> BeginDialogAsync(DialogContext dc, Object options)
+	public CompletableFuture<DialogTurnResult> BeginDialogAsync(DialogContext dc, Object options)
 	{
 		return BeginDialogAsync(dc, options, null);
 	}
 
 	@Override
-	public Task<DialogTurnResult> BeginDialogAsync(DialogContext dc)
+	public CompletableFuture<DialogTurnResult> BeginDialogAsync(DialogContext dc)
 	{
 		return BeginDialogAsync(dc, null, null);
 	}
 
 //C# TO JAVA CONVERTER TODO TASK: There is no equivalent in Java to the 'async' keyword:
-//ORIGINAL LINE: public override async Task<DialogTurnResult> BeginDialogAsync(DialogContext dc, object options = null, CancellationToken cancellationToken = default(CancellationToken))
+//ORIGINAL LINE: public override async CompletableFuture<DialogTurnResult> BeginDialogAsync(DialogContext dc, object options = null, CancellationToken cancellationToken = default(CancellationToken))
 //C# TO JAVA CONVERTER NOTE: Java does not support optional parameters. Overloaded method(s) are created above:
 	@Override
-	public Task<DialogTurnResult> BeginDialogAsync(DialogContext dc, Object options, CancellationToken cancellationToken)
+	public CompletableFuture<DialogTurnResult> BeginDialogAsync(DialogContext dc, Object options, CancellationToken cancellationToken)
 	{
 		if (dc == null)
 		{
@@ -150,16 +150,16 @@ public class OAuthPrompt extends Dialog
 
 
 	@Override
-	public Task<DialogTurnResult> ContinueDialogAsync(DialogContext dc)
+	public CompletableFuture<DialogTurnResult> ContinueDialogAsync(DialogContext dc)
 	{
 		return ContinueDialogAsync(dc, null);
 	}
 
 //C# TO JAVA CONVERTER TODO TASK: There is no equivalent in Java to the 'async' keyword:
-//ORIGINAL LINE: public override async Task<DialogTurnResult> ContinueDialogAsync(DialogContext dc, CancellationToken cancellationToken = default(CancellationToken))
+//ORIGINAL LINE: public override async CompletableFuture<DialogTurnResult> ContinueDialogAsync(DialogContext dc, CancellationToken cancellationToken = default(CancellationToken))
 //C# TO JAVA CONVERTER NOTE: Java does not support optional parameters. Overloaded method(s) are created above:
 	@Override
-	public Task<DialogTurnResult> ContinueDialogAsync(DialogContext dc, CancellationToken cancellationToken)
+	public CompletableFuture<DialogTurnResult> ContinueDialogAsync(DialogContext dc, CancellationToken cancellationToken)
 	{
 		if (dc == null)
 		{
@@ -228,15 +228,15 @@ public class OAuthPrompt extends Dialog
 	 @return A <see cref="Task"/> representing the asynchronous operation.
 	*/
 
-	public final Task<TokenResponse> GetUserTokenAsync(ITurnContext turnContext)
+	public final CompletableFuture<TokenResponse> GetUserTokenAsync(ITurnContext turnContext)
 	{
 		return GetUserTokenAsync(turnContext, null);
 	}
 
 //C# TO JAVA CONVERTER TODO TASK: There is no equivalent in Java to the 'async' keyword:
-//ORIGINAL LINE: public async Task<TokenResponse> GetUserTokenAsync(ITurnContext turnContext, CancellationToken cancellationToken = default(CancellationToken))
+//ORIGINAL LINE: public async CompletableFuture<TokenResponse> GetUserTokenAsync(ITurnContext turnContext, CancellationToken cancellationToken = default(CancellationToken))
 //C# TO JAVA CONVERTER NOTE: Java does not support optional parameters. Overloaded method(s) are created above:
-	public final Task<TokenResponse> GetUserTokenAsync(ITurnContext turnContext, CancellationToken cancellationToken)
+	public final CompletableFuture<TokenResponse> GetUserTokenAsync(ITurnContext turnContext, CancellationToken cancellationToken)
 	{
 		String magicCode = null;
 //C# TO JAVA CONVERTER TODO TASK: Java has no equivalent to C# pattern variables in 'is' expressions:
@@ -368,15 +368,15 @@ public class OAuthPrompt extends Dialog
 	}
 
 
-	private Task<PromptRecognizerResult<TokenResponse>> RecognizeTokenAsync(ITurnContext turnContext)
+	private CompletableFuture<PromptRecognizerResult<TokenResponse>> RecognizeTokenAsync(ITurnContext turnContext)
 	{
 		return RecognizeTokenAsync(turnContext, null);
 	}
 
 //C# TO JAVA CONVERTER TODO TASK: There is no equivalent in Java to the 'async' keyword:
-//ORIGINAL LINE: private async Task<PromptRecognizerResult<TokenResponse>> RecognizeTokenAsync(ITurnContext turnContext, CancellationToken cancellationToken = default(CancellationToken))
+//ORIGINAL LINE: private async CompletableFuture<PromptRecognizerResult<TokenResponse>> RecognizeTokenAsync(ITurnContext turnContext, CancellationToken cancellationToken = default(CancellationToken))
 //C# TO JAVA CONVERTER NOTE: Java does not support optional parameters. Overloaded method(s) are created above:
-	private Task<PromptRecognizerResult<TokenResponse>> RecognizeTokenAsync(ITurnContext turnContext, CancellationToken cancellationToken)
+	private CompletableFuture<PromptRecognizerResult<TokenResponse>> RecognizeTokenAsync(ITurnContext turnContext, CancellationToken cancellationToken)
 	{
 		PromptRecognizerResult<TokenResponse> result = new PromptRecognizerResult<TokenResponse>();
 		if (IsTokenResponseEvent(turnContext))
