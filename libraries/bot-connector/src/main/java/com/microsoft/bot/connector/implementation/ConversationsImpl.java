@@ -972,7 +972,7 @@ public class ConversationsImpl implements Conversations {
      * @param conversationId Conversation ID
      * @param memberId ID of the member to delete from this conversation
      * @throws IllegalArgumentException thrown if parameters fail the validation
-     * @return CompletableFuture of List < Void ></>
+     * @return void of List < Void ></>
      */
     public CompletableFuture<List<Void>> deleteConversationMemberFuture(String conversationId, String memberId) throws ExecutionException, InterruptedException {
         CompletableFuture<List<Void>> future_result = completableFutureFromObservable(deleteConversationMemberAsync(conversationId, memberId));

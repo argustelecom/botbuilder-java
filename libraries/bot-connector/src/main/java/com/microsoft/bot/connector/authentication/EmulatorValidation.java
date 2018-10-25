@@ -27,18 +27,18 @@ public class EmulatorValidation {
      * @param authHeader Bearer Token, in the "Bearer [Long String]" Format.
      * @return True, if the token was issued by the Emulator. Otherwise, false.
      */
-    public static CompletableFuture<Boolean> isTokenFromEmulator(String authHeader) {
+    public static Boolean isTokenFromEmulator(String authHeader) {
         // The Auth Header generally looks like this:
         // "Bearer eyJ0e[...Big Long String...]XAiO"
         if (authHeader == null || authHeader.isEmpty()) {
             // No token. Can't be an emulator token.
-            return CompletableFuture.completedFuture(false);
+            return false;
         }
 
         String[] parts = authHeader.split(" ");
         if (parts.length != 2) {
             // Emulator tokens MUST have exactly 2 parts. If we don't have 2 parts, it's not an emulator token
-            return CompletableFuture.completedFuture(false);
+            return false;
         }
 
         String schema = parts[0];
@@ -46,7 +46,7 @@ public class EmulatorValidation {
 
         if (!schema.equalsIgnoreCase("bearer")) {
             // The scheme from the emulator MUST be "Bearer"
-            return CompletableFuture.completedFuture(false);
+            return false;
         }
 
         // Parse the Big Long String into an actual token.
@@ -55,17 +55,17 @@ public class EmulatorValidation {
         // Is there an Issuer?
         if (decodedJWT.getIssuer().isEmpty()) {
             // No Issuer, means it's not from the Emulator.
-            return CompletableFuture.completedFuture(false);
+            return false;
         }
 
         // Is the token issues by a source we consider to be the emulator?
         if (!ToBotFromEmulatorTokenValidationParameters.validIssuers.contains(decodedJWT.getIssuer())) {
             // Not a Valid Issuer. This is NOT a Bot Framework Emulator Token.
-            return CompletableFuture.completedFuture(false);
+            return false;
         }
 
         // The Token is from the Bot Framework Emulator. Success!
-        return CompletableFuture.completedFuture(true);
+        return true;
     }
 
     /**
@@ -75,7 +75,7 @@ public class EmulatorValidation {
      * @return A valid ClaimsIdentity.
      * @throws AuthenticationException A token issued by the Bot Framework will FAIL this check. Only Emulator tokens will pass.
      */
-    public static CompletableFuture<ClaimsIdentity> authenticateToken(String authHeader, CredentialProvider credentials, String channelId) throws ExecutionException, InterruptedException, AuthenticationException {
+    public static ClaimsIdentity authenticateToken(String authHeader, CredentialProvider credentials, String channelId) throws ExecutionException, InterruptedException, AuthenticationException {
         JwtTokenExtractor tokenExtractor = new JwtTokenExtractor(
                 ToBotFromEmulatorTokenValidationParameters,
                 ToBotFromEmulatorOpenIdMetadataUrl,
@@ -131,6 +131,6 @@ public class EmulatorValidation {
             throw new AuthenticationException(String.format("Invalid AppId passed on token: '%s'.", appId));
         }
 
-        return CompletableFuture.completedFuture(identity);
+        return identity;
     }
 }

@@ -18,13 +18,8 @@ import org.junit.Assert;
 import org.junit.Test;
 
 import java.util.UUID;
-import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutionException;
 import java.util.function.Consumer;
-import java.util.function.Function;
-
-
-import static java.util.concurrent.CompletableFuture.completedFuture;
 
 //    [TestClass]
 //            [TestCategory("State Management")]
@@ -71,11 +66,11 @@ public class BotStateTest {
                 System.out.flush();
                 TestState userState = StateTurnContextExtensions.<TestState>GetUserState(context);
                 Assert.assertNotNull("user state should exist", userState);
-                switch (context.getActivity().text()) {
+                switch (context.activity().text()) {
                     case "set value":
                         userState.withValue("test");
                         try {
-                            ((TurnContextImpl)context).SendActivity("value saved");
+                            ((TurnContextImpl)context).SendActivityAsync("value saved");
                         } catch (Exception e) {
                             e.printStackTrace();
                             Assert.fail(String.format("Error sending activity! - set value"));
@@ -84,7 +79,7 @@ public class BotStateTest {
                     case "get value":
                         try {
                             Assert.assertFalse(StringUtils.isBlank(userState.value()));
-                            ((TurnContextImpl)context).SendActivity(userState.value());
+                            ((TurnContextImpl)context).SendActivityAsync(userState.value());
                         } catch (Exception e) {
                             e.printStackTrace();
                             Assert.fail(String.format("Error sending activity! - get value"));
@@ -115,7 +110,7 @@ public class BotStateTest {
                                 case "set value":
                                     userState.setValue("test");
                                     try {
-                                        context.SendActivity("value saved");
+                                        context.SendActivityAsync("value saved");
                                     } catch (Exception e) {
                                         e.printStackTrace();
                                         Assert.fail(String.format("Error sending activity! - set value"));
@@ -124,7 +119,7 @@ public class BotStateTest {
                                 case "get value":
                                     try {
                                         Assert.assertFalse(StringUtils.isBlank(userState.getValue()));
-                                        context.SendActivity(userState.getValue());
+                                        context.SendActivityAsync(userState.getValue());
                                     } catch (Exception e) {
                                         e.printStackTrace();
                                         Assert.fail(String.format("Error sending activity! - get value"));
@@ -150,7 +145,7 @@ public class BotStateTest {
                             case "set value":
                                 conversationState.withValue("test");
                                 try {
-                                    context.SendActivity("value saved");
+                                    context.SendActivityAsync("value saved");
                                 } catch (Exception e) {
                                     e.printStackTrace();
                                     Assert.fail(String.format("Error sending activity! - set value"));
@@ -159,7 +154,7 @@ public class BotStateTest {
                             case "get value":
                                 try {
                                     Assert.assertFalse(StringUtils.isBlank(conversationState.value()));
-                                    context.SendActivity(conversationState.value());
+                                    context.SendActivityAsync(conversationState.value());
                                 } catch (Exception e) {
                                     e.printStackTrace();
                                     Assert.fail(String.format("Error sending activity! - get value"));
@@ -185,7 +180,7 @@ public class BotStateTest {
                             case "set value":
                                 conversationState.setValue("test");
                                 try {
-                                    context.SendActivity("value saved");
+                                    context.SendActivityAsync("value saved");
                                 } catch (Exception e) {
                                     e.printStackTrace();
                                     Assert.fail(String.format("Error sending activity! - set value"));
@@ -194,7 +189,7 @@ public class BotStateTest {
                             case "get value":
                                 try {
                                     Assert.assertFalse(StringUtils.isBlank(conversationState.getValue()));
-                                    context.SendActivity(conversationState.getValue());
+                                    context.SendActivityAsync(conversationState.getValue());
                                 } catch (Exception e) {
                                     e.printStackTrace();
                                     Assert.fail(String.format("Error sending activity! - get value"));
@@ -223,7 +218,7 @@ public class BotStateTest {
                             case "set value":
                                 customState.setCustomString(testGuid);
                                 try {
-                                    context.SendActivity("value saved");
+                                    context.SendActivityAsync("value saved");
                                 } catch (Exception e) {
                                     e.printStackTrace();
                                     Assert.fail(String.format("Error sending activity! - set value"));
@@ -232,7 +227,7 @@ public class BotStateTest {
                             case "get value":
                                 try {
                                     Assert.assertFalse(StringUtils.isBlank(customState.getCustomString()));
-                                    context.SendActivity(customState.getCustomString());
+                                    context.SendActivityAsync(customState.getCustomString());
                                 } catch (Exception e) {
                                     e.printStackTrace();
                                     Assert.fail(String.format("Error sending activity! - get value"));
@@ -264,7 +259,7 @@ public class BotStateTest {
                                     System.out.println(String.format(">>Test Callback(tid:%s): Send activity : %s", Thread.currentThread().getId(),
                                             "value saved"));
                                     System.out.flush();
-                                    ResourceResponse response = context.SendActivity("value saved");
+                                    ResourceResponse response = context.SendActivityAsync("value saved");
                                     System.out.println(String.format(">>Test Callback(tid:%s): Response Id: %s", Thread.currentThread().getId(),
                                             response.id()));
                                     System.out.flush();
@@ -279,7 +274,7 @@ public class BotStateTest {
                                     System.out.println(String.format(">>Test Callback(tid:%s): Send activity : %s", Thread.currentThread().getId(),
                                             "TypedObject"));
                                     System.out.flush();
-                                    context.SendActivity("TypedObject");
+                                    context.SendActivityAsync("TypedObject");
                                 } catch (Exception e) {
                                     e.printStackTrace();
                                     Assert.fail(String.format("Error sending activity! - get value"));
@@ -308,7 +303,7 @@ public class BotStateTest {
                             case "set value":
                                 conversation.withName("test");
                                 try {
-                                    context.SendActivity("value saved");
+                                    context.SendActivityAsync("value saved");
                                 } catch (Exception e) {
                                     e.printStackTrace();
                                     Assert.fail(String.format("Error sending activity! - set value"));
@@ -316,7 +311,7 @@ public class BotStateTest {
                                 break;
                             case "get value":
                                 try {
-                                    context.SendActivity("TypedObject");
+                                    context.SendActivityAsync("TypedObject");
                                 } catch (Exception e) {
                                     e.printStackTrace();
                                     Assert.fail(String.format("Error sending activity! - get value"));

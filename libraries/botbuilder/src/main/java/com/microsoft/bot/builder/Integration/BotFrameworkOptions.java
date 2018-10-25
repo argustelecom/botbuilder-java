@@ -1,7 +1,19 @@
-package Microsoft.Bot.Builder.Integration;
+package com.microsoft.bot.builder.adapters;
 
-import Microsoft.Bot.Builder.*;
+import com.microsoft.bot.builder.Middleware;
+import com.microsoft.bot.builder.BotState;
+import com.microsoft.bot.builder.TurnContext;
+import com.microsoft.bot.builder.integration.BotFrameworkPaths;
+import com.microsoft.bot.connector.authentication.CredentialProvider;
+import com.microsoft.bot.connector.authentication.ChannelProvider;
+import com.microsoft.bot.connector.authentication.SimpleCredentialProvider;
+import com.microsoft.rest.retry.RetryStrategy;
+import okhttp3.OkHttpClient;
+
 import java.util.*;
+import java.util.concurrent.CompletableFuture;
+import java.util.function.BiFunction;
+import java.util.function.Function;
 
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License.
@@ -27,12 +39,12 @@ public class BotFrameworkOptions
 	 
 	 <value>The credential provider.</value>
 	*/
-	private ICredentialProvider CredentialProvider = new SimpleCredentialProvider();
-	public final ICredentialProvider getCredentialProvider()
+	private CredentialProvider CredentialProvider = new SimpleCredentialProvider();
+	public final CredentialProvider getCredentialProvider()
 	{
 		return CredentialProvider;
 	}
-	public final void setCredentialProvider(ICredentialProvider value)
+	public final void setCredentialProvider(CredentialProvider value)
 	{
 		CredentialProvider = value;
 	}
@@ -43,12 +55,12 @@ public class BotFrameworkOptions
 	 
 	 <value>The credential provider.</value>
 	*/
-	private IChannelProvider ChannelProvider;
-	public final IChannelProvider getChannelProvider()
+	private ChannelProvider ChannelProvider;
+	public final ChannelProvider getChannelProvider()
 	{
 		return ChannelProvider;
 	}
-	public final void setChannelProvider(IChannelProvider value)
+	public final void setChannelProvider(ChannelProvider value)
 	{
 		ChannelProvider = value;
 	}
@@ -58,24 +70,24 @@ public class BotFrameworkOptions
 	 
 	 <value>The error handler.</value>
 	*/
-	private tangible.Func2Param<ITurnContext, RuntimeException, Task> OnTurnError;
-	public final tangible.Func2Param<ITurnContext, RuntimeException, Task> getOnTurnError()
+	private BiFunction<TurnContext, RuntimeException, CompletableFuture> OnTurnError;
+	public final BiFunction<TurnContext, RuntimeException, CompletableFuture> getOnTurnError()
 	{
 		return OnTurnError;
 	}
-	public final void setOnTurnError(tangible.Func2Param<ITurnContext, RuntimeException, Task> value)
+	public final void setOnTurnError(BiFunction<TurnContext, RuntimeException, CompletableFuture> value)
 	{
-		OnTurnError = (ITurnContext arg1, RuntimeException arg2) -> value.invoke(arg1, arg2);
+		OnTurnError = (TurnContext arg1, RuntimeException arg2) -> value.apply(arg1, arg2);
 	}
 
 	/** 
-	 Gets a list of the <see cref="IMiddleware"/> to use on each incoming activity.
+	 Gets a list of the <see cref="Middleware"/> to use on each incoming activity.
 	 
 	 <value>The middleware list.</value>
 	 {@link BotAdapter.Use(IMiddleware)}
 	*/
-	private List<IMiddleware> Middleware = new ArrayList<IMiddleware> ();
-	public final List<IMiddleware> getMiddleware()
+	private List<Middleware> Middleware = new ArrayList<Middleware> ();
+	public final List<Middleware> getMiddleware()
 	{
 		return Middleware;
 	}
@@ -84,7 +96,7 @@ public class BotFrameworkOptions
 	 Gets a list of the <see cref="BotState"/> providers to use on each incoming activity.
 	 Objects in the State list enable other components to get access to the state providers
 	 during the start up process.  For example, creating state property accessors within a ASP.net Core Singleton
-	 that could be passed to your IBot-derived class.
+	 that could be passed to your Bot-derived class.
 	 The providers in this list are not associated with the BotStateSet Middleware component. To clarify, state providers
 	 in this list are not automatically loaded or saved during the turn process.
 	 
@@ -101,12 +113,12 @@ public class BotFrameworkOptions
 	 
 	 <value>The retry policy.</value>
 	*/
-	private RetryPolicy ConnectorClientRetryPolicy;
-	public final RetryPolicy getConnectorClientRetryPolicy()
+	private RetryStrategy ConnectorClientRetryPolicy;
+	public final RetryStrategy getConnectorClientRetryPolicy()
 	{
 		return ConnectorClientRetryPolicy;
 	}
-	public final void setConnectorClientRetryPolicy(RetryPolicy value)
+	public final void setConnectorClientRetryPolicy(RetryStrategy value)
 	{
 		ConnectorClientRetryPolicy = value;
 	}
@@ -116,12 +128,12 @@ public class BotFrameworkOptions
 	 
 	 <value>The HTTP client.</value>
 	*/
-	private HttpClient HttpClient;
-	public final HttpClient getHttpClient()
+	private OkHttpClient HttpClient;
+	public final OkHttpClient getHttpClient()
 	{
 		return HttpClient;
 	}
-	public final void setHttpClient(HttpClient value)
+	public final void setHttpClient(OkHttpClient value)
 	{
 		HttpClient = value;
 	}

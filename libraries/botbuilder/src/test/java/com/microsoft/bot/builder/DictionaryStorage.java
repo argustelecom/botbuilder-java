@@ -35,7 +35,7 @@ public class DictionaryStorage implements Storage {
         this.memory = (dictionary != null) ? dictionary : new HashMap<String, Object>();
     }
 
-    public CompletableFuture Delete(String[] keys) {
+    public void Delete(String[] keys) {
         synchronized (this.syncroot) {
                 for (String key : keys)  {
                         Object o = this.memory.get(key);
@@ -90,7 +90,7 @@ public class DictionaryStorage implements Storage {
     }
 
     @Override
-    public CompletableFuture Write(Map<String, ?> changes) throws Exception {
+    public void Write(Map<String, ?> changes) throws Exception {
         synchronized (this.syncroot) {
             for (Map.Entry change : changes.entrySet()) {
                 Object newValue = change.getValue();

@@ -1,6 +1,8 @@
-package Microsoft.Bot.Builder;
+package com.microsoft.bot.builder;
 
-/** 
+import java.util.concurrent.CompletableFuture;
+
+/**
  Represents middleware that can operate on incoming activities.
  
  A <see cref="BotAdapter"/> passes incoming activities from the user's
@@ -14,17 +16,16 @@ package Microsoft.Bot.Builder;
  <p>For each activity, the adapter calls middleware in the order in which you
  added it.</p>
  
- {@link IBot}
+ {@link Bot}
 */
-public interface IMiddleware
+public interface Middleware
 {
 	/** 
 	 When implemented in middleware, processess an incoming activity.
 	 
 	 @param turnContext The context object for this turn.
 	 @param next The delegate to call to continue the bot middleware pipeline.
-	 @param cancellationToken A cancellation token that can be used by other objects
-	 or threads to receive notice of cancellation.
+
 	 @return A task that represents the work queued to execute.
 	 Middleware calls the <paramref name="next"/> delegate to pass control to
 	 the next middleware in the pipeline. If middleware doesn’t call the next delegate,
@@ -37,8 +38,5 @@ public interface IMiddleware
 	 {@link Bot.Schema.IActivity}
 	*/
 
-	Task OnTurnAsync(ITurnContext turnContext, NextDelegate next);
-//C# TO JAVA CONVERTER NOTE: Java does not support optional parameters. Overloaded method(s) are created above:
-//ORIGINAL LINE: Task OnTurnAsync(ITurnContext turnContext, NextDelegate next, CancellationToken cancellationToken = default(CancellationToken));
-	Task OnTurnAsync(ITurnContext turnContext, NextDelegate next, CancellationToken cancellationToken);
+	CompletableFuture OnTurnAsync(TurnContext turnContext, NextDelegate next);
 }

@@ -17,7 +17,7 @@ public class ConversationsTest extends BotConnectorTestBase {
     public void CreateConversation() {
 
         Activity activity = new Activity()
-                .withType(ActivityTypes.MESSAGE)
+                .withType(ActivityTypes.MESSAGE.toString())
                 .withRecipient(user)
                 .withFrom(bot)
                 .withText("TEST Create Conversation");
@@ -36,7 +36,7 @@ public class ConversationsTest extends BotConnectorTestBase {
     public void CreateConversationWithInvalidBot() {
 
         Activity activity = new Activity()
-                .withType(ActivityTypes.MESSAGE)
+                .withType(ActivityTypes.MESSAGE.toString())
                 .withRecipient(user)
                 .withFrom(bot)
                 .withText("TEST Create Conversation");
@@ -59,7 +59,7 @@ public class ConversationsTest extends BotConnectorTestBase {
     public void CreateConversationWithoutMembers() {
 
         Activity activity = new Activity()
-                .withType(ActivityTypes.MESSAGE)
+                .withType(ActivityTypes.MESSAGE.toString())
                 .withRecipient(user)
                 .withFrom(bot)
                 .withText("TEST Create Conversation");
@@ -82,7 +82,7 @@ public class ConversationsTest extends BotConnectorTestBase {
     public void CreateConversationWithBotMember() {
 
         Activity activity = new Activity()
-                .withType(ActivityTypes.MESSAGE)
+                .withType(ActivityTypes.MESSAGE.toString())
                 .withRecipient(user)
                 .withFrom(bot)
                 .withText("TEST Create Conversation");
@@ -143,7 +143,7 @@ public class ConversationsTest extends BotConnectorTestBase {
     public void SendToConversation() {
 
         Activity activity = new Activity()
-                .withType(ActivityTypes.MESSAGE)
+                .withType(ActivityTypes.MESSAGE.toString())
                 .withRecipient(user)
                 .withFrom(bot)
                 .withName("activity")
@@ -164,7 +164,7 @@ public class ConversationsTest extends BotConnectorTestBase {
     public void SendToConversationWithInvalidConversationId() {
 
         Activity activity = new Activity()
-                .withType(ActivityTypes.MESSAGE)
+                .withType(ActivityTypes.MESSAGE.toString())
                 .withRecipient(user)
                 .withFrom(bot)
                 .withName("activity")
@@ -195,7 +195,7 @@ public class ConversationsTest extends BotConnectorTestBase {
         ConversationResourceResponse conversation = connector.conversations().createConversation(createMessage);
 
         Activity activity = new Activity()
-                .withType(ActivityTypes.MESSAGE)
+                .withType(ActivityTypes.MESSAGE.toString())
                 .withRecipient(user)
                 .withFrom(bot.withId("B21S8SG7K:T03CWQ0QB"))
                 .withName("activity")
@@ -214,7 +214,7 @@ public class ConversationsTest extends BotConnectorTestBase {
     public void SendCardToConversation() {
 
         Activity activity = new Activity()
-                .withType(ActivityTypes.MESSAGE)
+                .withType(ActivityTypes.MESSAGE.toString())
                 .withRecipient(user)
                 .withFrom(bot)
                 .withName("activity")
@@ -252,7 +252,7 @@ public class ConversationsTest extends BotConnectorTestBase {
     public void GetActivityMembers() {
 
         Activity activity = new Activity()
-                .withType(ActivityTypes.MESSAGE)
+                .withType(ActivityTypes.MESSAGE.toString())
                 .withRecipient(user)
                 .withFrom(bot)
                 .withText("TEST Get Activity Members");
@@ -280,7 +280,7 @@ public class ConversationsTest extends BotConnectorTestBase {
     public void GetActivityMembersWithInvalidConversationId() {
 
         Activity activity = new Activity()
-                .withType(ActivityTypes.MESSAGE)
+                .withType(ActivityTypes.MESSAGE.toString())
                 .withRecipient(user)
                 .withFrom(bot)
                 .withText("TEST Get Activity Members");
@@ -305,13 +305,13 @@ public class ConversationsTest extends BotConnectorTestBase {
     public void ReplyToActivity() {
 
         Activity activity = new Activity()
-                .withType(ActivityTypes.MESSAGE)
+                .withType(ActivityTypes.MESSAGE.toString())
                 .withRecipient(user)
                 .withFrom(bot)
                 .withText("TEST Send to Conversation");
 
         Activity reply = new Activity()
-                .withType(ActivityTypes.MESSAGE)
+                .withType(ActivityTypes.MESSAGE.toString())
                 .withRecipient(user)
                 .withFrom(bot)
                 .withText("TEST Reply to Activity");
@@ -333,13 +333,13 @@ public class ConversationsTest extends BotConnectorTestBase {
     public void ReplyToActivityWithInvalidConversationId() {
 
         Activity activity = new Activity()
-                .withType(ActivityTypes.MESSAGE)
+                .withType(ActivityTypes.MESSAGE.toString())
                 .withRecipient(user)
                 .withFrom(bot)
                 .withText("TEST Send to Conversation");
 
         Activity reply = new Activity()
-                .withType(ActivityTypes.MESSAGE)
+                .withType(ActivityTypes.MESSAGE.toString())
                 .withRecipient(user)
                 .withFrom(bot)
                 .withText("TEST Reply to Activity");
@@ -365,7 +365,7 @@ public class ConversationsTest extends BotConnectorTestBase {
     public void DeleteActivity() {
 
         Activity activity = new Activity()
-                .withType(ActivityTypes.MESSAGE)
+                .withType(ActivityTypes.MESSAGE.toString())
                 .withRecipient(user)
                 .withFrom(bot)
                 .withText("TEST Delete Activity");
@@ -386,7 +386,7 @@ public class ConversationsTest extends BotConnectorTestBase {
     public void DeleteActivityWithInvalidConversationId() {
 
         Activity activity = new Activity()
-                .withType(ActivityTypes.MESSAGE)
+                .withType(ActivityTypes.MESSAGE.toString())
                 .withRecipient(user)
                 .withFrom(bot)
                 .withText("TEST Delete Activity");
@@ -411,7 +411,7 @@ public class ConversationsTest extends BotConnectorTestBase {
     public void UpdateActivity() {
 
         Activity activity = new Activity()
-                .withType(ActivityTypes.MESSAGE)
+                .withType(ActivityTypes.MESSAGE.toString())
                 .withRecipient(user)
                 .withFrom(bot)
                 .withText("TEST Send to Conversation");
@@ -436,7 +436,7 @@ public class ConversationsTest extends BotConnectorTestBase {
     public void UpdateActivityWithInvalidConversationId() {
 
         Activity activity = new Activity()
-                .withType(ActivityTypes.MESSAGE)
+                .withType(ActivityTypes.MESSAGE.toString())
                 .withRecipient(user)
                 .withFrom(bot)
                 .withText("TEST Send to Conversation");

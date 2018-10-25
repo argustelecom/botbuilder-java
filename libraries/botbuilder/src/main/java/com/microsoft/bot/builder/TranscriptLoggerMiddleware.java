@@ -1,140 +1,199 @@
-package Microsoft.Bot.Builder;
-
-import Newtonsoft.Json.*;
-import java.util.*;
-import java.time.*;
+package com.microsoft.bot.builder;
 
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License.
 
 
-/** 
- Middleware for logging incoming and outgoing activitites to an <see cref="ITranscriptStore"/>.
-*/
-public class TranscriptLoggerMiddleware implements IMiddleware
-{
-	private static JsonSerializerSettings _jsonSettings = new JsonSerializerSettings() {NullValueHandling = NullValueHandling.Ignore};
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.SerializationFeature;
+import com.microsoft.bot.schema.ActivityImpl;
+import com.microsoft.bot.schema.models.Activity;
+import com.microsoft.bot.schema.models.ActivityTypes;
+import com.microsoft.bot.schema.models.ResourceResponse;
+import org.apache.commons.lang3.StringUtils;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
+import org.joda.time.DateTime;
+import org.joda.time.DateTimeZone;
+
+import java.time.OffsetDateTime;
+import java.util.LinkedList;
+import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.CompletionException;
+import java.util.concurrent.ExecutionException;
+
+
+/**
+ * When added, this middleware will log incoming and outgoing activitites to a ITranscriptStore.
+ */
+public class TranscriptLoggerMiddleware implements Middleware {
+	// https://github.com/FasterXML/jackson-databind/wiki/Serialization-Features
+	private static ObjectMapper mapper;
+
+	static {
+		mapper = new ObjectMapper()
+				.enable(SerializationFeature.INDENT_OUTPUT);
+		mapper.findAndRegisterModules();
+	}
+
 	private ITranscriptLogger logger;
+	private static final Logger log4j = LogManager.getLogger("BotFx");
 
-	private LinkedList<IActivity> transcript = new LinkedList<IActivity>();
+	private LinkedList<Activity> transcript = new LinkedList<Activity>();
 
-	/** 
-	 Initializes a new instance of the <see cref="TranscriptLoggerMiddleware"/> class.
-	 
-	 @param transcriptLogger The conversation store to use.
-	*/
-	public TranscriptLoggerMiddleware(ITranscriptLogger transcriptLogger)
-	{
-//C# TO JAVA CONVERTER TODO TASK: Throw expressions are not converted by C# to Java Converter:
-//ORIGINAL LINE: logger = transcriptLogger ?? throw new ArgumentNullException("TranscriptLoggerMiddleware requires a ITranscriptLogger implementation.  ");
-		logger = (transcriptLogger != null) ? transcriptLogger : throw new NullPointerException("TranscriptLoggerMiddleware requires a ITranscriptLogger implementation.  ");
+	/**
+	 * Initializes a new instance of the <see cref="TranscriptLoggerMiddleware"/> class.
+	 *
+	 * @param transcriptLogger The transcript logger to use.
+	 */
+	public TranscriptLoggerMiddleware(ITranscriptLogger transcriptLogger) {
+		if (transcriptLogger == null)
+			throw new NullPointerException("TranscriptLoggerMiddleware requires a ITranscriptLogger implementation.  ");
+
+		this.logger = transcriptLogger;
+
 	}
 
-	/** 
-	 Records incoming and outgoing activities to the conversation store.
-	 
-	 @param turnContext The context object for this turn.
-	 @param nextTurn The delegate to call to continue the bot middleware pipeline.
-	 @param cancellationToken A cancellation token that can be used by other objects
-	 or threads to receive notice of cancellation.
-	 @return A task that represents the work queued to execute.
-	 {@link ITurnContext}
-	 {@link Bot.Schema.IActivity}
-	*/
-//C# TO JAVA CONVERTER TODO TASK: There is no equivalent in Java to the 'async' keyword:
-//ORIGINAL LINE: public async Task OnTurnAsync(ITurnContext turnContext, NextDelegate nextTurn, CancellationToken cancellationToken)
-	public final Task OnTurnAsync(ITurnContext turnContext, NextDelegate nextTurn, CancellationToken cancellationToken)
-	{
-		// log incoming activity at beginning of turn
-		if (turnContext.getActivity() != null)
-		{
-			if (tangible.StringHelper.isNullOrEmpty((String)turnContext.getActivity().From.Properties["role"]))
-			{
-				turnContext.getActivity().From.Properties["role"] = "user";
-			}
+	/**
+	 * initialization for middleware turn.
+	 *
+	 * @param context
+	 * @param next
+	 * @return
+	 */
+	@Override
+	public CompletableFuture OnTurnAsync(TurnContext context, NextDelegate next)  {
+	    return CompletableFuture.runAsync(() -> {
+            // log incoming activity at beginning of turn
+            if (context.activity() != null) {
+                JsonNode role = null;
+                if (context.activity().from() == null) {
+                    throw new RuntimeException("Activity does not contain From field");
+                }
+                if (context.activity().from().properties().containsKey("role")) {
+                    role = context.activity().from().properties().get("role");
+                }
 
-			LogActivity(CloneActivity(turnContext.getActivity()));
-		}
+                if (role == null || StringUtils.isBlank(role.asText())) {
+                    context.activity().from().properties().put("role", mapper.createObjectNode().with("user"));
+                }
+                Activity activityTemp = ActivityImpl.CloneActity(context.activity());
 
-		// hook up onSend pipeline
-		turnContext.OnSendActivities(async(ctx, activities, nextSend) ->
-		{
-				// run full pipeline
-				var responses = await nextSend().ConfigureAwait(false);
+                LogActivity(ActivityImpl.CloneActity(context.activity()));
+            }
 
-				for (var activity : activities)
-				{
-					LogActivity(CloneActivity(activity));
-				}
+            // hook up onSend pipeline
+            context.OnSendActivities((ctx, activities, nextSend) ->
+            {
 
-				return responses;
-		});
+                return CompletableFuture.supplyAsync(() -> {
+                    // run full pipeline
+                    ResourceResponse[] responses = new ResourceResponse[0];
+                    try {
+                        if (nextSend != null) {
+                            responses = nextSend.call().join();
+                        }
+                    } catch (Exception e) {
+                        e.printStackTrace();
+                    }
 
-		// hook up update activity pipeline
-		turnContext.OnUpdateActivity(async(ctx, activity, nextUpdate) ->
-		{
-				// run full pipeline
-				var response = await nextUpdate().ConfigureAwait(false);
+                    for (Activity activity : activities) {
+                        LogActivity(ActivityImpl.CloneActity(activity));
+                    }
 
-				// add Message Update activity
-				IActivity updateActivity = CloneActivity(activity);
-				updateActivity.Type = ActivityTypes.MessageUpdate;
-				LogActivity(updateActivity);
-				return response;
-		});
+                    return responses;
+                });
+            });
 
-		// hook up delete activity pipeline
-		turnContext.OnDeleteActivity(async(ctx, reference, nextDelete) ->
-		{
-				// run full pipeline
-				await nextDelete().ConfigureAwait(false);
+            // hook up update activity pipeline
+            context.OnUpdateActivity((ctx, activity, nextUpdate) ->
+            {
+                return CompletableFuture.supplyAsync(() -> {
+                    // run full pipeline
+                    ResourceResponse response = null;
+                    try {
+                        if (nextUpdate != null) {
+                            response = nextUpdate.call().join();
+                        }
+                    } catch (Exception e) {
+                        e.printStackTrace();
+                        throw new RuntimeException(String.format("Error on Logging.OnUpdateActivity : %s", e.toString()));
+                    }
 
-				// add MessageDelete activity
-				// log as MessageDelete activity
-				Activity deleteActivity = new Activity();
-				deleteActivity.Type = ActivityTypes.MessageDelete;
-				deleteActivity.Id = reference.ActivityId;
+                    // add Message Update activity
+                    Activity updateActivity = ActivityImpl.CloneActity(activity);
+                    updateActivity.withType(ActivityTypes.MESSAGE_UPDATE.toString());
+                    LogActivity(updateActivity);
+                    return response;
+                });
+            });
 
-				LogActivity(deleteActivity);
-		});
+            // hook up delete activity pipeline
+            context.OnDeleteActivity((ctxt, reference, nextDel) -> {
+                return CompletableFuture.runAsync(() -> {
+                    // run full pipeline
 
-		// process bot logic
-//C# TO JAVA CONVERTER TODO TASK: There is no equivalent to 'await' in Java:
-		await nextTurn.invoke(cancellationToken).ConfigureAwait(false);
+                    try {
+                        if (nextDel != null) {
+                            log4j.error(String.format("Transcript logActivity next delegate: %s)", nextDel));
+                            nextDel.call();
+                        }
+                    } catch (Exception e) {
+                        e.printStackTrace();
+                        log4j.error(String.format("Transcript logActivity failed with %s (next delegate: %s)", e.toString(), nextDel));
+                        throw new RuntimeException(String.format("Transcript logActivity failed with %s", e.getMessage()));
 
-		// flush transcript at end of turn
-		while (!transcript.isEmpty())
-		{
-			try
-			{
-//C# TO JAVA CONVERTER TODO TASK: There is no equivalent to implicit typing in Java unless the Java 10 inferred typing option is selected:
-				var activity = transcript.poll();
-//C# TO JAVA CONVERTER TODO TASK: There is no equivalent to 'await' in Java:
-				await logger.LogActivityAsync(activity).ConfigureAwait(false);
-			}
-			catch (RuntimeException err)
-			{
-				System.Diagnostics.Trace.TraceError(String.format("Transcript logActivity failed with %1$s", err));
-			}
-		}
+                    }
+
+                    // add MessageDelete activity
+                    // log as MessageDelete activity
+                    Activity deleteActivity = new Activity()
+                            .withType(ActivityTypes.MESSAGE_DELETE.toString())
+                            .withId(reference.activityId())
+                            .applyConversationReference(reference, false);
+
+                    LogActivity(deleteActivity);
+                    return;
+                });
+
+            });
+
+
+            // process bot logic
+            try {
+                next.invoke().get();
+            } catch (Exception e) {
+                e.printStackTrace();
+                throw new RuntimeException(String.format("Error on Logging.next : %s", e.toString()));
+            }
+
+            // flush transcript at end of turn
+            while (!transcript.isEmpty()) {
+                Activity activity = transcript.poll();
+                try {
+                    this.logger.LogActivityAsync(activity).get();
+                } catch (RuntimeException|JsonProcessingException|InterruptedException|ExecutionException err) {
+                    err.printStackTrace();
+                    log4j.error(String.format("Transcript poll failed : %1$s", err));
+                    throw new CompletionException(err);
+                }
+            }
+        });
+
 	}
 
-	private static IActivity CloneActivity(IActivity activity)
-	{
-		activity = JsonConvert.<Activity>DeserializeObject(JsonConvert.SerializeObject(activity, _jsonSettings));
-		return activity;
-	}
 
-	private void LogActivity(IActivity activity)
-	{
-		synchronized (transcript)
-		{
-			if (activity.Timestamp == null)
-			{
-				activity.Timestamp = LocalDateTime.UtcNow;
+	private void LogActivity(Activity activity) {
+		synchronized (transcript) {
+			if (activity.timestamp() == null) {
+				activity.withTimestamp(OffsetDateTime.now());
 			}
-
 			transcript.offer(activity);
 		}
 	}
+
 }
+
+

@@ -105,11 +105,11 @@ public class OAuthTestBase extends TestBase
     }
 
 
-    public CompletableFuture UseOAuthClientFor(Function<OAuthClient, CompletableFuture<Void>> doTest) throws MalformedURLException, URISyntaxException {
+    public CompletableFuture<Void> UseOAuthClientFor(Function<OAuthClient, CompletableFuture<Void>> doTest) throws MalformedURLException, URISyntaxException {
         return this.UseOAuthClientFor(doTest, null, "");
     }
 
-    public CompletableFuture UseOAuthClientFor(Function<OAuthClient, CompletableFuture<Void>> doTest, String className) throws MalformedURLException, URISyntaxException {
+    public CompletableFuture<Void> UseOAuthClientFor(Function<OAuthClient, CompletableFuture<Void>> doTest, String className) throws MalformedURLException, URISyntaxException {
         return this.UseOAuthClientFor(doTest, className, "");
     }
 

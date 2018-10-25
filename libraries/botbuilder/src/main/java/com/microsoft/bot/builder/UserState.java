@@ -1,4 +1,4 @@
-package Microsoft.Bot.Builder;
+package com.microsoft.bot.builder;
 
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License.
@@ -14,7 +14,7 @@ public class UserState extends BotState
 	 
 	 @param storage The storage provider to use.
 	*/
-	public UserState(IStorage storage)
+	public UserState(Storage storage)
 	{
 		super(storage, "UserState");
 	}
@@ -26,15 +26,31 @@ public class UserState extends BotState
 	 @return The storage key.
 	*/
 	@Override
-	protected String GetStorageKey(ITurnContext turnContext)
+	protected String GetStorageKey(TurnContext turnContext)
 	{
-//C# TO JAVA CONVERTER TODO TASK: There is no equivalent to implicit typing in Java unless the Java 10 inferred typing option is selected:
-//C# TO JAVA CONVERTER TODO TASK: Throw expressions are not converted by C# to Java Converter:
-//ORIGINAL LINE: var channelId = turnContext.Activity.ChannelId ?? throw new ArgumentNullException("invalid activity-missing channelId");
-		var channelId = ((turnContext.getActivity().ChannelId) != null) ? turnContext.getActivity().ChannelId : throw new NullPointerException("invalid activity-missing channelId");
-//C# TO JAVA CONVERTER TODO TASK: Throw expressions are not converted by C# to Java Converter:
-//ORIGINAL LINE: var userId = turnContext.Activity.From == null ? null : turnContext.Activity.From.Id ?? throw new ArgumentNullException("invalid activity-missing From.Id");
-		boolean userId = turnContext.getActivity().From == null ? null : ((turnContext.getActivity().From.Id) != null) ? turnContext.getActivity().From.Id : throw new NullPointerException("invalid activity-missing From.Id");
+		if (turnContext == null)
+		{
+			throw new NullPointerException("turnContext");
+		}
+		if (turnContext.activity() == null)
+		{
+			throw new NullPointerException("activity");
+		}
+		if (turnContext.activity().channelId() == null)
+		{
+			throw new NullPointerException("invalid activity-missing channelId");
+		}
+
+		String channelId = turnContext.activity().channelId();
+		String userId = null;
+		if (turnContext.activity().from() != null)
+		{
+			if (turnContext.activity().from().id() == null) {
+				throw new NullPointerException("invalid activity-missing from id");
+			}
+			userId = turnContext.activity().from().id();
+		}
+
 		return String.format("%1$s/users/%2$s", channelId, userId);
 	}
 }

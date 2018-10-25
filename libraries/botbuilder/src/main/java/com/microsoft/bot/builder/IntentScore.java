@@ -1,10 +1,10 @@
-package Microsoft.Bot.Builder;
-
-import Newtonsoft.Json.*;
-import java.util.*;
-
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License.
+
+package com.microsoft.bot.builder;
+
+import java.util.*;
+
 
 /** 
  Score plus any extra information about an intent.

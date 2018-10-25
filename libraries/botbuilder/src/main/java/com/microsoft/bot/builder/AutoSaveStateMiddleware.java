@@ -1,13 +1,15 @@
-package Microsoft.Bot.Builder;
+package com.microsoft.bot.builder;
 
 // Copyright (c) Microsoft. All rights reserved.
 // Licensed under the MIT license.
 
 
-/** 
+import java.util.concurrent.CompletableFuture;
+
+/**
   Middleware to automatically call .SaveChanges() at the end of the turn for all BotState class it is managing.
 */
-public class AutoSaveStateMiddleware implements IMiddleware
+public class AutoSaveStateMiddleware implements Middleware
 {
 	/** 
 	 Initializes a new instance of the <see cref="AutoSaveStateMiddleware"/> class.
@@ -61,23 +63,13 @@ public class AutoSaveStateMiddleware implements IMiddleware
 	 
 	 @param turnContext turn context.
 	 @param next next middlware.
-	 @param cancellationToken cancellationToken.
 	 @return A <see cref="Task"/> representing the asynchronous operation.
 	*/
-
-	public final Task OnTurnAsync(ITurnContext turnContext, NextDelegate next)
+	public final CompletableFuture OnTurnAsync(TurnContext turnContext, NextDelegate next)
 	{
-		return OnTurnAsync(turnContext, next, null);
-	}
-
-//C# TO JAVA CONVERTER TODO TASK: There is no equivalent in Java to the 'async' keyword:
-//ORIGINAL LINE: public async Task OnTurnAsync(ITurnContext turnContext, NextDelegate next, CancellationToken cancellationToken = default(CancellationToken))
-//C# TO JAVA CONVERTER NOTE: Java does not support optional parameters. Overloaded method(s) are created above:
-	public final Task OnTurnAsync(ITurnContext turnContext, NextDelegate next, CancellationToken cancellationToken)
-	{
-//C# TO JAVA CONVERTER TODO TASK: There is no equivalent to 'await' in Java:
-		await next.invoke(cancellationToken).ConfigureAwait(false);
-//C# TO JAVA CONVERTER TODO TASK: There is no equivalent to 'await' in Java:
-		await this.getBotStateSet().SaveAllChangesAsync(turnContext, false, cancellationToken).ConfigureAwait(false);
+		return CompletableFuture.runAsync(() -> {
+			next.invoke().join();
+			getBotStateSet().SaveAllChangesAsync(turnContext, false).join();
+		});
 	}
 }

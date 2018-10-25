@@ -1,10 +1,18 @@
-package Microsoft.Bot.Builder;
+package com.microsoft.bot.builder;
 
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License.
 
 
-/** 
+import com.microsoft.bot.schema.models.Activity;
+import com.microsoft.bot.schema.models.ResourceResponse;
+
+import java.util.concurrent.Callable;
+import java.util.concurrent.CompletableFuture;
+import java.util.function.Function;
+import java.util.function.Supplier;
+
+/**
  A method that can participate in send activity events for the current turn.
  
  @param turnContext The context object for the turn.
@@ -27,5 +35,5 @@ package Microsoft.Bot.Builder;
 @FunctionalInterface
 public interface SendActivitiesHandler
 {
-	Task<ResourceResponse[]> invoke(ITurnContext turnContext, java.util.ArrayList<Activity> activities, Func<Task<ResourceResponse[]>> next);
+	CompletableFuture<ResourceResponse[]> invoke(TurnContext turnContext, java.util.ArrayList<Activity> activities, Callable<CompletableFuture<ResourceResponse[]>> next);
 }

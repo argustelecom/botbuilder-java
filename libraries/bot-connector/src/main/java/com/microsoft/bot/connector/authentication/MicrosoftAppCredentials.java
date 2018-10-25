@@ -14,6 +14,7 @@ import java.net.URI;
 import java.net.URL;
 import java.time.LocalDateTime;
 import java.util.HashMap;
+import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
 
@@ -21,6 +22,55 @@ import static com.microsoft.bot.connector.authentication.AuthenticationConstants
 import static com.microsoft.bot.connector.authentication.AuthenticationConstants.ToChannelFromBotOAuthScope;
 
 public class MicrosoftAppCredentials implements ServiceClientCredentials {
+
+    /**
+     An empty set of credentials.
+     */
+    public static final MicrosoftAppCredentials Empty = new MicrosoftAppCredentials(null, null);
+
+    /**
+     The configuration property for the Microsoft app ID.
+     */
+    public static final String MicrosoftAppIdKey = "MicrosoftAppId";
+
+    /**
+     The configuration property for the Microsoft app Password.
+     */
+    public static final String MicrosoftAppPasswordKey = "MicrosoftAppPassword";
+
+    private static ConcurrentMap<String, LocalDateTime> trustHostNames = new ConcurrentHashMap<>();
+
+    static {
+        trustHostNames.put("api.botframework.com", LocalDateTime.MAX);
+        trustHostNames.put("token.botframework.com", LocalDateTime.MAX);
+        trustHostNames.put("api.botframework.us", LocalDateTime.MAX);
+        trustHostNames.put("token.botframework.us", LocalDateTime.MAX);
+
+    }
+    /**
+     A cache of the outstanding uncompleted or completed tasks for a given token, for ensuring that we never have more then 1 token request in flight
+     per token at a time.
+     */
+    protected static final HashMap<String, CompletableFuture<OAuthResponse>> TokenTaskCache = new HashMap<String, CompletableFuture<OAuthResponse>>();
+
+
+    /**
+     The time at which we will next refresh each token.
+     */
+    protected static final ConcurrentHashMap<String, LocalDateTime> AutoRefreshTimes = new ConcurrentHashMap<String, LocalDateTime>();
+
+    /**
+     A cache of the actual valid tokens, this is what is consumed 99.99% of the time regardless o whether there is a token refresh task in flight.
+     We refresh tokens on a schedule which is faster then their expiration, and if there is a network failure, we continue to use the good token from
+     the tokenCache while a new background refresh task gets scheduled.
+     */
+    protected static final ConcurrentHashMap<String, OAuthResponse> TokenCache = new ConcurrentHashMap<String, OAuthResponse>();
+
+    /**
+     The actual key we use for the token cache.
+     */
+    protected String TokenCacheKey;
+
     private String appId;
     private String appPassword;
 
@@ -34,27 +84,45 @@ public class MicrosoftAppCredentials implements ServiceClientCredentials {
     private static final Object cacheSync = new Object();
     protected static final HashMap<String, OAuthResponse> cache = new HashMap<String, OAuthResponse>();
 
-    public final String OAuthEndpoint = AuthenticationConstants.ToChannelFromBotLoginUrl;
-    public final String OAuthScope = AuthenticationConstants.ToChannelFromBotOAuthScope;
+    /**
+     Gets the OAuth endpoint to use.
+     */
+    public String oAuthEndpoint()
+    {
+        return AuthenticationConstants.ToChannelFromBotLoginUrl;
+    }
+
+    /**
+     Gets the OAuth scope to use.
+     */
+    public String oAuthScope()
+    {
+        return AuthenticationConstants.ToChannelFromBotOAuthScope;
+    }
 
 
     public String getTokenCacheKey() {
         return String.format("%s-cache", this.appId);
     }
 
+    /**
+     Creates a new instance of the <see cref="MicrosoftAppCredentials"/> class.
+
+     @param appId The Microsoft app ID.
+     @param appPassword The Microsoft app password.
+     */
     public MicrosoftAppCredentials(String appId, String appPassword) {
         this.appId = appId;
         this.appPassword = appPassword;
+        this.TokenCacheKey = String.format("%1$s-cache", microsoftAppId());
         this.client = new OkHttpClient.Builder().build();
         this.mapper = new ObjectMapper().findAndRegisterModules();
     }
 
-    public static final MicrosoftAppCredentials Empty = new MicrosoftAppCredentials(null, null);
 
     public String microsoftAppId() {
         return this.appId;
     }
-
     public MicrosoftAppCredentials withMicrosoftAppId(String appId) {
         this.appId = appId;
         return this;
@@ -145,9 +213,4 @@ public class MicrosoftAppCredentials implements ServiceClientCredentials {
         return !trustHostNames.getOrDefault(url.host(), LocalDateTime.MIN).isBefore(LocalDateTime.now().minusMinutes(5));
     }
 
-    private static ConcurrentMap<String, LocalDateTime> trustHostNames = new ConcurrentHashMap<>();
-
-    static {
-        trustHostNames.put("state.botframework.com", LocalDateTime.MAX);
-    }
 }

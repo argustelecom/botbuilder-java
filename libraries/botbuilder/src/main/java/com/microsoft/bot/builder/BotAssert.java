@@ -1,10 +1,13 @@
-package Microsoft.Bot.Builder;
+package com.microsoft.bot.builder;
 
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License.
 
 
-/** 
+import com.microsoft.bot.schema.models.Activity;
+import com.microsoft.bot.schema.models.ConversationReference;
+
+/**
  Provides methods for debugging Bot Builder code.
 */
 public class BotAssert
@@ -16,7 +19,7 @@ public class BotAssert
 	 @exception ArgumentNullException
 	 <paramref name="activity"/> is <c>null</c>.
 	*/
-	public static void ActivityNotNull(IActivity activity)
+	public static void ActivityNotNull(Activity activity)
 	{
 		if (activity == null)
 		{
@@ -31,7 +34,7 @@ public class BotAssert
 	 @exception ArgumentNullException
 	 <paramref name="turnContext"/> is <c>null</c>.
 	*/
-	public static void ContextNotNull(ITurnContext turnContext)
+	public static void ContextNotNull(TurnContext turnContext)
 	{
 		if (turnContext == null)
 		{
@@ -76,7 +79,7 @@ public class BotAssert
 	 @exception ArgumentNullException
 	 <paramref name="middleware"/> is <c>null</c>.
 	*/
-	public static void MiddlewareNotNull(IMiddleware middleware)
+	public static void MiddlewareNotNull(Middleware middleware)
 	{
 		if (middleware == null)
 		{
@@ -91,7 +94,7 @@ public class BotAssert
 	 @exception ArgumentNullException
 	 <paramref name="middleware"/> is <c>null</c>.
 	*/
-	public static void MiddlewareNotNull(java.lang.Iterable<IMiddleware> middleware)
+	public static void MiddlewareNotNull(java.lang.Iterable<Middleware> middleware)
 	{
 		if (middleware == null)
 		{

@@ -1,4 +1,4 @@
-package Microsoft.Bot.Builder;
+package com.microsoft.bot.builder;
 
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License.
@@ -6,7 +6,7 @@ package Microsoft.Bot.Builder;
 /** 
  IPropertyManager defines implementation of a source of named properties.
 */
-public interface IPropertyManager
+public interface PropertyManager
 {
 	/** 
 	 Create a managed state property accessor for named property.
@@ -15,5 +15,5 @@ public interface IPropertyManager
 	 @param name name of the object
 	 @return property accessor for accessing the object of type T.
 	*/
-	<T> IStatePropertyAccessor<T> CreateProperty(String name);
+	<T> StatePropertyAccessor<T> CreateProperty(String name);
 }

@@ -18,7 +18,7 @@ public class BotAuthenticatorTest {
     public void ConnectorAuthHeaderCorrectAppIdAndServiceUrlShouldValidate() throws IOException, ExecutionException, InterruptedException {
         String header = getHeaderToken();
         CredentialProvider credentials = new CredentialProviderImpl(AppId, "");
-        ClaimsIdentity identity = JwtTokenValidation.validateAuthHeader(header, credentials, "", "https://webchat.botframework.com/").get();
+        ClaimsIdentity identity = JwtTokenValidation.validateAuthHeader(header, credentials, "", "https://webchat.botframework.com/");
 
         Assert.assertTrue(identity.isAuthenticated());
     }
@@ -29,7 +29,7 @@ public class BotAuthenticatorTest {
         CredentialProvider credentials = new CredentialProviderImpl("00000000-0000-0000-0000-000000000000", "");
 
         try {
-            JwtTokenValidation.validateAuthHeader(header, credentials, "", null).get();
+            JwtTokenValidation.validateAuthHeader(header, credentials, "", null);
         } catch (AuthenticationException e) {
             Assert.assertTrue(e.getMessage().contains("Invalid AppId passed on token"));
         }
@@ -42,7 +42,7 @@ public class BotAuthenticatorTest {
         CredentialProvider credentials = new CredentialProviderImpl("", "");
 
         try {
-            JwtTokenValidation.validateAuthHeader(header, credentials, "", null).get();
+            JwtTokenValidation.validateAuthHeader(header, credentials, "", null);
         } catch (AuthenticationException e) {
             Assert.assertTrue(e.getMessage().contains("Invalid AppId passed on token"));
         }
@@ -54,7 +54,7 @@ public class BotAuthenticatorTest {
         CredentialProvider credentials = new CredentialProviderImpl("", "");
 
         try {
-            JwtTokenValidation.validateAuthHeader(header, credentials, "", null).get();
+            JwtTokenValidation.validateAuthHeader(header, credentials, "", null);
         } catch (IllegalArgumentException e) {
             Assert.assertTrue(e.getMessage().contains("authHeader"));
         }
@@ -64,7 +64,7 @@ public class BotAuthenticatorTest {
     public void EmulatorMsaHeaderCorrectAppIdAndServiceUrlShouldValidate() throws IOException, ExecutionException, InterruptedException {
         String header = getHeaderToken();
         CredentialProvider credentials = new CredentialProviderImpl(AppId, "");
-        ClaimsIdentity identity = JwtTokenValidation.validateAuthHeader(header, credentials, "", "https://webchat.botframework.com/").get();
+        ClaimsIdentity identity = JwtTokenValidation.validateAuthHeader(header, credentials, "", "https://webchat.botframework.com/");
 
         Assert.assertTrue(identity.isAuthenticated());
     }
@@ -75,7 +75,7 @@ public class BotAuthenticatorTest {
         CredentialProvider credentials = new CredentialProviderImpl("00000000-0000-0000-0000-000000000000", "");
 
         try {
-            JwtTokenValidation.validateAuthHeader(header, credentials, "", null).get();
+            JwtTokenValidation.validateAuthHeader(header, credentials, "", null);
         } catch (AuthenticationException e) {
             Assert.assertTrue(e.getMessage().contains("Invalid AppId passed on token"));
         }
@@ -124,7 +124,7 @@ public class BotAuthenticatorTest {
         String header = "";
         CredentialProvider credentials = new CredentialProviderImpl("", "");
 
-        ClaimsIdentity identity = JwtTokenValidation.authenticateRequest(new Activity().withServiceUrl("https://webchat.botframework.com/"), header, credentials).get();
+        ClaimsIdentity identity = JwtTokenValidation.authenticateRequest(new Activity().withServiceUrl("https://webchat.botframework.com/"), header, credentials);
         Assert.assertEquals("anonymous", identity.getIssuer());
     }
 
@@ -136,7 +136,7 @@ public class BotAuthenticatorTest {
         String header = "";
         CredentialProvider credentials = new CredentialProviderImpl("", "");
 
-        ClaimsIdentity identity = JwtTokenValidation.authenticateRequest(new Activity().withServiceUrl("https://webchat.botframework.com/"), header, credentials).get();
+        ClaimsIdentity identity = JwtTokenValidation.authenticateRequest(new Activity().withServiceUrl("https://webchat.botframework.com/"), header, credentials);
         Assert.assertFalse(MicrosoftAppCredentials.isTrustedServiceUrl("https://webchat.botframework.com/"));
     }
 

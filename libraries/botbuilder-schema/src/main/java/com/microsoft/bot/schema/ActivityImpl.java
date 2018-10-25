@@ -14,6 +14,7 @@ import com.microsoft.bot.schema.models.*;
 import org.apache.commons.lang3.StringUtils;
 import org.joda.time.DateTime;
 
+import java.time.OffsetDateTime;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
@@ -53,8 +54,8 @@ public class ActivityImpl extends Activity {
 
     public ActivityImpl CreateReply(String text, String locale) {
         ActivityImpl reply = new ActivityImpl();
-        reply.withType(ActivityTypes.MESSAGE);
-        reply.withTimestamp(DateTime.now());
+        reply.withType(ActivityTypes.MESSAGE.toString());
+        reply.withTimestamp(OffsetDateTime.now());
         reply.withFrom(new ChannelAccount()
                         .withId(recipient().id())
                         .withName(recipient().name()));
@@ -99,8 +100,8 @@ public class ActivityImpl extends Activity {
     // public TraceActivity CreateTrace(String name, Object value, String valueType, [CallerMemberName] String label)
     public TraceActivity CreateTrace(String name, Object value, String valueType, String label) {
         TraceActivity reply = new TraceActivity();
-        reply.withType(ActivityTypes.TRACE);
-        reply.withTimestamp(DateTime.now());
+        reply.withType(ActivityTypes.TRACE.toString());
+        reply.withTimestamp(OffsetDateTime.now());
         reply.withFrom(new ChannelAccount()
                 .withId(recipient().id())
                 .withName(recipient().name()));
@@ -122,33 +123,6 @@ public class ActivityImpl extends Activity {
     }
 
     /**
-     * Create an instance of the TraceActivity
-     * @param name Name of the operation
-     * @param value value of the operation
-     * @param valueType valueType if helpful to identify the value schema (default is value.GetType().Name)
-     * @param label descritive label of context. (Default is calling function name)
-     */
-    public static TraceActivity CreateTraceActivity(String name, String valueType) {
-        return CreateTraceActivity(name, valueType, null, null);
-    }
-
-    public static TraceActivity CreateTraceActivity(String name, String valueType, Object value) {
-        return CreateTraceActivity(name, valueType, value, null);
-    }
-
-    // public static TraceActivity CreateTraceActivity(String name, String valueType, Object value, [CallerMemberName] String label=null)
-    public static TraceActivity CreateTraceActivity(String name, String valueType, Object value, String label) {
-        TraceActivity reply = (TraceActivity) new TraceActivity();
-        reply.withType(ActivityTypes.TRACE);
-        reply.withName(name);
-        reply.withLabel(label);
-        reply.withValueType((valueType == null) ? value.getClass().getTypeName() : valueType);
-        reply.withValue(value);
-        return reply;
-
-    }
-
-    /**
      * Extension data for overflow of properties
      */
     //        [JsonExtensionData(ReadData = true, WriteData = true)]
@@ -159,19 +133,31 @@ public class ActivityImpl extends Activity {
      */
     public static MessageActivity CreateMessageActivity() {
         MessageActivity reply = new MessageActivity();
-        reply.withType(ActivityTypes.TRACE);
-        reply.withTimestamp(DateTime.now());
+        reply.withType(ActivityTypes.TRACE.toString());
+        reply.withTimestamp(OffsetDateTime.now());
         reply.withAttachments(new ArrayList<Attachment>());
         reply.withEntities(new ArrayList<EntityImpl>());;
         return reply;
     }
 
     /**
+     Creates a trace activity based on this activity.
+
+     @param name The value to assign to the trace activity's <see cref="Activity.Name"/> property.
+     @param value The value to assign to the trace activity's <see cref="Activity.Value"/> property.
+     @param valueType The value to assign to the trace activity's <see cref="Activity.ValueType"/> property.
+     @param label The value to assign to the trace activity's <see cref="Activity.Label"/> property.
+     @return The created trace activity.
+     */
+
+
+
+    /**
      * Create an instance of the Activity class with IContactRelationUpdateActivity masking
      */
     public static ContactRelationUpdateActivity CreateContactRelationUpdateActivity() {
         ContactRelationUpdateActivity reply =  new ContactRelationUpdateActivity();
-        reply.withType(ActivityTypes.CONTACT_RELATION_UPDATE);
+        reply.withType(ActivityTypes.CONTACT_RELATION_UPDATE.toString());
         return reply;
     }
 
@@ -180,7 +166,7 @@ public class ActivityImpl extends Activity {
      */
     public static ConversationUpdateActivity CreateConversationUpdateActivity() {
         ConversationUpdateActivity reply = new ConversationUpdateActivity();
-        reply.withType(ActivityTypes.CONVERSATION_UPDATE);
+        reply.withType(ActivityTypes.CONVERSATION_UPDATE.toString());
         reply.withMembersAdded(new ArrayList<ChannelAccount>());
         reply.withMembersRemoved(new ArrayList<ChannelAccount>());
         return reply;
@@ -195,7 +181,7 @@ public class ActivityImpl extends Activity {
      * Create an instance of the Activity class with Activity masking
      */
     public static Activity CreatePingActivity() {
-        return new Activity().withType(ActivityTypes.PING);
+        return new Activity().withType(ActivityTypes.PING.toString());
     }
 
     /**
@@ -206,7 +192,7 @@ public class ActivityImpl extends Activity {
     /**
      * Create an instance of the Activity class with an IEventActivity masking
      */
-    //public static IEventActivity CreateEventActivity() { return new Activity(ActivityTypes.Event); }
+    //public static EventActivity CreateEventActivity() { return new Activity(ActivityTypes.EVENT); }
 
     /**
      * Create an instance of the Activity class with IInvokeActivity masking
@@ -227,7 +213,7 @@ public class ActivityImpl extends Activity {
          * "pseudo-cast" the activity based on its type.
          */
 
-        ActivityTypes type = this.type();
+        String type = this.type();
 
         // If there's no type set then we can't tell if it's the type they're looking for
         if (type == null) {
@@ -260,8 +246,9 @@ public class ActivityImpl extends Activity {
      *
      * @param type the type value to set
      * @return the Activity object itself.
+     * NOTE: This has been modified from ActivityTypes to String
      */
-    public ActivityImpl withType(ActivityTypes type) {
+    public ActivityImpl withType(String type) {
         super.withType(type);
         return this;
     }
@@ -271,6 +258,7 @@ public class ActivityImpl extends Activity {
      *
      * @param id the id value to set
      * @return the Activity object itself.
+     *
      */
     public ActivityImpl withId(String id) {
         super.withId(id);
@@ -283,7 +271,7 @@ public class ActivityImpl extends Activity {
      * @param timestamp the timestamp value to set
      * @return the Activity object itself.
      */
-    public ActivityImpl withTimestamp(DateTime timestamp) {
+    public ActivityImpl withTimestamp(OffsetDateTime timestamp) {
         super.withTimestamp(timestamp);
         return this;
     }
@@ -293,7 +281,7 @@ public class ActivityImpl extends Activity {
      * @param localTimestamp the localTimestamp value to set
      * @return the Activity object itself.
      */
-    public ActivityImpl withLocalTimestamp(DateTime localTimestamp) {
+    public ActivityImpl withLocalTimestamp(OffsetDateTime localTimestamp) {
         super.withLocalTimestamp(localTimestamp);
         return this;
     }
