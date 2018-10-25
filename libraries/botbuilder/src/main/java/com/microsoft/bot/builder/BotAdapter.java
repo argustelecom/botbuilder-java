@@ -10,6 +10,7 @@ import com.microsoft.bot.schema.models.ConversationReferenceHelper;
 import com.microsoft.bot.schema.models.ResourceResponse;
 
 import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.CompletionException;
 import java.util.concurrent.ExecutionException;
 import java.util.function.Consumer;
 import java.util.function.Function;
@@ -129,13 +130,22 @@ public abstract class BotAdapter {
 
 			// Call any registered Middleware Components looking for ReceiveActivity()
 			if (context.activity() != null) {
-				// TODO: Add exception handler
-				_middlewareSet.ReceiveActivityWithStatusAsync(context, callback).join();
-			} else {
+                try {
+                    _middlewareSet.ReceiveActivityWithStatusAsync(context, callback).get();
+                } catch (InterruptedException|ExecutionException e) {
+                    e.printStackTrace();
+                    throw new CompletionException(e);
+                }
+            } else {
 				// call back to caller on proactive case
 				if (callback != null) {
-					callback.invoke(context).join();
-				}
+                    try {
+                        callback.invoke(context).get();
+                    } catch (Exception e) {
+                        e.printStackTrace();
+                        throw new CompletionException(e);
+                    }
+                }
 			}
 			return;
 		});

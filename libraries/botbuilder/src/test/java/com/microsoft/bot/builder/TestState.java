@@ -6,12 +6,12 @@ public class TestState implements StoreItem {
     private String etag;
 
     @Override
-    public String geteTag() {
+    public String getETag() {
         return this.etag;
     }
 
     @Override
-    public void seteTag(String etag) {
+    public void setETag(String etag) {
         this.etag = etag;
     }
 

@@ -62,23 +62,28 @@ class BotStatePropertyAccessor<T extends Object> implements StatePropertyAccesso
      @param defaultValueFactory Defines the default value. Invoked when no value been set for the requested state property.  If defaultValueFactory is defined as null, the MissingMemberException will be thrown if the underlying property is not set.
      @return A <see cref="Task"/> representing the asynchronous operation.
      */
-    public final CompletableFuture<Object> GetAsync(TurnContext turnContext, Supplier<T> defaultValueFactory)
+    public final <T extends Object> CompletableFuture<T> GetAsync(TurnContext turnContext, Supplier<T> defaultValueFactory)
     {
         return CompletableFuture.supplyAsync(() -> {
             _botState.LoadAsync(turnContext, false).join();
-            Object obj = _botState.<T>GetPropertyValueAsync(turnContext, getName()).join();
+            T obj = _botState.<T>GetPropertyValueAsync(turnContext, getName()).join();
             if (obj == null) {
                 // ask for default value from factory
                 if (defaultValueFactory == null) {
                     throw new IllegalStateException("Property not set and no default provided.");
                 }
-                Object result = defaultValueFactory.get();
+                T result = defaultValueFactory.get();
                 // save default value for any further calls
                 SetAsync(turnContext, result).join();
                 return result;
             }
             return obj;
         });
+    }
+
+    public final <T extends Object> CompletableFuture<T> GetAsync(TurnContext turnContext)
+    {
+        return GetAsync(turnContext, null);
     }
 
     /**
@@ -88,7 +93,7 @@ class BotStatePropertyAccessor<T extends Object> implements StatePropertyAccesso
      @param value value.
      @return A <see cref="Task"/> representing the asynchronous operation.
      */
-    public final CompletableFuture SetAsync(TurnContext turnContext, Object value)
+    public final <T extends Object> CompletableFuture SetAsync(TurnContext turnContext, T value)
     {
         return CompletableFuture.runAsync(() -> {
             _botState.LoadAsync(turnContext, false).join();

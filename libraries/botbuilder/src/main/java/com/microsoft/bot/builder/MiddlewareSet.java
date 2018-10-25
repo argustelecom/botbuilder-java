@@ -5,6 +5,8 @@ package com.microsoft.bot.builder;
 
 import java.util.*;
 import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.CompletionException;
+import java.util.concurrent.ExecutionException;
 import java.util.function.Consumer;
 
 
@@ -60,34 +62,47 @@ public class MiddlewareSet implements Middleware
 
 	private CompletableFuture ReceiveActivityInternalAsync(TurnContext turnContext, BotCallbackHandler callback, int nextMiddlewareIndex)
 	{
-		// Check if we're at the end of the middleware list yet
-		if (nextMiddlewareIndex == _middleware.size())
-		{
-			// If all the Middlware ran, the "leading edge" of the tree is now complete.
-			// This means it's time to run any developer specified callback.
-			// Once this callback is done, the "trailing edge" calls are then completed. This
-			// allows code that looks like:
-			//      Trace.TraceInformation("before");
-			//      await next();
-			//      Trace.TraceInformation("after");
-			// to run as expected.
+	    return CompletableFuture.runAsync(() -> {
+            // Check if we're at the end of the middleware list yet
+            if (nextMiddlewareIndex == _middleware.size())
+            {
+                // If all the Middlware ran, the "leading edge" of the tree is now complete.
+                // This means it's time to run any developer specified callback.
+                // Once this callback is done, the "trailing edge" calls are then completed. This
+                // allows code that looks like:
+                //      Trace.TraceInformation("before");
+                //      await next();
+                //      Trace.TraceInformation("after");
+                // to run as expected.
 
-			// If a callback was provided invoke it now and return its task, otherwise just return the completed task
-			if (callback == null)
-			{
-				return CompletableFuture.completedFuture(null);
-			}
-			return callback.invoke(turnContext);
-		}
+                // If a callback was provided invoke it now and return its task, otherwise just return the completed task
+                if (callback == null)
+                {
+                    return;
+                }
+                try {
+                    callback.invoke(turnContext).get();
+                    return;
+                } catch (Exception e) {
+                    e.printStackTrace();
+                    throw new CompletionException(e);
+                }
+            }
 
-		// Get the next piece of middleware
-		Middleware nextMiddleware = _middleware.get(nextMiddlewareIndex);
+            // Get the next piece of middleware
+            Middleware nextMiddleware = _middleware.get(nextMiddlewareIndex);
 
-		// Execute the next middleware passing a closure that will recurse back into this method at the next piece of middlware as the NextDelegate
-		return nextMiddleware.OnTurnAsync(turnContext, () ->
-				{
-					return ReceiveActivityInternalAsync(turnContext, callback, nextMiddlewareIndex + 1);
-				});
+            // Execute the next middleware passing a closure that will recurse back into this method at the next piece of middlware as the NextDelegate
+            try {
+                nextMiddleware.OnTurnAsync(turnContext, () -> {
+                    return ReceiveActivityInternalAsync(turnContext, callback, nextMiddlewareIndex + 1);
+                }).get();
+                return;
+            } catch (InterruptedException|ExecutionException e) {
+                e.printStackTrace();
+                throw new CompletionException(e);
+            }
+        });
 
 	}
 }

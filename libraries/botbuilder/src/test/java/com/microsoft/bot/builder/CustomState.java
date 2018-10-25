@@ -3,7 +3,6 @@ package com.microsoft.bot.builder;
 import com.microsoft.bot.builder.StoreItem;
 
 public class CustomState implements StoreItem
-
 {
     private String _customString;
 
@@ -17,13 +16,13 @@ public class CustomState implements StoreItem
 
     private String _eTag;
 
-    public String geteTag()
+    public String getETag()
 
     {
         return _eTag;
     }
 
-    public void seteTag(String eTag) {
+    public void setETag(String eTag) {
         this._eTag = eTag;
     }
 }

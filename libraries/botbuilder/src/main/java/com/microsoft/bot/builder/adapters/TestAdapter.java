@@ -8,6 +8,7 @@ import java.util.*;
 import java.time.*;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.CompletionException;
+import java.util.concurrent.ExecutionException;
 
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License.
@@ -331,12 +332,19 @@ public class TestAdapter extends BotAdapter
 	*/
 	public final CompletableFuture CreateConversationAsync(String channelId, BotCallbackHandler callback)
 	{
-		getActiveQueue().clear();
-        ActivityImpl update = ActivityImpl.CreateConversationUpdateActivity();
-		update.withConversation(new ConversationAccount());
-		update.conversation().withId(UUID.randomUUID().toString());
-		TurnContextImpl context = new TurnContextImpl(this, update);
-		return callback.invoke(context);
+		return CompletableFuture.runAsync(() ->{
+			getActiveQueue().clear();
+			ActivityImpl update = ActivityImpl.CreateConversationUpdateActivity();
+			update.withConversation(new ConversationAccount());
+			update.conversation().withId(UUID.randomUUID().toString());
+			TurnContextImpl context = new TurnContextImpl(this, update);
+			try {
+				callback.invoke(context).get();
+			} catch (Exception e) {
+				e.printStackTrace();
+				throw new CompletionException(e);
+			}
+		});
 	}
 
 	/** 

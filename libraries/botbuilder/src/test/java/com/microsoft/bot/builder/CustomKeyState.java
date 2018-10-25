@@ -1,15 +1,19 @@
 package com.microsoft.bot.builder;
 
 
-public class CustomKeyState extends BotState<CustomState> {
-    public static final String PropertyName = "Microsoft.Bot.Builder.Tests.CustomKeyState";
-
-    public CustomKeyState(Storage storage) {
-        super(storage, CustomKeyState.PropertyName, (context) -> "CustomKey", CustomState::new);
+public class CustomKeyState extends BotState
+{
+    public CustomKeyState(Storage storage)
+    {
+        super(storage, PropertyName);
     }
 
-    public static CustomState Get(TurnContext context) {
-        return (CustomState) context.turnState().Get(PropertyName);
+    public static final String PropertyName = "Microsoft.Bot.Builder.Tests.CustomKeyState";
+
+    @Override
+    protected String GetStorageKey(TurnContext turnContext)
+    {
+        return "CustomKey";
     }
 }
 

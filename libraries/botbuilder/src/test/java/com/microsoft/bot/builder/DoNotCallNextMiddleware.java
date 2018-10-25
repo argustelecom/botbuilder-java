@@ -1,5 +1,7 @@
 package com.microsoft.bot.builder;
 
+import java.util.concurrent.CompletableFuture;
+
 public class DoNotCallNextMiddleware implements Middleware {
     private final ActionDel _callMe;
 
@@ -7,8 +9,10 @@ public class DoNotCallNextMiddleware implements Middleware {
         _callMe = callMe;
     }
 
-    public void OnTurn(TurnContext context, NextDelegate next) {
-        _callMe.CallMe();
-        // DO NOT call NEXT
+    public CompletableFuture OnTurnAsync(TurnContext context, NextDelegate next) {
+        return CompletableFuture.runAsync(() -> {
+            _callMe.CallMe();
+            // DO NOT call NEXT
+        });
     }
 }

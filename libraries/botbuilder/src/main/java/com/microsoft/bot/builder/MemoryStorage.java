@@ -14,7 +14,7 @@ import java.util.function.Supplier;
 /** 
  A storage layer that uses an in-memory dictionary.
 */
-public class MemoryStorage implements IStorage
+public class MemoryStorage implements Storage
 {
 	private static final ObjectMapper _mapper = new ObjectMapper();
     private HashMap<String, Object> _memory;
@@ -72,10 +72,10 @@ public class MemoryStorage implements IStorage
 	 {@link WriteAsync(IDictionary{string, object} )}
 	*/
 
-	public final CompletableFuture<Map<String, Object>> ReadAsync(String[] keys)
+	public final CompletableFuture<Map<String, ? extends Object>> ReadAsync(String[] keys)
 	{
 	    return CompletableFuture.supplyAsync(() -> {
-            HashMap<String, Object> storeItems = new HashMap<String, Object>(keys.length);
+            Map<String, Object> storeItems = new HashMap<String, Object>(keys.length);
             synchronized (_syncroot)
             {
                 for (String key : keys)
@@ -104,12 +104,13 @@ public class MemoryStorage implements IStorage
 	 {@link DeleteAsync(string[] )}
 	 {@link ReadAsync(string[] )}
 	*/
-	public final CompletableFuture WriteAsync(Map<String, Object> changes)
+	@Override
+	public final CompletableFuture WriteAsync(Map<String, ? extends Object> changes)
 	{
 	    return CompletableFuture.runAsync(() -> {
             synchronized (_syncroot)
             {
-                for (Map.Entry<String, Object> change : changes.entrySet())
+                for (Map.Entry<String, ? extends Object> change : changes.entrySet())
                 {
                     Object newValue = change.getValue();
 

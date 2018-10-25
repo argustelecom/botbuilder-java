@@ -7,7 +7,6 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.datatype.joda.JodaModule;
 import com.microsoft.bot.builder.adapters.TestAdapter;
 import com.microsoft.bot.builder.adapters.TestFlow;
-import com.microsoft.bot.builder.dialogs.Dialog;
 import com.microsoft.bot.schema.ActivityImpl;
 import com.microsoft.bot.schema.models.*;
 import org.apache.commons.lang3.StringUtils;
@@ -16,6 +15,9 @@ import org.apache.logging.log4j.Logger;
 import org.junit.Assert;
 import org.junit.Test;
 
+import java.awt.*;
+import java.time.OffsetDateTime;
+import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutionException;
 
 
@@ -34,10 +36,10 @@ public class TranscriptMiddlewareTest {
                 TurnContextImpl context = (TurnContextImpl) ctxt;
                 conversationId[0] = context.activity().conversation().id();
                 ActivityImpl typingActivity = new ActivityImpl()
-                        .withType(ActivityTypes.TYPING)
+                        .withType(ActivityTypes.TYPING.toString())
                         .withRelatesTo(context.activity().relatesTo());
                 try {
-                    ResourceResponse response = context.SendActivityAsync(typingActivity);
+                    ResourceResponse response = context.SendActivityAsync(typingActivity).get();
                     System.out.printf("Here's the response:");
                 } catch (Exception e) {
                     e.printStackTrace();
@@ -55,6 +57,7 @@ public class TranscriptMiddlewareTest {
                     e.printStackTrace();
                     Assert.fail();
                 }
+                return CompletableFuture.completedFuture(null);
 
         }).Send("foo")
                 .AssertReply((activity) -> {
@@ -76,14 +79,14 @@ public class TranscriptMiddlewareTest {
         TurnContextImpl context = new TurnContextImpl(adapter, activity);
         NextDelegate nd = new NextDelegate() {
             @Override
-            public void next() throws Exception {
+            public CompletableFuture invoke() {
                 System.out.printf("Delegate called!");
                 System.out.flush();
-                return ;
+                return CompletableFuture.completedFuture(null);
             }
         };
         ActivityImpl typingActivity = new ActivityImpl()
-                .withType(ActivityTypes.TYPING)
+                .withType(ActivityTypes.TYPING.toString())
                 .withRelatesTo(context.activity().relatesTo());
         try {
             context.SendActivityAsync(typingActivity);
@@ -109,10 +112,10 @@ public class TranscriptMiddlewareTest {
         {
 
                 //TurnContextImpl context = (TurnContextImpl) ctxt;
-                conversationId[0] = context.getActivity().conversation().id();
+                conversationId[0] = context.activity().conversation().id();
                 ActivityImpl typingActivity = new ActivityImpl()
-                        .withType(ActivityTypes.TYPING)
-                        .withRelatesTo(context.getActivity().relatesTo());
+                        .withType(ActivityTypes.TYPING.toString())
+                        .withRelatesTo(context.activity().relatesTo());
                 try {
                     context.SendActivityAsync((Activity)typingActivity);
                 } catch (Exception e) {
@@ -126,20 +129,21 @@ public class TranscriptMiddlewareTest {
                     Assert.fail();
                 }
                 try {
-                    context.SendActivity("echo:" + context.getActivity().text());
+                    context.SendActivityAsync("echo:" + context.activity().text()).get();
                 } catch (Exception e) {
                     e.printStackTrace();
                     Assert.fail();
                 }
+                return CompletableFuture.completedFuture(null);
         }).Send("foo")
                 .AssertReply((activity) -> {
-                    Assert.assertEquals(activity.type(), ActivityTypes.TYPING);
+                    Assert.assertEquals(activity.type(), ActivityTypes.TYPING.toString());
                     return null;
                 })
                 .AssertReply("echo:foo")
                 .Send("bar")
                 .AssertReply((activity) -> {
-                    Assert.assertEquals(activity.type(), ActivityTypes.TYPING);
+                    Assert.assertEquals(activity.type(), ActivityTypes.TYPING.toString());
                     return null;
                 })
                 .AssertReply("echo:bar")
@@ -158,7 +162,7 @@ public class TranscriptMiddlewareTest {
         for (Object activity : pagedResult.getItems())
         {
             Assert.assertFalse(StringUtils.isBlank(((Activity) activity).id()));
-            Assert.assertTrue(((Activity)activity).timestamp().isAfter(Long.MIN_VALUE));
+            Assert.assertTrue(((Activity)activity).timestamp().isAfter(OffsetDateTime.MIN));
         }
         System.out.printf("Complete");
     }
@@ -174,8 +178,8 @@ public class TranscriptMiddlewareTest {
         new TestFlow(adapter, (context) ->
         {
 
-                conversationId[0] = context.getActivity().conversation().id();
-                if (context.getActivity().text().equals("update")) {
+                conversationId[0] = context.activity().conversation().id();
+                if (context.activity().text().equals("update")) {
                     activityToUpdate[0].withText("new response");
                     try {
                         context.UpdateActivity(activityToUpdate[0]);
@@ -183,10 +187,10 @@ public class TranscriptMiddlewareTest {
                         e.printStackTrace();
                     }
                 } else {
-                    ActivityImpl activity = ((ActivityImpl) context.getActivity()).CreateReply("response");
+                    ActivityImpl activity = ((ActivityImpl) context.activity()).CreateReply("response");
                     ResourceResponse response = null;
                     try {
-                        response = context.SendActivityAsync(activity);
+                        response = context.SendActivityAsync(activity).get();
                     } catch (Exception e) {
                         e.printStackTrace();
                         Assert.fail();
@@ -196,7 +200,9 @@ public class TranscriptMiddlewareTest {
                     // clone the activity, so we can use it to do an update
                     activityToUpdate[0] = ActivityImpl.CloneActity(activity);
                     //JsonConvert.<Activity>DeserializeObject(JsonConvert.SerializeObject(activity));
+
                 }
+                return CompletableFuture.completedFuture(null);
         }).Send("foo")
                 .Send("update")
                 .AssertReply("new response")
@@ -221,8 +227,8 @@ public class TranscriptMiddlewareTest {
         new TestFlow(adapter, (context) ->
         {
 
-                conversationId[0] = context.getActivity().conversation().id();
-                if (context.getActivity().text().equals("deleteIt")) {
+                conversationId[0] = context.activity().conversation().id();
+                if (context.activity().text().equals("deleteIt")) {
                     try {
                         context.DeleteActivity(activityId[0]).join();
                     } catch (Exception e) {
@@ -230,16 +236,17 @@ public class TranscriptMiddlewareTest {
                         Assert.fail();
                     }
                 } else {
-                    ActivityImpl activity = ((ActivityImpl) context.getActivity()).CreateReply("response");
+                    ActivityImpl activity = ((ActivityImpl) context.activity()).CreateReply("response");
                     ResourceResponse response = null;
                     try {
-                        response = context.SendActivityAsync(activity);
+                        response = context.SendActivityAsync(activity).get();
                     } catch (Exception e) {
                         e.printStackTrace();
                         Assert.fail();
                     }
                     activityId[0] = response.id();
                 }
+                return CompletableFuture.completedFuture(null);
 
 
         }).Send("foo")

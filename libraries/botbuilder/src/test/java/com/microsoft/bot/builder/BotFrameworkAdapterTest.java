@@ -40,7 +40,7 @@ public class BotFrameworkAdapterTest {
                 .withId(activityId);
 
 
-        ResourceResponse resourceResponse = c.SendActivityAsync(activity);
+        ResourceResponse resourceResponse = c.SendActivityAsync(activity).get();
         Assert.assertTrue("Incorrect response Id returned", resourceResponse.id() == activityId);
     }
     

@@ -10,7 +10,9 @@ import org.junit.Assert;
 import org.junit.Test;
 
 import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.CompletionException;
 import java.util.concurrent.ExecutionException;
+import java.util.function.BiFunction;
 import java.util.function.Consumer;
 import java.util.function.Function;
 
@@ -67,16 +69,23 @@ public class MiddlewareSetTest extends TestBase
     public void NestedSet_OnReceive() throws Exception {
         final boolean[] wasCalled = {false};
         MiddlewareSet inner = new MiddlewareSet();
-        inner.Use(new AnonymousReceiveMiddleware(new MiddlewareCall() {
-            public void requestHandler(TurnContext tc, NextDelegate nd) throws Exception {
+        inner.Use(new AnonymousReceiveMiddleware(new BiFunction<TurnContext, NextDelegate, CompletableFuture>() {
+            @Override
+            public CompletableFuture apply(TurnContext tc, NextDelegate nd)  {
                 wasCalled[0] = true;
-                nd.next();
+                try {
+                    nd.invoke().get();
+                } catch (InterruptedException|ExecutionException e) {
+                    e.printStackTrace();
+                    throw new CompletionException(e);
+                }
+                return completedFuture(null);
             }
         }));
         MiddlewareSet outer = new MiddlewareSet();
         outer.Use(inner);
         try {
-            outer.ReceiveActivity(null);
+            outer.ReceiveActivityWithStatusAsync(null, null).get();
         } catch (ExecutionException e) {
             Assert.fail(e.getMessage());
             return;
@@ -93,11 +102,12 @@ public class MiddlewareSetTest extends TestBase
     public void NoMiddlewareWithDelegate() throws Exception {
         MiddlewareSet m = new MiddlewareSet();
         final boolean wasCalled[] = {false};
-        Consumer<TurnContext> cb = context -> {
+        BotCallbackHandler cb = context -> {
                 wasCalled[0] = true;
+                return CompletableFuture.completedFuture(null);
         };
         // No middleware. Should not explode.
-        m.ReceiveActivityWithStatus(null, cb);
+        m.ReceiveActivityWithStatusAsync(null, cb).get();
         Assert.assertTrue("Delegate was not called", wasCalled[0]);
     }
 
@@ -106,15 +116,16 @@ public class MiddlewareSetTest extends TestBase
         WasCalledMiddlware simple = new WasCalledMiddlware();
 
         final boolean wasCalled[] = {false};
-        Consumer<TurnContext> cb = context -> {
+        BotCallbackHandler cb = context -> {
                 wasCalled[0] = true;
+                return CompletableFuture.completedFuture(null);
         };
 
         MiddlewareSet m = new MiddlewareSet();
         m.Use(simple);
 
         Assert.assertFalse(simple.getCalled());
-        m.ReceiveActivityWithStatus(null, cb);
+        m.ReceiveActivityWithStatusAsync(null, cb).get();
         Assert.assertTrue(simple.getCalled());
         Assert.assertTrue( "Delegate was not called", wasCalled[0]);
     }
@@ -127,7 +138,7 @@ public class MiddlewareSetTest extends TestBase
         m.Use(simple);
 
         Assert.assertFalse(simple.getCalled());
-        m.ReceiveActivity(null);
+        m.ReceiveActivityWithStatusAsync(null, null);
         Assert.assertTrue(simple.getCalled());
     }
 
@@ -135,13 +146,13 @@ public class MiddlewareSetTest extends TestBase
     //[ExpectedException(typeof(InvalidOperationException))]
     public void BubbleUncaughtException() throws Exception {
         MiddlewareSet m = new MiddlewareSet();
-        m.Use(new AnonymousReceiveMiddleware(new MiddlewareCall() {
-            public void requestHandler(TurnContext tc, NextDelegate nd) throws IllegalStateException {
+        m.Use(new AnonymousReceiveMiddleware(new BiFunction<TurnContext, NextDelegate, CompletableFuture>() {
+            public CompletableFuture apply(TurnContext tc, NextDelegate nd) throws IllegalStateException {
                 throw new IllegalStateException("test");
             }}
             ));
 
-        m.ReceiveActivity(null);
+        m.ReceiveActivityWithStatusAsync(null, null).get();
         Assert.assertFalse("Should never have gotten here", true);
     }
 
@@ -154,7 +165,7 @@ public class MiddlewareSetTest extends TestBase
         m.Use(one);
         m.Use(two);
 
-        m.ReceiveActivity(null);
+        m.ReceiveActivityWithStatusAsync(null, null).get();
         Assert.assertTrue(one.getCalled());
         Assert.assertTrue(two.getCalled());
     }
@@ -165,15 +176,16 @@ public class MiddlewareSetTest extends TestBase
         WasCalledMiddlware two = new WasCalledMiddlware();
 
         final int called[] = {0};
-        Consumer<TurnContext> cb = (context) -> {
+        BotCallbackHandler cb = (context) -> {
                 called[0]++;
+                return CompletableFuture.completedFuture(null);
         };
 
         MiddlewareSet m = new MiddlewareSet();
         m.Use(one);
         m.Use(two);
 
-        m.ReceiveActivityWithStatus(null, cb);
+        m.ReceiveActivityWithStatusAsync(null, cb);
         Assert.assertTrue(one.getCalled());
         Assert.assertTrue(two.getCalled());
         Assert.assertTrue("Incorrect number of calls to Delegate", called[0] == 1 );
@@ -204,7 +216,7 @@ public class MiddlewareSetTest extends TestBase
         m.Use(one);
         m.Use(two);
 
-        m.ReceiveActivity(null);
+        m.ReceiveActivityWithStatusAsync(null, null);
         Assert.assertTrue(called1[0]);
         Assert.assertTrue(called2[0]);
     }
@@ -225,10 +237,11 @@ public class MiddlewareSetTest extends TestBase
 
         // The middlware in this pipeline calls next(), so the delegate should be called
         final boolean didAllRun[] = {false};
-        Consumer<TurnContext> cb  = (context) -> {
+        BotCallbackHandler cb  = (context) -> {
                 didAllRun[0] = true;
+                return completedFuture(null);
         };
-        m.ReceiveActivityWithStatus(null, cb);
+        m.ReceiveActivityWithStatusAsync(null, cb).get();
 
         Assert.assertTrue(called1[0]);
         Assert.assertTrue(didAllRun[0]);
@@ -238,13 +251,14 @@ public class MiddlewareSetTest extends TestBase
     public void Status_RunAtEndEmptyPipeline() throws Exception {
         MiddlewareSet m = new MiddlewareSet();
         final boolean didAllRun[] = {false};
-        Consumer<TurnContext> cb = (context)-> {
+        BotCallbackHandler cb = (context)-> {
                 didAllRun[0] = true;
+                return CompletableFuture.completedFuture(null);
         };
 
         // This middlware pipeline has no entries. This should result in
         // the status being TRUE.
-        m.ReceiveActivityWithStatus(null, cb);
+        m.ReceiveActivityWithStatusAsync(null, cb);
         Assert.assertTrue(didAllRun[0]);
 
     }
@@ -274,10 +288,11 @@ public class MiddlewareSetTest extends TestBase
         m.Use(two);
 
         boolean didAllRun[] = {false};
-        Consumer<TurnContext> cb= (context) -> {
+        BotCallbackHandler cb= (context) -> {
                 didAllRun[0] = true;
+                return CompletableFuture.completedFuture(null);
         };
-        m.ReceiveActivityWithStatus(null, cb);
+        m.ReceiveActivityWithStatusAsync(null, cb);
         Assert.assertTrue(called1[0]);
         Assert.assertTrue(called2[0]);
 
@@ -301,10 +316,11 @@ public class MiddlewareSetTest extends TestBase
 
         // The middleware in this pipeline DOES NOT call next(), so this must not be called
         boolean didAllRun[] = {false};
-        Consumer<TurnContext> cb = (context) -> {
+        BotCallbackHandler cb = (context) -> {
                 didAllRun[0] = true;
+                return CompletableFuture.completedFuture(null);
         };
-        m.ReceiveActivityWithStatus(null, cb);
+        m.ReceiveActivityWithStatusAsync(null, cb);
 
         Assert.assertTrue(called1[0]);
 
@@ -318,17 +334,22 @@ public class MiddlewareSetTest extends TestBase
         final boolean didRun[] = {false};
 
         MiddlewareSet m = new MiddlewareSet();
-        MiddlewareCall mwc = new MiddlewareCall() {
-            public void requestHandler(TurnContext tc, NextDelegate nd) throws Exception {
+        m.Use(new AnonymousReceiveMiddleware(new BiFunction<TurnContext, NextDelegate, CompletableFuture>() {
+            @Override
+            public CompletableFuture apply(TurnContext turnContext, NextDelegate nextDelegate) {
                 didRun[0] = true;
-                nd.next();
-                return;
+                try {
+                    nextDelegate.invoke().get();
+                } catch (InterruptedException|ExecutionException e) {
+                    e.printStackTrace();
+                    throw new CompletionException(e);
+                }
+                return completedFuture(null);
             }
-        };
-        m.Use(new AnonymousReceiveMiddleware(mwc));
+        }));
 
         Assert.assertFalse(didRun[0]);
-         m.ReceiveActivity(null);
+         m.ReceiveActivityWithStatusAsync(null, null);
         Assert.assertTrue(didRun[0]);
     }
 
@@ -338,26 +359,36 @@ public class MiddlewareSetTest extends TestBase
         final boolean didRun2[] = {false};
 
         MiddlewareSet m = new MiddlewareSet();
-        MiddlewareCall mwc1 = new MiddlewareCall() {
-            public void requestHandler(TurnContext tc, NextDelegate nd) throws Exception {
+        m.Use(new AnonymousReceiveMiddleware(new BiFunction<TurnContext, NextDelegate, CompletableFuture>() {
+            @Override
+            public CompletableFuture apply(TurnContext turnContext, NextDelegate nextDelegate) {
                 didRun1[0] = true;
-                nd.next();
-                return;
+                try {
+                    nextDelegate.invoke().get();
+                } catch (InterruptedException|ExecutionException e) {
+                    e.printStackTrace();
+                    throw new CompletionException(e);
+                }
+                return CompletableFuture.completedFuture(null);
             }
-        };
+        }));
 
-        m.Use(new AnonymousReceiveMiddleware(mwc1));
-        MiddlewareCall mwc2 = new MiddlewareCall() {
-            public void requestHandler(TurnContext tc, NextDelegate nd) throws Exception {
+        m.Use(new AnonymousReceiveMiddleware(new BiFunction<TurnContext, NextDelegate, CompletableFuture>() {
+            @Override
+            public CompletableFuture apply(TurnContext turnContext, NextDelegate nextDelegate) {
                 didRun2[0] = true;
-                nd.next();
-                return;
+                try {
+                    nextDelegate.invoke().get();
+                } catch (InterruptedException|ExecutionException e) {
+                    e.printStackTrace();
+                    throw new CompletionException(e);
+                }
+                return CompletableFuture.completedFuture(null);
+
             }
-        };
+        }));
 
-        m.Use(new AnonymousReceiveMiddleware(mwc2));
-
-        m.ReceiveActivity(null);
+        m.ReceiveActivityWithStatusAsync(null, null);
         Assert.assertTrue(didRun1[0]);
         Assert.assertTrue(didRun2[0]);
     }
@@ -368,28 +399,38 @@ public class MiddlewareSetTest extends TestBase
         final boolean didRun2[] = {false};
 
         MiddlewareSet m = new MiddlewareSet();
-        MiddlewareCall mwc1 = new MiddlewareCall() {
-            public void requestHandler(TurnContext tc, NextDelegate nd) throws Exception {
+        m.Use(new AnonymousReceiveMiddleware(new BiFunction<TurnContext, NextDelegate, CompletableFuture>() {
+            @Override
+            public CompletableFuture apply(TurnContext turnContext, NextDelegate nextDelegate) {
                 Assert.assertFalse("Looks like the 2nd one has already run", didRun2[0]);
                 didRun1[0] = true;
-                nd.next();
-                return;
-            }
-        };
-        m.Use(new AnonymousReceiveMiddleware(mwc1));
+                try {
+                    nextDelegate.invoke().get();
+                } catch (InterruptedException|ExecutionException e) {
+                    e.printStackTrace();
+                    throw new CompletionException(e);
+                }
+                return CompletableFuture.completedFuture(null);
 
-        MiddlewareCall mwc2 = new MiddlewareCall() {
-            public void requestHandler(TurnContext tc, NextDelegate nd) throws Exception {
+            }
+        }));
+
+        m.Use(new AnonymousReceiveMiddleware(new BiFunction<TurnContext, NextDelegate, CompletableFuture>() {
+            @Override
+            public CompletableFuture apply(TurnContext turnContext, NextDelegate nextDelegate) {
                 Assert.assertTrue("Looks like the 1nd one has not yet run", didRun1[0]);
                 didRun2[0] = true;
-                nd.next();
-                return ;
+                try {
+                    nextDelegate.invoke().get();
+                } catch (InterruptedException|ExecutionException e) {
+                    e.printStackTrace();
+                    throw new CompletionException(e);
+                }
+                return CompletableFuture.completedFuture(null);
             }
-        };
+        }));
 
-        m.Use(new AnonymousReceiveMiddleware(mwc2));
-
-        m.ReceiveActivity(null);
+        m.ReceiveActivityWithStatusAsync(null, null);
         Assert.assertTrue(didRun1[0]);
         Assert.assertTrue(didRun2[0]);
     }
@@ -400,17 +441,22 @@ public class MiddlewareSetTest extends TestBase
         final boolean didRun2[] = {false};
 
         MiddlewareSet m = new MiddlewareSet();
-        MiddlewareCall mwc1 = new MiddlewareCall() {
-            public void requestHandler(TurnContext tc, NextDelegate nd) throws Exception {
+        m.Use(new AnonymousReceiveMiddleware(new BiFunction<TurnContext, NextDelegate, CompletableFuture>() {
+            @Override
+            public CompletableFuture apply(TurnContext turnContext, NextDelegate nextDelegate) {
                 Assert.assertFalse("First middleware already ran", didRun1[0]);
                 Assert.assertFalse("Looks like the second middleware was already run", didRun2[0]);
                 didRun1[0] = true;
-                nd.next();
+                try {
+                    nextDelegate.invoke().get();
+                } catch (InterruptedException|ExecutionException e) {
+                    e.printStackTrace();
+                    throw new CompletionException(e);
+                }
                 Assert.assertTrue("Second middleware should have completed running", didRun2[0]);
-                return ;
+                return CompletableFuture.completedFuture(null);
             }
-        };
-        m.Use(new AnonymousReceiveMiddleware(mwc1));
+        }));
 
         ActionDel act = new ActionDel() {
             @Override
@@ -422,7 +468,7 @@ public class MiddlewareSetTest extends TestBase
         };
         m.Use(new CallMeMiddlware(act));
 
-        m.ReceiveActivity(null);
+        m.ReceiveActivityWithStatusAsync(null, null);
         Assert.assertTrue(didRun1[0]);
         Assert.assertTrue(didRun2[0]);
     }
@@ -444,17 +490,23 @@ public class MiddlewareSetTest extends TestBase
         };
         m.Use(new CallMeMiddlware(act));
 
-        MiddlewareCall mwc1 = new MiddlewareCall() {
-            public void requestHandler(TurnContext tc, NextDelegate nd) throws Exception {
+        m.Use(new AnonymousReceiveMiddleware(new BiFunction<TurnContext, NextDelegate, CompletableFuture>() {
+            @Override
+            public CompletableFuture apply(TurnContext turnContext, NextDelegate nextDelegate) {
                 Assert.assertTrue("First middleware has not been run yet", didRun1[0]);
                 didRun2[0] = true;
-                nd.next();
-                return;
-            }
-        };
-        m.Use(new AnonymousReceiveMiddleware(mwc1));
+                try {
+                    nextDelegate.invoke().get();
+                } catch (InterruptedException|ExecutionException e) {
+                    e.printStackTrace();
+                    throw new CompletionException(e);
+                }
+                return completedFuture(null);
 
-        m.ReceiveActivity(null);
+            }
+        }));
+
+        m.ReceiveActivityWithStatusAsync(null, null);
         Assert.assertTrue(didRun1[0]);
         Assert.assertTrue(didRun2[0]);
     }
@@ -467,30 +519,42 @@ public class MiddlewareSetTest extends TestBase
 
         MiddlewareSet m = new MiddlewareSet();
 
-        MiddlewareCall mwc1 = new MiddlewareCall() {
-            public void requestHandler(TurnContext tc, NextDelegate nd) throws Exception {
+        m.Use(new AnonymousReceiveMiddleware(new BiFunction<TurnContext, NextDelegate, CompletableFuture>() {
+            @Override
+            public CompletableFuture apply(TurnContext turnContext, NextDelegate nextDelegate) {
                 Assert.assertFalse("Looks like the 1st middleware has already run", didRun1[0]);
                 didRun1[0] = true;
-                nd.next();
+                try {
+                    nextDelegate.invoke().get();
+                } catch (InterruptedException|ExecutionException e) {
+                    e.printStackTrace();
+                    throw new CompletionException(e);
+                }
                 Assert.assertTrue("The 2nd middleware should have run now.", didRun1[0]);
                 codeafter2run[0] = true;
-                return ;
-            }
-        };
-        m.Use(new AnonymousReceiveMiddleware(mwc1));
+                return completedFuture(null);
 
-        MiddlewareCall mwc2 = new MiddlewareCall() {
-            public void requestHandler(TurnContext tc, NextDelegate nd) throws Exception {
+            }
+        }));
+
+        m.Use(new AnonymousReceiveMiddleware(new BiFunction<TurnContext, NextDelegate, CompletableFuture>() {
+            @Override
+            public CompletableFuture apply(TurnContext turnContext, NextDelegate nextDelegate) {
                 Assert.assertTrue("Looks like the 1st middleware has not been run", didRun1[0]);
                 Assert.assertFalse("The code that runs after middleware 2 is complete has already run.", codeafter2run[0]);
                 didRun2[0] = true;
-                nd.next();
-                return ;
-            }
-        };
-        m.Use(new AnonymousReceiveMiddleware(mwc2));
+                try {
+                    nextDelegate.invoke().get();
+                } catch (InterruptedException|ExecutionException e) {
+                    e.printStackTrace();
+                    throw new CompletionException(e);
+                }
+                return completedFuture(null);
 
-        m.ReceiveActivity(null);
+            }
+        }));
+
+        m.ReceiveActivityWithStatusAsync(null, null);
         Assert.assertTrue(didRun1[0]);
         Assert.assertTrue(didRun2[0]);
         Assert.assertTrue(codeafter2run[0]);
@@ -501,10 +565,11 @@ public class MiddlewareSetTest extends TestBase
         MiddlewareSet m = new MiddlewareSet();
         final boolean caughtException[] = {false};
 
-        MiddlewareCall mwc1 = new MiddlewareCall() {
-            public void requestHandler(TurnContext tc, NextDelegate nd) throws ExecutionException, InterruptedException {
+        m.Use(new AnonymousReceiveMiddleware(new BiFunction<TurnContext, NextDelegate, CompletableFuture>() {
+            @Override
+            public CompletableFuture apply(TurnContext turnContext, NextDelegate nextDelegate) {
                 try {
-                    nd.next();
+                    nextDelegate.invoke().get();
                     Assert.assertTrue("Should not get here", false);
 
                 }
@@ -517,20 +582,20 @@ public class MiddlewareSetTest extends TestBase
                 } catch (Exception e) {
                     Assert.assertTrue("Should not get here" + e.getMessage(), false);
                 }
-                return ;
-        }};
+                return completedFuture(null);
 
-        m.Use(new AnonymousReceiveMiddleware(mwc1));
-
-        MiddlewareCall mwc2 = new MiddlewareCall() {
-            public void requestHandler(TurnContext tc, NextDelegate nd) throws InterruptedException {
-                throw new InterruptedException("test");
             }
-            };
+        }));
 
-        m.Use(new AnonymousReceiveMiddleware(mwc2));
 
-        m.ReceiveActivity(null);
+        m.Use(new AnonymousReceiveMiddleware(new BiFunction<TurnContext, NextDelegate, CompletableFuture>() {
+            @Override
+            public CompletableFuture apply(TurnContext turnContext, NextDelegate nextDelegate) {
+                throw new CompletionException(new InterruptedException("test"));
+            }
+        }));
+
+        m.ReceiveActivityWithStatusAsync(null, null);
         Assert.assertTrue(caughtException[0]);
     }
 

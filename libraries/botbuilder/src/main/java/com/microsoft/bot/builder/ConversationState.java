@@ -1,13 +1,7 @@
-package com.microsoft.bot.builder.integration;
-
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License.
 
-
-import com.microsoft.bot.builder.BotState;
-import com.microsoft.bot.builder.IStorage;
-import com.microsoft.bot.builder.Storage;
-import com.microsoft.bot.builder.TurnContext;
+package com.microsoft.bot.builder;
 
 /**
  Handles persistence of a conversation state object using the conversation ID as part of the key.

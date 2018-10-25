@@ -199,23 +199,25 @@ public abstract class BotState implements PropertyManager
      @return A task that represents the work queued to execute.
      If the task is successful, the result contains the property value.
      */
-    protected final CompletableFuture<Object> GetPropertyValueAsync(TurnContext turnContext, String propertyName)
+    protected final <T extends Object> CompletableFuture<T> GetPropertyValueAsync(TurnContext turnContext, String propertyName)
     {
-        if (turnContext == null)
-        {
-            throw new NullPointerException("turnContext");
-        }
+        return CompletableFuture.supplyAsync(() -> {
+            if (turnContext == null)
+            {
+                throw new NullPointerException("turnContext");
+            }
 
-        if (StringUtils.isBlank(propertyName))
-        {
-            throw new NullPointerException("propertyName");
-        }
+            if (StringUtils.isBlank(propertyName))
+            {
+                throw new NullPointerException("propertyName");
+            }
 
-        CachedBotState cachedState = turnContext.turnState().<CachedBotState>Get(_contextServiceKey);
+            CachedBotState cachedState = turnContext.turnState().<CachedBotState>Get(_contextServiceKey);
 
-        // if there is no value, this will throw, to signal to IPropertyAccesor that a default value should be computed
-        // This allows this to work with value types
-        return CompletableFuture.completedFuture(cachedState.getState().get(propertyName));
+            // if there is no value, this will throw, to signal to IPropertyAccesor that a default value should be computed
+            // This allows this to work with value types
+            return (T) cachedState.getState().get(propertyName);
+        });
     }
 
     /**
@@ -227,19 +229,21 @@ public abstract class BotState implements PropertyManager
      */
     protected final CompletableFuture DeletePropertyValueAsync(TurnContext turnContext, String propertyName)
     {
-        if (turnContext == null)
-        {
-            throw new NullPointerException("turnContext");
-        }
+        return CompletableFuture.runAsync(() -> {
+            if (turnContext == null)
+            {
+                throw new NullPointerException("turnContext");
+            }
 
-        if (propertyName == null)
-        {
-            throw new NullPointerException("propertyName");
-        }
+            if (propertyName == null)
+            {
+                throw new NullPointerException("propertyName");
+            }
 
-        CachedBotState cachedState = turnContext.turnState().<CachedBotState>Get(_contextServiceKey);
-        cachedState.getState().remove(propertyName);
-        return CompletableFuture.completedFuture(null);
+            CachedBotState cachedState = turnContext.turnState().<CachedBotState>Get(_contextServiceKey);
+            cachedState.getState().remove(propertyName);
+            return;
+        });
     }
 
     /**
@@ -252,18 +256,20 @@ public abstract class BotState implements PropertyManager
      */
     protected final CompletableFuture SetPropertyValueAsync(TurnContext turnContext, String propertyName, Object value)
     {
-        if (turnContext == null)
-        {
-            throw new NullPointerException("turnContext");
-        }
+        return CompletableFuture.runAsync(() -> {
+            if (turnContext == null)
+            {
+                throw new NullPointerException("turnContext");
+            }
 
-        if (propertyName == null)
-        {
-            throw new NullPointerException("propertyName");
-        }
+            if (propertyName == null)
+            {
+                throw new NullPointerException("propertyName");
+            }
 
-        CachedBotState cachedState = turnContext.turnState().<CachedBotState>Get(_contextServiceKey);
-        cachedState.getState().put(propertyName, value);
-        return CompletableFuture.completedFuture(null);
+            CachedBotState cachedState = turnContext.turnState().<CachedBotState>Get(_contextServiceKey);
+            cachedState.getState().put(propertyName, value);
+            return;
+        });
     }
 }

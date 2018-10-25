@@ -12,7 +12,7 @@ public class TestMessage {
 
     public static ActivityImpl Message(String id) {
         ActivityImpl a = new ActivityImpl()
-                .withType(ActivityTypes.MESSAGE)
+                .withType(ActivityTypes.MESSAGE.toString())
                 .withId(id)
                 .withText("test")
                 .withFrom(new ChannelAccount()

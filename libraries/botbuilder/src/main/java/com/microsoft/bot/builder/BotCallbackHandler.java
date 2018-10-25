@@ -5,6 +5,7 @@ package com.microsoft.bot.builder;
 
 
 import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.ExecutionException;
 
 /**
  The callback delegate for application code.
@@ -15,5 +16,5 @@ import java.util.concurrent.CompletableFuture;
 @FunctionalInterface
 public interface BotCallbackHandler
 {
-	CompletableFuture invoke(TurnContext turnContext);
+	CompletableFuture invoke(TurnContext turnContext) throws Exception;
 }

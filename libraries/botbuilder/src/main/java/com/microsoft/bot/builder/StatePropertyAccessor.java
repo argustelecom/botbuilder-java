@@ -1,7 +1,7 @@
-package com.microsoft.bot.builder;
-
 // Copyright (c) Microsoft. All rights reserved.
 // Licensed under the MIT license.
+
+package com.microsoft.bot.builder;
 
 import java.util.concurrent.CompletableFuture;
 import java.util.function.Supplier;
@@ -11,7 +11,7 @@ import java.util.function.Supplier;
  
  <typeparam name="T">type of the property.</typeparam>
 */
-public interface StatePropertyAccessor<T> extends StatePropertyInfo
+public interface StatePropertyAccessor<T extends Object> extends StatePropertyInfo
 {
 	/** 
 	 Get the property value from the source.
@@ -22,7 +22,9 @@ public interface StatePropertyAccessor<T> extends StatePropertyInfo
 	 @return A <see cref="Task"/> representing the result of the asynchronous operation.
 	*/
 
-	CompletableFuture<Object> GetAsync(TurnContext turnContext, Supplier<T> defaultValueFactory);
+	<T extends Object> CompletableFuture<T> GetAsync(TurnContext turnContext, Supplier<T> defaultValueFactory);
+
+	<T extends Object> CompletableFuture<T> GetAsync(TurnContext turnContext);
 
 	/** 
 	 Delete the property from the source.
@@ -40,5 +42,5 @@ public interface StatePropertyAccessor<T> extends StatePropertyInfo
 	 @return A <see cref="Task"/> representing the asynchronous operation.
 	*/
 
-	CompletableFuture SetAsync(TurnContext turnContext, Object value);
+	<T extends Object> CompletableFuture SetAsync(TurnContext turnContext, T value);
 }

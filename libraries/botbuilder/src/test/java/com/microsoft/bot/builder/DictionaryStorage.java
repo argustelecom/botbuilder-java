@@ -35,7 +35,7 @@ public class DictionaryStorage implements Storage {
         this.memory = (dictionary != null) ? dictionary : new HashMap<String, Object>();
     }
 
-    public void Delete(String[] keys) {
+    public CompletableFuture DeleteAsync(String[] keys) {
         synchronized (this.syncroot) {
                 for (String key : keys)  {
                         Object o = this.memory.get(key);
@@ -46,7 +46,7 @@ public class DictionaryStorage implements Storage {
     }
 
     @Override
-    public CompletableFuture<Map<String, ?>> Read(String[] keys) throws JsonProcessingException {
+    public CompletableFuture<Map<String, ?>> ReadAsync(String[] keys) throws JsonProcessingException {
         return CompletableFuture.supplyAsync(() -> {
             Map<String, Object> storeItems = new HashMap<String, Object>(keys.length);
             synchronized (this.syncroot) {
@@ -90,7 +90,7 @@ public class DictionaryStorage implements Storage {
     }
 
     @Override
-    public void Write(Map<String, ?> changes) throws Exception {
+    public CompletableFuture WriteAsync(Map<String, ?> changes) throws Exception {
         synchronized (this.syncroot) {
             for (Map.Entry change : changes.entrySet()) {
                 Object newValue = change.getValue();
@@ -111,10 +111,10 @@ public class DictionaryStorage implements Storage {
                 // Set ETag if applicable
                 if (newValue instanceof StoreItem) {
                     StoreItem newStoreItem = (StoreItem) newValue;
-                    if(oldStateETag != null && newStoreItem.geteTag() != "*" &&
-                        newStoreItem.geteTag() != oldStateETag) {
+                    if(oldStateETag != null && newStoreItem.getETag() != "*" &&
+                        newStoreItem.getETag() != oldStateETag) {
                         throw new Exception(String.format("Etag conflict.\r\n\r\nOriginal: %s\r\nCurrent: %s",
-                                newStoreItem.geteTag(), oldStateETag));
+                                newStoreItem.getETag(), oldStateETag));
                     }
                     Integer newTag = _eTag++;
                     ((ObjectNode)newState).put("eTag", newTag.toString());
