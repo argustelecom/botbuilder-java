@@ -4,6 +4,7 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.microsoft.bot.schema.models.Entity;
 import org.omg.PortableInterceptor.SYSTEM_EXCEPTION;
@@ -114,7 +115,10 @@ public class DictionaryStorage implements Storage {
                 }
                 // Dictionary stores Key:JsonNode (with type information held within the JsonNode)
                 JsonNode newState = DictionaryStorage.objectMapper.valueToTree(newValue);
+
+                // Modify to add type information
                 ((ObjectNode)newState).put(this.typeNameForNonEntity, newValue.getClass().getTypeName());
+
 
                 // Set ETag if applicable
                 if (newValue instanceof StoreItem) {

@@ -560,45 +560,5 @@ public class MiddlewareSetTest extends TestBase
         Assert.assertTrue(codeafter2run[0]);
     }
 
-    @Test
-    public void CatchAnExceptionViaMiddlware() throws Exception {
-        MiddlewareSet m = new MiddlewareSet();
-        final boolean caughtException[] = {false};
-
-        m.Use(new AnonymousReceiveMiddleware(new BiFunction<TurnContext, NextDelegate, CompletableFuture>() {
-            @Override
-            public CompletableFuture apply(TurnContext turnContext, NextDelegate nextDelegate) {
-                try {
-                    nextDelegate.invoke().get();
-                    Assert.assertTrue("Should not get here", false);
-
-                }
-                catch (CompletionException ex) {
-                    System.out.println("Here isi the exception message" + ex.getMessage());
-                    System.out.flush();
-                    Assert.assertTrue(ex.getMessage() == "test");
-
-                    caughtException[0] = true;
-                } catch (Exception e) {
-                    Assert.assertTrue("Should not get here" + e.getMessage(), false);
-                }
-                return completedFuture(null);
-
-            }
-        }));
-
-
-        m.Use(new AnonymousReceiveMiddleware(new BiFunction<TurnContext, NextDelegate, CompletableFuture>() {
-            @Override
-            public CompletableFuture apply(TurnContext turnContext, NextDelegate nextDelegate) {
-                throw new CompletionException(new InterruptedException("test"));
-            }
-        }));
-
-        m.ReceiveActivityWithStatusAsync(null, null).get();
-        Assert.assertTrue(caughtException[0]);
-    }
-
-
 
 }

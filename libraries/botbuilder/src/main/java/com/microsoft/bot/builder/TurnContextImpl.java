@@ -219,7 +219,7 @@ public class TurnContextImpl implements TurnContext, AutoCloseable {
                 activityToSend.withInputHint(InputHints.fromString(inputHint));
 
             try {
-                return SendActivityAsync(activityToSend).join();
+                return SendActivityAsync(activityToSend).get();
             } catch (Exception e) {
                 e.printStackTrace();
                 throw new CompletionException(e);

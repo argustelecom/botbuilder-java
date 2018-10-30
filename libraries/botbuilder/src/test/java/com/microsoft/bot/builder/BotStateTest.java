@@ -127,15 +127,17 @@ public class BotStateTest {
         UserState userState = new UserState(new MemoryStorage(executorService));
         StatePropertyAccessor<TestPocoState> testPocoProperty = userState.CreateProperty("testPoco");
         TestAdapter adapter = new TestAdapter()
-                .Use(new AutoSaveStateMiddleware());
+                .Use(new AutoSaveStateMiddleware(userState));
         new TestFlow(adapter,
                 (context) -> {
                     TestPocoState testPocoState = testPocoProperty.GetAsync(context, () -> new TestPocoState()).get();
+
                     Assert.assertNotNull("user state should exist", userState);
                     switch (context.activity().text()) {
                         case "set value":
                             testPocoState.setValue("test");
                             context.SendActivityAsync("value saved").get();
+
                             break;
                         case "get value":
                             Assert.assertFalse(StringUtils.isBlank(testPocoState.getValue()));
@@ -162,14 +164,14 @@ public class BotStateTest {
 
         TestState conversationState = testProperty.GetAsync(context, () -> new TestState()).get();
         Assert.assertNotNull("state.conversation should exist", conversationState);
-        conversationState.withValue("test");
+        conversationState.withStringValue("test");
         //testProperty.SetAsync(context, conversationState).get();
         userState.SaveChangesAsync(context).get();
         userState.LoadAsync(context, true).get();
 
         TestState conversationState2 = testProperty.GetAsync(context, () -> new TestState()).get();
-        Assert.assertNotNull("state conversaiont", conversationState2.value());
-        Assert.assertEquals("test", conversationState2.value());
+        Assert.assertNotNull("state conversaiont", conversationState2.stringValue());
+        Assert.assertEquals("test", conversationState2.stringValue());
 
 
 
@@ -188,12 +190,11 @@ public class BotStateTest {
         new TestFlow(adapter,
                 (context) ->
                 {
-                    userState.LoadAsync(context, false).get();
                     TestState conversationState = testProperty.GetAsync(context, () -> new TestState()).get();
                     Assert.assertNotNull("state.conversation should exist", conversationState);
                     switch (context.activity().text()) {
                         case "set value":
-                            conversationState.withValue("test");
+                            conversationState.withStringValue("test");
 
                             // ---
                             testProperty.SetAsync(context, conversationState).get();
@@ -201,8 +202,8 @@ public class BotStateTest {
                             context.SendActivityAsync("value saved").get();
                             break;
                         case "get value":
-                            Assert.assertFalse(StringUtils.isBlank(conversationState.value()));
-                            context.SendActivityAsync(conversationState.value()).get();
+                            Assert.assertFalse(StringUtils.isBlank(conversationState.stringValue()));
+                            context.SendActivityAsync(conversationState.stringValue()).get();
                             break;
                     }
                     return completedFuture(null);
