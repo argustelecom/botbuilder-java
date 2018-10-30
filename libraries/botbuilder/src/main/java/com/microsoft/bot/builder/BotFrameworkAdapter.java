@@ -18,10 +18,7 @@ import java.io.IOException;
 import java.net.MalformedURLException;
 import java.net.URISyntaxException;
 import java.util.*;
-import java.util.concurrent.CompletableFuture;
-import java.util.concurrent.CompletionException;
-import java.util.concurrent.ConcurrentHashMap;
-import java.util.concurrent.ExecutionException;
+import java.util.concurrent.*;
 import java.util.concurrent.atomic.AtomicReference;
 import java.util.function.Consumer;
 
@@ -79,35 +76,40 @@ public class BotFrameworkAdapter extends BotAdapter
 	 
 	*/
 
-	public BotFrameworkAdapter(CredentialProvider credentialProvider, ChannelProvider channelProvider, RetryStrategy  connectorClientRetryPolicy, OkHttpClient customHttpClient)
+	public BotFrameworkAdapter(CredentialProvider credentialProvider, ExecutorService executorService, ChannelProvider channelProvider, RetryStrategy  connectorClientRetryPolicy, OkHttpClient customHttpClient)
 	{
-		this(credentialProvider, channelProvider, connectorClientRetryPolicy, customHttpClient, null);
+		this(credentialProvider, executorService, channelProvider, connectorClientRetryPolicy, customHttpClient, null);
 	}
 
-	public BotFrameworkAdapter(CredentialProvider credentialProvider, ChannelProvider channelProvider, RetryStrategy  connectorClientRetryPolicy)
+	public BotFrameworkAdapter(CredentialProvider credentialProvider, ExecutorService executorService, ChannelProvider channelProvider, RetryStrategy  connectorClientRetryPolicy)
 	{
-		this(credentialProvider, channelProvider, connectorClientRetryPolicy, null, null);
+		this(credentialProvider, executorService, channelProvider, connectorClientRetryPolicy, null, null);
 	}
 
-	public BotFrameworkAdapter(CredentialProvider credentialProvider, ChannelProvider channelProvider)
+	public BotFrameworkAdapter(CredentialProvider credentialProvider, ExecutorService executorService, ChannelProvider channelProvider)
 	{
-		this(credentialProvider, channelProvider, null, null, null);
+		this(credentialProvider, executorService, channelProvider, null, null, null);
 	}
 
-	public BotFrameworkAdapter(CredentialProvider credentialProvider)
+	public BotFrameworkAdapter(CredentialProvider credentialProvider, ExecutorService executorService )
 	{
-		this(credentialProvider, null, null, null, null);
+		this(credentialProvider, executorService, null, null, null, null);
 	}
 
 	public BotFrameworkAdapter(
-			CredentialProvider credentialProvider,
-			ChannelProvider channelProvider,
-			RetryStrategy connectorClientRetryPolicy,
-			OkHttpClient customHttpClient,
-			Middleware middleware)
+            CredentialProvider credentialProvider,
+            ExecutorService executorService,
+            ChannelProvider channelProvider,
+            RetryStrategy connectorClientRetryPolicy,
+            OkHttpClient customHttpClient,
+            Middleware middleware
+            )
 	{
-        if (credentialProvider == null)
+        super(executorService);
+
+        if (credentialProvider == null) {
             throw new NullPointerException("credentialProvider");
+        }
 		_credentialProvider =  credentialProvider;
 		_channelProvider  = channelProvider;
 		_httpClient = (customHttpClient != null) ? customHttpClient : null;
@@ -168,7 +170,7 @@ public class BotFrameworkAdapter extends BotAdapter
             }
 
             try {
-                try (TurnContextImpl context = new TurnContextImpl(this, new ConversationReferenceHelper(reference).GetPostToBotMessage()))
+                try (TurnContextImpl context = new TurnContextImpl(this, new ConversationReferenceHelper(reference).GetPostToBotMessage(),executorService()))
                 {
                     // Hand craft Claims Identity.
                     HashMap<String, String> claims = new HashMap<String, String>();
@@ -259,7 +261,7 @@ public class BotFrameworkAdapter extends BotAdapter
 	    return CompletableFuture.supplyAsync(() -> {
             BotAssert.ActivityNotNull(activity);
 
-            try (TurnContextImpl context = new TurnContextImpl(this, activity))
+            try (TurnContextImpl context = new TurnContextImpl(this, activity, executorService()))
             {
                 context.turnState().Add(BotIdentityKey, identity);
 
@@ -885,7 +887,7 @@ public class BotFrameworkAdapter extends BotAdapter
                     .withConversation(new ConversationAccount().withId(result.id()))
                     .withRecipient(conversationParameters.bot());
 
-            try (TurnContextImpl context = new TurnContextImpl(this, eventActivity))
+            try (TurnContextImpl context = new TurnContextImpl(this, eventActivity, executorService()))
             {
                 ClaimsIdentity claimsIdentity = new ClaimsIdentityImpl();
                 claimsIdentity.claims().put(AuthenticationConstants.AudienceClaim, credentials.microsoftAppId());

@@ -24,6 +24,7 @@ import com.microsoft.bot.schema.models.ConversationReference;
 import com.microsoft.bot.schema.models.ResourceResponse;
 
 import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.ExecutorService;
 
 //public delegate Task DeleteActivityHandler(TurnContext context, ConversationReference reference, Func<Task> next);
 
@@ -52,7 +53,10 @@ public interface TurnContext
 	 */
 	Activity activity();
 
-
+	/**
+	 * Executor Service
+	 */
+	ExecutorService executorService();
 
 	/**
 	 * Indicates whether at least one response was sent for the current turn.

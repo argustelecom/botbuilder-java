@@ -14,6 +14,7 @@ import java.util.List;
 import java.util.concurrent.Callable;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.CompletionException;
+import java.util.concurrent.ExecutorService;
 
 import static com.microsoft.bot.schema.models.ActivityTypes.MESSAGE;
 import static com.microsoft.bot.schema.models.ActivityTypes.TRACE;
@@ -30,8 +31,9 @@ import static java.util.stream.Collectors.toList;
  */
 public class TurnContextImpl implements TurnContext, AutoCloseable {
     private final BotAdapter adapter;
-    private final ActivityImpl activity;
+    private final Activity activity;
     private Boolean responded = false;
+    private ExecutorService _executorService;
 
     private final List<SendActivitiesHandler> onSendActivities = new ArrayList<SendActivitiesHandler>();
     private final List<UpdateActivityHandler> onUpdateActivity = new ArrayList<UpdateActivityHandler>();
@@ -48,7 +50,7 @@ public class TurnContextImpl implements TurnContext, AutoCloseable {
      * {@code adapter} is {@code null}.
      * For use by bot adapter implementations only.
      */
-    public TurnContextImpl(BotAdapter adapter, ActivityImpl activity) {
+    public TurnContextImpl(BotAdapter adapter, Activity activity, ExecutorService executorService) {
         if (adapter == null)
             throw new IllegalArgumentException("adapter");
         this.adapter = adapter;
@@ -57,8 +59,12 @@ public class TurnContextImpl implements TurnContext, AutoCloseable {
         this.activity = activity;
 
         turnServices = new TurnContextStateCollectionImpl();
+        _executorService = executorService;
     }
 
+    public ExecutorService executorService() {
+        return _executorService;
+    }
 
     /**
      *  Gets the services registered on this context object.

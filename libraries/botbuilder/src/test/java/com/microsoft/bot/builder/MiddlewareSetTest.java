@@ -12,6 +12,7 @@ import org.junit.Test;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.CompletionException;
 import java.util.concurrent.ExecutionException;
+import java.util.concurrent.Executors;
 import java.util.function.BiFunction;
 import java.util.function.Consumer;
 import java.util.function.Function;
@@ -50,7 +51,7 @@ public class MiddlewareSetTest extends TestBase
 
     @Test
     public void NoMiddleware() throws Exception {
-        MiddlewareSet m = new MiddlewareSet();
+        MiddlewareSet m = new MiddlewareSet(Executors.newFixedThreadPool(10));
         // No middleware. Should not explode.
         try {
             m.ReceiveActivityWithStatusAsync(null, null).get();
@@ -138,12 +139,11 @@ public class MiddlewareSetTest extends TestBase
         m.Use(simple);
 
         Assert.assertFalse(simple.getCalled());
-        m.ReceiveActivityWithStatusAsync(null, null);
+        m.ReceiveActivityWithStatusAsync(null, null).get();
         Assert.assertTrue(simple.getCalled());
     }
 
-    @Test(expected = IllegalStateException.class)
-    //[ExpectedException(typeof(InvalidOperationException))]
+    @Test(expected = ExecutionException.class)
     public void BubbleUncaughtException() throws Exception {
         MiddlewareSet m = new MiddlewareSet();
         m.Use(new AnonymousReceiveMiddleware(new BiFunction<TurnContext, NextDelegate, CompletableFuture>() {
@@ -185,7 +185,7 @@ public class MiddlewareSetTest extends TestBase
         m.Use(one);
         m.Use(two);
 
-        m.ReceiveActivityWithStatusAsync(null, cb);
+        m.ReceiveActivityWithStatusAsync(null, cb).get();
         Assert.assertTrue(one.getCalled());
         Assert.assertTrue(two.getCalled());
         Assert.assertTrue("Incorrect number of calls to Delegate", called[0] == 1 );
@@ -216,7 +216,7 @@ public class MiddlewareSetTest extends TestBase
         m.Use(one);
         m.Use(two);
 
-        m.ReceiveActivityWithStatusAsync(null, null);
+        m.ReceiveActivityWithStatusAsync(null, null).get();
         Assert.assertTrue(called1[0]);
         Assert.assertTrue(called2[0]);
     }
@@ -258,7 +258,7 @@ public class MiddlewareSetTest extends TestBase
 
         // This middlware pipeline has no entries. This should result in
         // the status being TRUE.
-        m.ReceiveActivityWithStatusAsync(null, cb);
+        m.ReceiveActivityWithStatusAsync(null, cb).get();
         Assert.assertTrue(didAllRun[0]);
 
     }
@@ -292,7 +292,7 @@ public class MiddlewareSetTest extends TestBase
                 didAllRun[0] = true;
                 return CompletableFuture.completedFuture(null);
         };
-        m.ReceiveActivityWithStatusAsync(null, cb);
+        m.ReceiveActivityWithStatusAsync(null, cb).get();
         Assert.assertTrue(called1[0]);
         Assert.assertTrue(called2[0]);
 
@@ -320,7 +320,7 @@ public class MiddlewareSetTest extends TestBase
                 didAllRun[0] = true;
                 return CompletableFuture.completedFuture(null);
         };
-        m.ReceiveActivityWithStatusAsync(null, cb);
+        m.ReceiveActivityWithStatusAsync(null, cb).get();
 
         Assert.assertTrue(called1[0]);
 
@@ -349,7 +349,7 @@ public class MiddlewareSetTest extends TestBase
         }));
 
         Assert.assertFalse(didRun[0]);
-         m.ReceiveActivityWithStatusAsync(null, null);
+         m.ReceiveActivityWithStatusAsync(null, null).get();
         Assert.assertTrue(didRun[0]);
     }
 
@@ -388,7 +388,7 @@ public class MiddlewareSetTest extends TestBase
             }
         }));
 
-        m.ReceiveActivityWithStatusAsync(null, null);
+        m.ReceiveActivityWithStatusAsync(null, null).get();
         Assert.assertTrue(didRun1[0]);
         Assert.assertTrue(didRun2[0]);
     }
@@ -430,7 +430,7 @@ public class MiddlewareSetTest extends TestBase
             }
         }));
 
-        m.ReceiveActivityWithStatusAsync(null, null);
+        m.ReceiveActivityWithStatusAsync(null, null).get();
         Assert.assertTrue(didRun1[0]);
         Assert.assertTrue(didRun2[0]);
     }
@@ -468,7 +468,7 @@ public class MiddlewareSetTest extends TestBase
         };
         m.Use(new CallMeMiddlware(act));
 
-        m.ReceiveActivityWithStatusAsync(null, null);
+        m.ReceiveActivityWithStatusAsync(null, null).get();
         Assert.assertTrue(didRun1[0]);
         Assert.assertTrue(didRun2[0]);
     }
@@ -506,7 +506,7 @@ public class MiddlewareSetTest extends TestBase
             }
         }));
 
-        m.ReceiveActivityWithStatusAsync(null, null);
+        m.ReceiveActivityWithStatusAsync(null, null).get();
         Assert.assertTrue(didRun1[0]);
         Assert.assertTrue(didRun2[0]);
     }
@@ -554,7 +554,7 @@ public class MiddlewareSetTest extends TestBase
             }
         }));
 
-        m.ReceiveActivityWithStatusAsync(null, null);
+        m.ReceiveActivityWithStatusAsync(null, null).get();
         Assert.assertTrue(didRun1[0]);
         Assert.assertTrue(didRun2[0]);
         Assert.assertTrue(codeafter2run[0]);
@@ -573,7 +573,7 @@ public class MiddlewareSetTest extends TestBase
                     Assert.assertTrue("Should not get here", false);
 
                 }
-                catch (InterruptedException ex) {
+                catch (CompletionException ex) {
                     System.out.println("Here isi the exception message" + ex.getMessage());
                     System.out.flush();
                     Assert.assertTrue(ex.getMessage() == "test");
@@ -595,7 +595,7 @@ public class MiddlewareSetTest extends TestBase
             }
         }));
 
-        m.ReceiveActivityWithStatusAsync(null, null);
+        m.ReceiveActivityWithStatusAsync(null, null).get();
         Assert.assertTrue(caughtException[0]);
     }
 

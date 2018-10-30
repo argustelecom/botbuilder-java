@@ -6,9 +6,7 @@ import org.apache.commons.lang3.StringUtils;
 
 import java.util.*;
 import java.time.*;
-import java.util.concurrent.CompletableFuture;
-import java.util.concurrent.CompletionException;
-import java.util.concurrent.ExecutionException;
+import java.util.concurrent.*;
 
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License.
@@ -25,6 +23,7 @@ public class TestAdapter extends BotAdapter
 	private boolean _sendTraceActivity;
 	private Object _conversationLock = new Object();
 	private Object _activeQueueLock = new Object();
+	private static ExecutorService _executorService = Executors.newFixedThreadPool(10);
 
 	private int _nextId = 0;
 
@@ -48,6 +47,7 @@ public class TestAdapter extends BotAdapter
      */
 	public TestAdapter(ConversationReference conversation, boolean sendTraceActivity)
 	{
+	    super(Executors.newFixedThreadPool(10));
 		_sendTraceActivity = sendTraceActivity;
 		if (conversation != null)
 		{
@@ -143,7 +143,7 @@ public class TestAdapter extends BotAdapter
                 activity.withTimestamp(OffsetDateTime.now());
             }
 
-            try (TurnContextImpl context = new TurnContextImpl(this, (ActivityImpl)activity))
+            try (TurnContextImpl context = new TurnContextImpl(this, activity, executorService()))
             {
                 RunPipelineAsync(context, callback).join();
             } catch (Exception e) {
@@ -151,7 +151,7 @@ public class TestAdapter extends BotAdapter
                 throw new CompletionException(e);
             }
 
-        });
+        }, executorService());
 	}
 
 	/** 
@@ -241,7 +241,7 @@ public class TestAdapter extends BotAdapter
             }
 
             return responses;
-        });
+        }, executorService());
 	}
 
 	/** 
@@ -281,7 +281,7 @@ public class TestAdapter extends BotAdapter
                 }
             }
             return new ResourceResponse();
-        });
+        }, executorService());
 	}
 
 	/** 
@@ -318,7 +318,7 @@ public class TestAdapter extends BotAdapter
                 }
             }
 
-        });
+        }, executorService());
 	}
 
 	/** 
@@ -337,14 +337,14 @@ public class TestAdapter extends BotAdapter
 			ActivityImpl update = ActivityImpl.CreateConversationUpdateActivity();
 			update.withConversation(new ConversationAccount());
 			update.conversation().withId(UUID.randomUUID().toString());
-			TurnContextImpl context = new TurnContextImpl(this, update);
+			TurnContextImpl context = new TurnContextImpl(this, update, executorService());
 			try {
 				callback.invoke(context).get();
 			} catch (Exception e) {
 				e.printStackTrace();
 				throw new CompletionException(e);
 			}
-		});
+		}, executorService());
 	}
 
 	/** 

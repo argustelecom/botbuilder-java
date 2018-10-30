@@ -2,6 +2,8 @@ package com.microsoft.bot.builder;
 
 
 import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.CompletionException;
+import java.util.concurrent.ExecutionException;
 import java.util.function.Function;
 import java.util.function.Supplier;
 
@@ -52,7 +54,7 @@ class BotStatePropertyAccessor<T extends Object> implements StatePropertyAccesso
         return CompletableFuture.runAsync(() -> {
             _botState.LoadAsync(turnContext, false).join();
             _botState.DeletePropertyValueAsync(turnContext, getName()).join();
-        });
+        }, turnContext.executorService());
     }
 
     /**
@@ -65,20 +67,34 @@ class BotStatePropertyAccessor<T extends Object> implements StatePropertyAccesso
     public final <T extends Object> CompletableFuture<T> GetAsync(TurnContext turnContext, Supplier<T> defaultValueFactory)
     {
         return CompletableFuture.supplyAsync(() -> {
-            _botState.LoadAsync(turnContext, false).join();
-            T obj = _botState.<T>GetPropertyValueAsync(turnContext, getName()).join();
+            T obj = null;
+
+            try {
+                _botState.LoadAsync(turnContext, false).get();
+                obj = _botState.<T>GetPropertyValueAsync(turnContext, getName()).get();
+            } catch (InterruptedException|ExecutionException e) {
+                e.printStackTrace();
+                throw new CompletionException(e);
+            }
+
             if (obj == null) {
                 // ask for default value from factory
                 if (defaultValueFactory == null) {
                     throw new IllegalStateException("Property not set and no default provided.");
                 }
                 T result = defaultValueFactory.get();
+
                 // save default value for any further calls
-                SetAsync(turnContext, result).join();
+                try {
+                    SetAsync(turnContext, result).get();
+                } catch (InterruptedException|ExecutionException e) {
+                    e.printStackTrace();
+                    throw new CompletionException(e);
+                }
                 return result;
             }
             return obj;
-        });
+        }, turnContext.executorService());
     }
 
     public final <T extends Object> CompletableFuture<T> GetAsync(TurnContext turnContext)
@@ -96,8 +112,14 @@ class BotStatePropertyAccessor<T extends Object> implements StatePropertyAccesso
     public final <T extends Object> CompletableFuture SetAsync(TurnContext turnContext, T value)
     {
         return CompletableFuture.runAsync(() -> {
-            _botState.LoadAsync(turnContext, false).join();
-            _botState.SetPropertyValueAsync(turnContext, getName(), value).join();
-        });
+            try {
+                _botState.LoadAsync(turnContext, false).get();
+                _botState.SetPropertyValueAsync(turnContext, getName(), value).get();
+            } catch (InterruptedException|ExecutionException e) {
+                e.printStackTrace();
+                throw new CompletionException(e);
+            }
+
+        }, turnContext.executorService());
     }
 }

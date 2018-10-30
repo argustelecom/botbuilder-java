@@ -4,9 +4,7 @@
 package com.microsoft.bot.builder;
 
 import java.util.*;
-import java.util.concurrent.CompletableFuture;
-import java.util.concurrent.CompletionException;
-import java.util.concurrent.ExecutionException;
+import java.util.concurrent.*;
 import java.util.function.Consumer;
 
 
@@ -16,6 +14,31 @@ import java.util.function.Consumer;
 public class MiddlewareSet implements Middleware
 {
 	private final List<Middleware> _middleware = new ArrayList<Middleware>();
+
+    private ExecutorService _executorService;
+
+    public MiddlewareSet()
+    {
+        // This constructor primarily for testing - default
+        _executorService = Executors.newFixedThreadPool(10);
+    }
+
+
+	public MiddlewareSet(ExecutorService executorService)
+    {
+        if (executorService == null)
+        {
+            throw new NullPointerException("executorService");
+        }
+        _executorService = executorService;
+    }
+
+    public ExecutorService executorService() { return _executorService; }
+    public MiddlewareSet withExecutorService(ExecutorService executorService) {
+        _executorService = executorService;
+        return this;
+    }
+
 
 	/** 
 	 Adds a middleware object to the end of the set.
@@ -44,7 +67,7 @@ public class MiddlewareSet implements Middleware
 		return CompletableFuture.runAsync(() -> {
 			ReceiveActivityInternalAsync(turnContext, null, 0).join();
 			next.invoke().join();
-		});
+		}, executorService());
 	}
 
 	/** 
@@ -102,7 +125,7 @@ public class MiddlewareSet implements Middleware
                 e.printStackTrace();
                 throw new CompletionException(e);
             }
-        });
+        }, executorService());
 
 	}
 }

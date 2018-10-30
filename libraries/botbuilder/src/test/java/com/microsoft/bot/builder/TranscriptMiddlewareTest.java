@@ -76,7 +76,7 @@ public class TranscriptMiddlewareTest {
         TestAdapter adapter = new TestAdapter();
         ActivityImpl activity = ActivityImpl.CreateMessageActivity()
                 .withFrom(new ChannelAccount().withName("MyAccount").withId("acctid").withRole(RoleTypes.USER));
-        TurnContextImpl context = new TurnContextImpl(adapter, activity);
+        TurnContextImpl context = new TurnContextImpl(adapter, activity, adapter.executorService());
         NextDelegate nd = new NextDelegate() {
             @Override
             public CompletableFuture invoke() {
@@ -117,7 +117,7 @@ public class TranscriptMiddlewareTest {
                         .withType(ActivityTypes.TYPING.toString())
                         .withRelatesTo(context.activity().relatesTo());
                 try {
-                    context.SendActivityAsync((Activity)typingActivity);
+                    context.SendActivityAsync((Activity)typingActivity).get();
                 } catch (Exception e) {
                     e.printStackTrace();
                     Assert.fail();
@@ -230,7 +230,7 @@ public class TranscriptMiddlewareTest {
                 conversationId[0] = context.activity().conversation().id();
                 if (context.activity().text().equals("deleteIt")) {
                     try {
-                        context.DeleteActivity(activityId[0]).join();
+                        context.DeleteActivity(activityId[0]).get();
                     } catch (Exception e) {
                         e.printStackTrace();
                         Assert.fail();

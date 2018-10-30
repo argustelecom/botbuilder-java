@@ -1,13 +1,13 @@
 package com.microsoft.bot.builder;
 
-import com.microsoft.bot.builder.DictionaryStorage;
+import java.util.concurrent.ExecutorService;
 
 /**
  * RamStorage stores data in volative dictionary
  */
 public class MemoryStorage extends DictionaryStorage {
 
-    public MemoryStorage() {
-            super(null);
+    public MemoryStorage(ExecutorService executorService) {
+            super(null, executorService);
     }
 }

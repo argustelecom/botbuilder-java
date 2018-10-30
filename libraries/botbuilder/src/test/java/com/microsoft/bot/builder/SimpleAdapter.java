@@ -10,6 +10,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutionException;
+import java.util.concurrent.Executors;
 import java.util.function.Consumer;
 
 public class SimpleAdapter extends BotAdapter {
@@ -27,13 +28,14 @@ public class SimpleAdapter extends BotAdapter {
     }
 
     public SimpleAdapter(Consumer<Activity[]> callOnSend, Consumer<Activity> callOnUpdate, Consumer<ConversationReference> callOnDelete) {
+        super(Executors.newFixedThreadPool(10));
         this.callOnSend = callOnSend;
         this.callOnUpdate = callOnUpdate;
         this.callOnDelete = callOnDelete;
     }
 
     public SimpleAdapter() {
-
+        super(Executors.newFixedThreadPool(10));
     }
 
 
@@ -78,7 +80,7 @@ public class SimpleAdapter extends BotAdapter {
 
     public CompletableFuture ProcessRequest(ActivityImpl activty, BotCallbackHandler callback)  {
         return CompletableFuture.runAsync(() -> {
-            try (TurnContextImpl ctx = new TurnContextImpl(this, activty)) {
+            try (TurnContextImpl ctx = new TurnContextImpl(this, activty, executorService())) {
                 this.RunPipelineAsync(ctx, callback).get();
             } catch (Exception e) {
                 e.printStackTrace();

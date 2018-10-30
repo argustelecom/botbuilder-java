@@ -6,6 +6,7 @@ package com.microsoft.bot.builder.dialogs;
 import java.util.*;
 import java.util.concurrent.CompletableFuture;
 import com.microsoft.bot.builder.TurnContext;
+import org.apache.commons.lang3.ObjectUtils;
 import org.apache.commons.lang3.StringUtils;
 
 public class DialogContext
@@ -19,8 +20,16 @@ public class DialogContext
 	*/
 	public DialogContext(DialogSet dialogs, TurnContext turnContext, DialogState state)
 	{
-		setDialogs((dialogs != null) ? dialogs : throw new NullPointerException("dialogs"));
-		setContext((turnContext != null) ? turnContext : throw new NullPointerException("turnContext"));
+	    if (dialogs == null)
+        {
+            throw new NullPointerException("dialogs");
+        }
+        if (turnContext == null)
+        {
+            throw new NullPointerException("turnContext");
+        }
+		setDialogs(dialogs);
+		setContext(turnContext);
 
 		setStack(state.getDialogStack());
 	}
