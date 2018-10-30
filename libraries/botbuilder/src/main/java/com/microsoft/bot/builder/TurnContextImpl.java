@@ -247,7 +247,7 @@ public class TurnContextImpl implements TurnContext, AutoCloseable {
             Activity[] activities = { activity };
             ResourceResponse[] responses = new ResourceResponse[0];
             try {
-                responses = SendActivities(activities).join();
+                responses = SendActivitiesAsync(activities).join();
             } catch (Exception e) {
                 e.printStackTrace();
                 throw new CompletionException(e);
@@ -274,7 +274,7 @@ public class TurnContextImpl implements TurnContext, AutoCloseable {
      * the receiving channel assigned to the activities.
      */
     @Override
-    public CompletableFuture<ResourceResponse[]> SendActivities(Activity[] activities) throws Exception {
+    public CompletableFuture<ResourceResponse[]> SendActivitiesAsync(Activity[] activities) throws Exception {
         // Bind the relevant Conversation Reference properties, such as URLs and
         // ChannelId's, to the activities we're about to send.
         ConversationReference cr = GetConversationReference(this.activity);
@@ -339,7 +339,7 @@ public class TurnContextImpl implements TurnContext, AutoCloseable {
      * of the activity to replace.</p>
      */
     @Override
-    public ResourceResponse UpdateActivity(Activity activity) throws Exception {
+    public ResourceResponse UpdateActivityAsync(Activity activity) throws Exception {
 
 
 
@@ -357,7 +357,7 @@ public class TurnContextImpl implements TurnContext, AutoCloseable {
      * @throws Microsoft.Bot.Schema.ErrorResponseException
      * The HTTP operation failed and the response contained additional information.
      */
-    public CompletableFuture DeleteActivity(String activityId) throws Exception {
+    public CompletableFuture DeleteActivityAsync(String activityId) throws Exception {
         if (StringUtils.isWhitespace(activityId) || activityId == null)
             throw new IllegalArgumentException("activityId");
 
@@ -382,7 +382,7 @@ public class TurnContextImpl implements TurnContext, AutoCloseable {
      * The conversation reference's {@link ConversationReference.ActivityId}
      * indicates the activity in the conversation to delete.
      */
-    public CompletableFuture DeleteActivity(ConversationReference conversationReference) throws Exception {
+    public CompletableFuture DeleteActivityAsync(ConversationReference conversationReference) throws Exception {
         if (conversationReference == null)
             throw new IllegalArgumentException("conversationReference");
 

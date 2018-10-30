@@ -559,6 +559,4 @@ public class MiddlewareSetTest extends TestBase
         Assert.assertTrue(didRun2[0]);
         Assert.assertTrue(codeafter2run[0]);
     }
-
-
 }
