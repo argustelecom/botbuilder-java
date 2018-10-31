@@ -46,7 +46,7 @@ public class ChoiceFactory
 		int maxTitleLength = 0;
 		for (Choice choice : list)
 		{
-			boolean l = choice.action() != null && StringUtils.isBlank(choice.action().title()) ? choice.action().title().length() : choice.value().length();
+			int l = choice.action() != null && StringUtils.isBlank(choice.action().title()) ? choice.action().title().length() : choice.value().length();
 			if (l > maxTitleLength)
 			{
 				maxTitleLength = l;
@@ -64,7 +64,7 @@ public class ChoiceFactory
 		{
 			// We always prefer showing choices using suggested actions. If the titles are too long, however,
 			// we'll have to show them as a text list.
-			return SuggestedAction(list, text, speak);
+			return SuggestedActionChoice(list, text, speak);
 		}
 		else if (!longTitles && list.size() <= 3)
 		{
@@ -74,7 +74,7 @@ public class ChoiceFactory
 		else
 		{
 			// Show a numbered list.
-			return List(list, text, speak, options);
+			return ListChoice(list, text, speak, options);
 		}
 	}
 
@@ -118,7 +118,7 @@ public class ChoiceFactory
 		{
 			Choice choice = choices.get(index);
 
-			boolean title = choice.action() != null && choice.action().title() != null ? choice.action().title() : choice.value();
+			String title = choice.action() != null && choice.action().title() != null ? choice.action().title() : choice.value();
 
 			txt += String.format("%1$s", connector);
 			if (opt.includeNumbers().get())
@@ -198,10 +198,10 @@ public class ChoiceFactory
 		{
 			Choice choice = choices.get(index);
 
-			boolean title = choice.action() != null && choice.action().title() != null ? choice.action().title() : choice.value();
+			String title = choice.action() != null && choice.action().title() != null ? choice.action().title() : choice.value();
 
 			txt += connector;
-			if (includeNumbers)
+			if (includeNumbers.orElse(false))
 			{
 				txt += (String.valueOf(index)) + ". ";
 			}
@@ -231,7 +231,7 @@ public class ChoiceFactory
 
 	public static Activity SuggestedAction(List<String> choices, String text, String speak)
 	{
-		return SuggestedAction(ToChoices(choices), text, speak);
+		return SuggestedActionChoice(ToChoices(choices), text, speak);
 	}
 
 

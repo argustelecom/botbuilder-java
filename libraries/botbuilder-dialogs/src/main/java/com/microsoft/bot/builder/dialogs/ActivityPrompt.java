@@ -12,10 +12,7 @@ import com.microsoft.bot.schema.models.Activity;
 import com.microsoft.bot.schema.models.InputHints;
 import org.apache.commons.lang3.StringUtils;
 
-
-
-
-/** 
+/**
  Basic configuration options supported by all prompts.
 */
 public abstract class ActivityPrompt extends Dialog
@@ -52,7 +49,7 @@ public abstract class ActivityPrompt extends Dialog
 
             // Ensure prompts have input hint set
             PromptOptions opt = (PromptOptions)options;
-            if (opt.getPrompt() != null && StringUtils.isBlank(opt.getPrompt().inputHint()))
+            if (opt.getPrompt() != null && StringUtils.isBlank(opt.getPrompt().inputHint().toString()))
             {
                 opt.getPrompt().withInputHint(InputHints.EXPECTING_INPUT);
             }
@@ -71,7 +68,7 @@ public abstract class ActivityPrompt extends Dialog
             OnPromptAsync(dc.getContext(), (Map<String, Object>)state.get(PersistedState), (PromptOptions)state.get(PersistedOptions)).get();
             return Dialog.EndOfTurn;
 
-        });
+        }, dc.getContext().executorService());
 	}
 
 
@@ -121,7 +118,7 @@ public abstract class ActivityPrompt extends Dialog
                 return Dialog.EndOfTurn;
             }
 
-        });
+        }, dc.getContext().executorService());
 	}
 
 
@@ -143,7 +140,12 @@ public abstract class ActivityPrompt extends Dialog
             // To avoid the prompt prematurely ending we need to implement this method and
             // simply re-prompt the user.
 
-            RepromptDialogAsync(dc.getContext(), dc.getActiveDialog()).get();
+            try {
+                RepromptDialogAsync(dc.getContext(), dc.getActiveDialog()).get();
+            } catch (InterruptedException|ExecutionException e) {
+                e.printStackTrace();
+                throw new CompletionException(e);
+            }
             return Dialog.EndOfTurn;
 
         }, dc.getContext().executorService());
@@ -151,52 +153,53 @@ public abstract class ActivityPrompt extends Dialog
 
 
 	@Override
-	public CompletableFuture RepromptDialogAsync(TurnContext turnContext, DialogInstance instance)
-	{
-		return RepromptDialogAsync(turnContext, instance, null);
-	}
-
-
-	@Override
 	public CompletableFuture RepromptDialogAsync(TurnContext turnContext, DialogInstance instance )
 	{
-		Map<String, Object> state = (Map<String, Object>)instance.getState().get(PersistedState);
-		PromptOptions options = (PromptOptions)instance.getState().get(PersistedOptions);
+	    return CompletableFuture.runAsync(() -> {
+            Map<String, Object> state = (Map<String, Object>)instance.getState().get(PersistedState);
+            PromptOptions options = (PromptOptions)instance.getState().get(PersistedOptions);
 
-		OnPromptAsync(turnContext, state, options).get();
+            try {
+                OnPromptAsync(turnContext, state, options).get();
+            } catch (InterruptedException|ExecutionException e) {
+                e.printStackTrace();
+                throw new CompletionException(e);
+            }
+        }, turnContext.executorService());
 	}
-
-
-	protected CompletableFuture OnPromptAsync(TurnContext turnContext, java.util.Map<String, Object> state, PromptOptions options)
-	{
-		return OnPromptAsync(turnContext, state, options, null);
-	}
-
 
 	protected CompletableFuture OnPromptAsync(TurnContext turnContext, Map<String, Object> state, PromptOptions options )
 	{
-		if (turnContext == null)
-		{
-			throw new NullPointerException("turnContext");
-		}
+	    return CompletableFuture.runAsync(() -> {
+            if (turnContext == null)
+            {
+                throw new NullPointerException("turnContext");
+            }
 
-		if (options == null)
-		{
-			throw new NullPointerException("options");
-		}
+            if (options == null)
+            {
+                throw new NullPointerException("options");
+            }
 
-		if (options.getPrompt() != null)
-		{
+            if (options.getPrompt() != null)
+            {
 
-			turnContext.SendActivityAsync(options.getPrompt()).get();
-		}
+                try {
+                    turnContext.SendActivityAsync(options.getPrompt()).get();
+                } catch (Exception e) {
+                    e.printStackTrace();
+                    throw new CompletionException(e);
+                }
+            }
+
+        }, turnContext.executorService());
 	}
 
 	protected CompletableFuture<PromptRecognizerResult<Activity>> OnRecognizeAsync(TurnContext turnContext, Map<String, Object> state, PromptOptions options )
 	{
 		PromptRecognizerResult<Activity> tempVar = new PromptRecognizerResult<Activity>();
-		tempVar.setSucceeded(true);
-		tempVar.setValue(turnContext.activity());
+		tempVar.withSucceeded(true);
+		tempVar.withValue(turnContext.activity());
 		return CompletableFuture.completedFuture(tempVar);
 	}
 }

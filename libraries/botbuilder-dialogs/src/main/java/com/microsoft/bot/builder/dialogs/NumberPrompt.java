@@ -26,7 +26,12 @@ public class NumberPrompt<T> extends Prompt<T>
 		this(dialogId, null, null);
 	}
 
-	public NumberPrompt(String dialogId, PromptValidator<T> validator, String defaultLocale)
+    @Override
+    public CompletableFuture<DialogTurnResult> BeginDialogAsync(DialogContext dc) {
+        return BeginDialogPromptAsync(dc);
+    }
+
+    public NumberPrompt(String dialogId, PromptValidator<T> validator, String defaultLocale)
 	{
 		super(dialogId, validator);
 		setDefaultLocale(defaultLocale);
@@ -92,7 +97,7 @@ public class NumberPrompt<T> extends Prompt<T>
             PromptRecognizerResult<T> result = new PromptRecognizerResult<T>();
             if (turnContext.activity().type() == ActivityTypes.MESSAGE)
             {
-                Activity message = turnContext.activity().AsMessageActivity();
+                Activity message = turnContext.activity();
                 String tempVar = getDefaultLocale();
                 String culture = (turnContext.activity().locale() != null) ? turnContext.activity().locale() : (tempVar != null) ? tempVar : English;
                 var results = NumberRecognizer.RecognizeNumber(message.text(), culture);

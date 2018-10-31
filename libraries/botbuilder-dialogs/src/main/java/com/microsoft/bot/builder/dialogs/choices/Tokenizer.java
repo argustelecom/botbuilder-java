@@ -31,8 +31,8 @@ public class Tokenizer implements TokenizerFunction
 		return DefaultTokenizer.tokenize(text, null);
 	}
 
-    @Override
-    public static List<Token> tokenize(String text, Optional<String> locale) {
+
+    public List<Token> tokenize(String text, Optional<String> locale) {
 		ArrayList<Token> tokens = new ArrayList<Token>();
 		Token token = null;
 

@@ -6,18 +6,14 @@ package com.microsoft.bot.builder.dialogs;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
-import com.google.gson.JsonObject;
 import com.microsoft.bot.builder.BotAssert;
 import com.microsoft.bot.builder.BotFrameworkAdapter;
 import com.microsoft.bot.builder.TurnContext;
 import com.microsoft.bot.schema.models.*;
 import com.microsoft.bot.schema.ActivityImpl;
-import jdk.nashorn.internal.runtime.regexp.joni.Regex;
 import org.apache.commons.lang3.StringUtils;
 
 import java.net.URISyntaxException;
-import java.time.temporal.ChronoField;
-import java.time.temporal.TemporalUnit;
 import java.util.*;
 import java.time.*;
 import java.util.concurrent.CompletableFuture;
@@ -104,57 +100,71 @@ public class OAuthPrompt extends Dialog
 	@Override
 	public CompletableFuture<DialogTurnResult> BeginDialogAsync(DialogContext dc, Object options )
 	{
-		if (dc == null)
-		{
-			throw new NullPointerException("dc");
-		}
+	    return CompletableFuture.supplyAsync(() -> {
+            if (dc == null)
+            {
+                throw new NullPointerException("dc");
+            }
 
-		PromptOptions opt = null;
-		if (options != null)
-		{
-			if (options instanceof PromptOptions)
-			{
-				// Ensure prompts have input hint set
-				opt = options instanceof PromptOptions ? (PromptOptions)options : null;
-				if (opt.getPrompt() != null && StringUtils.isBlank(opt.getPrompt().inputHint().toString()))
-				{
-					opt.getPrompt().withInputHint(InputHints.EXPECTING_INPUT);
-				}
+            PromptOptions opt = null;
+            if (options != null)
+            {
+                if (options instanceof PromptOptions)
+                {
+                    // Ensure prompts have input hint set
+                    opt = options instanceof PromptOptions ? (PromptOptions)options : null;
+                    if (opt.getPrompt() != null && StringUtils.isBlank(opt.getPrompt().inputHint().toString()))
+                    {
+                        opt.getPrompt().withInputHint(InputHints.EXPECTING_INPUT);
+                    }
 
-				if (opt.getRetryPrompt() != null && StringUtils.isBlank(opt.getRetryPrompt().inputHint()))
-				{
-					opt.getRetryPrompt().withInputHint(InputHints.EXPECTING_INPUT);
-				}
-			}
-			else
-			{
-				throw new IllegalArgumentException("options");
-			}
-		}
+                    if (opt.getRetryPrompt() != null && StringUtils.isBlank(opt.getRetryPrompt().inputHint()))
+                    {
+                        opt.getRetryPrompt().withInputHint(InputHints.EXPECTING_INPUT);
+                    }
+                }
+                else
+                {
+                    throw new IllegalArgumentException("options");
+                }
+            }
 
-		// Initialize state
-		Optional<Integer> tempVar = _settings.getTimeout();
-		int timeout = tempVar.orElse(DefaultPromptTimeout);
-		Map<String, Object> state = dc.getActiveDialog().getState();
-		state.put(PersistedOptions, opt);
-		state.put(PersistedState, new HashMap<String, Object>());
-		state.put(PersistedExpires, OffsetDateTime.now().plus(Duration.ofMillis(timeout)));
+            // Initialize state
+            Optional<Integer> tempVar = _settings.getTimeout();
+            int timeout = tempVar.orElse(DefaultPromptTimeout);
+            Map<String, Object> state = dc.getActiveDialog().getState();
+            state.put(PersistedOptions, opt);
+            state.put(PersistedState, new HashMap<String, Object>());
+            state.put(PersistedExpires, OffsetDateTime.now().plus(Duration.ofMillis(timeout)));
 
-		// Attempt to get the users token
-        TokenResponse output = GetUserTokenAsync(dc.getContext()).get();
-		if (output != null)
-		{
-			// Return token
+            // Attempt to get the users token
+            TokenResponse output = null;
+            try {
+                output = GetUserTokenAsync(dc.getContext()).get();
+            } catch (InterruptedException|ExecutionException e) {
+                e.printStackTrace();
+                throw new CompletionException(e);
+            }
 
-			return dc.EndDialogAsync(output).get();
-		}
-		else
-		{
-			// Prompt user to login
+            if (output != null)
+            {
+                // Return token
+                try {
+                    return dc.EndDialogAsync(output).get();
+                } catch (InterruptedException|ExecutionException e) {
+                    e.printStackTrace();
+                    throw new CompletionException(e);
+                }
+            }
+            else
+            {
+                // Prompt user to login
 
-			SendOAuthCardAsync(dc.getContext(), opt == null ? null : opt.getPrompt()).get();
-			return Dialog.EndOfTurn;
-		}
+                SendOAuthCardAsync(dc.getContext(), opt == null ? null : opt.getPrompt()).get();
+                return Dialog.EndOfTurn;
+            }
+
+        });
 	}
 
 
@@ -168,18 +178,23 @@ public class OAuthPrompt extends Dialog
             }
 
             // Recognize token
-            PromptRecognizerResult recognized = RecognizeTokenAsync(dc.getContext()).get();
+            PromptRecognizerResult recognized = null;
+            try {
+                recognized = RecognizeTokenAsync(dc.getContext()).get();
+            } catch (InterruptedException|ExecutionException e) {
+                e.printStackTrace();
+                throw new CompletionException(e);
+            }
 
             // Check for timeout
             Map<String, Object> state = dc.getActiveDialog().getState();
-            LocalDateTime expires = (LocalDateTime)state.get(PersistedExpires);
+            OffsetDateTime expires = (OffsetDateTime)state.get(PersistedExpires);
             boolean isMessage = dc.getContext().activity().type() == ActivityTypes.MESSAGE;
-            boolean hasTimedOut = isMessage && (LocalDateTime.Compare(LocalDateTime.now(), expires) > 0);
+            boolean hasTimedOut = isMessage && (OffsetDateTime.Compare(OffsetDateTime.now(), expires) > 0);
 
             if (hasTimedOut)
             {
                 // if the token fetch request timesout, complete the prompt with no result.
-
                 try {
                     return dc.EndDialogAsync().get();
                 } catch (InterruptedException|ExecutionException e) {
