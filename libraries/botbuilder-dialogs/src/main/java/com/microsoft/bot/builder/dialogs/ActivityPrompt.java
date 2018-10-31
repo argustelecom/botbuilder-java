@@ -6,7 +6,10 @@ import java.util.*;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.CompletionException;
 import java.util.concurrent.ExecutionException;
+
+import com.microsoft.bot.builder.TurnContext;
 import com.microsoft.bot.schema.models.Activity;
+import com.microsoft.bot.schema.models.InputHints;
 import org.apache.commons.lang3.StringUtils;
 
 
@@ -44,14 +47,14 @@ public abstract class ActivityPrompt extends Dialog
 
             if (!(options instanceof PromptOptions))
             {
-                throw new IndexOutOfBoundsException("options", "Prompt options are required for Prompt dialogs");
+                throw new IndexOutOfBoundsException("Prompt options are required for Prompt dialogs");
             }
 
             // Ensure prompts have input hint set
             PromptOptions opt = (PromptOptions)options;
-            if (opt.getPrompt() != null && StringUtils.isBlank(opt.getPrompt().InputHint))
+            if (opt.getPrompt() != null && StringUtils.isBlank(opt.getPrompt().inputHint()))
             {
-                opt.getPrompt().InputHint = InputHints.ExpectingInput;
+                opt.getPrompt().withInputHint(InputHints.EXPECTING_INPUT);
             }
 
             if (opt.getRetryPrompt() != null && StringUtils.isBlank(opt.getRetryPrompt().InputHint))
@@ -124,8 +127,6 @@ public abstract class ActivityPrompt extends Dialog
 	}
 
 
-//ORIGINAL LINE: public override async CompletableFuture<DialogTurnResult> ResumeDialogAsync(DialogContext dc, DialogReason reason, object result = null, CancellationToken cancellationToken = default(CancellationToken))
-//C# TO JAVA CONVERTER NOTE: Java does not support optional parameters. Overloaded method(s) are created above:
 	@Override
 	public CompletableFuture<DialogTurnResult> ResumeDialogAsync(DialogContext dc, DialogReason reason, Object result )
 	{
@@ -135,7 +136,7 @@ public abstract class ActivityPrompt extends Dialog
 		// To avoid the prompt prematurely ending we need to implement this method and
 		// simply re-prompt the user.
 
-		await RepromptDialogAsync(dc.getContext(), dc.getActiveDialog()).get();
+		RepromptDialogAsync(dc.getContext(), dc.getActiveDialog()).get();
 		return Dialog.EndOfTurn;
 	}
 
@@ -147,15 +148,13 @@ public abstract class ActivityPrompt extends Dialog
 	}
 
 
-//ORIGINAL LINE: public override async CompletableFuture RepromptDialogAsync(TurnContext turnContext, DialogInstance instance, CancellationToken cancellationToken = default(CancellationToken))
-//C# TO JAVA CONVERTER NOTE: Java does not support optional parameters. Overloaded method(s) are created above:
 	@Override
 	public CompletableFuture RepromptDialogAsync(TurnContext turnContext, DialogInstance instance )
 	{
 		Map<String, Object> state = (Map<String, Object>)instance.getState().get(PersistedState);
 		PromptOptions options = (PromptOptions)instance.getState().get(PersistedOptions);
 
-		await OnPromptAsync(turnContext, state, options).get();
+		OnPromptAsync(turnContext, state, options).get();
 	}
 
 
@@ -165,8 +164,6 @@ public abstract class ActivityPrompt extends Dialog
 	}
 
 
-//ORIGINAL LINE: protected virtual async CompletableFuture OnPromptAsync(TurnContext turnContext, IDictionary<string, object> state, PromptOptions options, CancellationToken cancellationToken = default(CancellationToken))
-//C# TO JAVA CONVERTER NOTE: Java does not support optional parameters. Overloaded method(s) are created above:
 	protected CompletableFuture OnPromptAsync(TurnContext turnContext, Map<String, Object> state, PromptOptions options )
 	{
 		if (turnContext == null)
@@ -182,23 +179,15 @@ public abstract class ActivityPrompt extends Dialog
 		if (options.getPrompt() != null)
 		{
 
-			await turnContext.SendActivityAsync(options.getPrompt()).get();
+			turnContext.SendActivityAsync(options.getPrompt()).get();
 		}
 	}
 
-
-	protected CompletableFuture<PromptRecognizerResult<Activity>> OnRecognizeAsync(TurnContext turnContext, java.util.Map<String, Object> state, PromptOptions options)
-	{
-		return OnRecognizeAsync(turnContext, state, options, null);
-	}
-
-//C# TO JAVA CONVERTER NOTE: Java does not support optional parameters. Overloaded method(s) are created above:
-//ORIGINAL LINE: protected virtual CompletableFuture<PromptRecognizerResult<Activity>> OnRecognizeAsync(TurnContext turnContext, IDictionary<string, object> state, PromptOptions options, CancellationToken cancellationToken = default(CancellationToken))
 	protected CompletableFuture<PromptRecognizerResult<Activity>> OnRecognizeAsync(TurnContext turnContext, Map<String, Object> state, PromptOptions options )
 	{
 		PromptRecognizerResult<Activity> tempVar = new PromptRecognizerResult<Activity>();
 		tempVar.setSucceeded(true);
-		tempVar.setValue(turnContext.Activity);
-		return Task.FromResult(tempVar);
+		tempVar.setValue(turnContext.activity());
+		return CompletableFuture.completedFuture(tempVar);
 	}
 }

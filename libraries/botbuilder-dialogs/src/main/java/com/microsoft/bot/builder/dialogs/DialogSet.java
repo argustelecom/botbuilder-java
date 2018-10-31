@@ -21,7 +21,11 @@ public class DialogSet
 
 	public DialogSet(StatePropertyAccessor<DialogState> dialogState)
 	{
-		_dialogState = (dialogState != null) ? dialogState : throw new NullPointerException(String.format("missing %1$s", "dialogState"));
+	    if (dialogState == null)
+        {
+            throw new NullPointerException(String.format("missing %1$s", "dialogState"));
+        }
+		_dialogState = dialogState;
 	}
 
 	public DialogSet()

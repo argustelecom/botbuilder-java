@@ -3,7 +3,6 @@
 
 package com.microsoft.bot.builder.dialogs;
 
-import Newtonsoft.Json.Linq.*;
 import com.microsoft.bot.builder.BotAssert;
 import com.microsoft.bot.builder.TurnContext;
 import com.microsoft.bot.schema.models.Activity;
@@ -15,6 +14,8 @@ import org.apache.commons.lang3.StringUtils;
 import java.util.*;
 import java.time.*;
 import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.CompletionException;
+import java.util.concurrent.ExecutionException;
 
 
 /**
@@ -75,7 +76,11 @@ public class OAuthPrompt extends Dialog
 	public OAuthPrompt(String dialogId, OAuthPromptSettings settings, PromptValidator<TokenResponse> validator)
 	{
 		super(dialogId);
-		_settings = (settings != null) ? settings : throw new NullPointerException("settings");
+		if (settings == null)
+        {
+            throw new NullPointerException("settings");
+        }
+		_settings = settings;
 		_validator = (PromptValidatorContext promptContext ) -> validator.invoke(promptContext);
 	}
 
@@ -133,20 +138,20 @@ public class OAuthPrompt extends Dialog
 		state.put(PersistedExpires, LocalDateTime.now().AddMilliseconds(timeout));
 
 		// Attempt to get the users token
-//C# TO JAVA CONVERTER TODO TASK: There is no equivalent to implicit typing in Java unless the Java 10 inferred typing option is selected:
 
-		var output = GetUserTokenAsync(dc.getContext()).get();
+
+        TokenResponse output = GetUserTokenAsync(dc.getContext()).get();
 		if (output != null)
 		{
 			// Return token
 
-			return await dc.EndDialogAsync(output).get();
+			return dc.EndDialogAsync(output).get();
 		}
 		else
 		{
 			// Prompt user to login
 
-			await SendOAuthCardAsync(dc.getContext(), opt == null ? null : opt.getPrompt()).get();
+			SendOAuthCardAsync(dc.getContext(), opt == null ? null : opt.getPrompt()).get();
 			return Dialog.EndOfTurn;
 		}
 	}
@@ -159,8 +164,6 @@ public class OAuthPrompt extends Dialog
 	}
 
 
-//ORIGINAL LINE: public override async CompletableFuture<DialogTurnResult> ContinueDialogAsync(DialogContext dc, CancellationToken cancellationToken = default(CancellationToken))
-//C# TO JAVA CONVERTER NOTE: Java does not support optional parameters. Overloaded method(s) are created above:
 	@Override
 	public CompletableFuture<DialogTurnResult> ContinueDialogAsync(DialogContext dc )
 	{
@@ -170,22 +173,25 @@ public class OAuthPrompt extends Dialog
 		}
 
 		// Recognize token
-//C# TO JAVA CONVERTER TODO TASK: There is no equivalent to implicit typing in Java unless the Java 10 inferred typing option is selected:
-
-		var recognized = await RecognizeTokenAsync(dc.getContext()).get();
+        PromptRecognizerResult recognized = RecognizeTokenAsync(dc.getContext()).get();
 
 		// Check for timeout
 		Map<String, Object> state = dc.getActiveDialog().getState();
 		LocalDateTime expires = (LocalDateTime)state.get(PersistedExpires);
-		boolean isMessage = dc.getContext().Activity.Type == ActivityTypes.Message;
+		boolean isMessage = dc.getContext().activity().type() == ActivityTypes.MESSAGE;
 		boolean hasTimedOut = isMessage && (LocalDateTime.Compare(LocalDateTime.now(), expires) > 0);
 
 		if (hasTimedOut)
 		{
 			// if the token fetch request timesout, complete the prompt with no result.
 
-			return await dc.EndDialogAsync(cancellationToken).get();
-		}
+            try {
+                return dc.EndDialogAsync().get();
+            } catch (InterruptedException|ExecutionException e) {
+                e.printStackTrace();
+                throw new CompletionException(e);
+            }
+        }
 		else
 		{
 			Map<String, Object> promptState = (Map<String, Object>)state.get(PersistedState);
@@ -197,9 +203,9 @@ public class OAuthPrompt extends Dialog
 			{
 				PromptValidatorContext<TokenResponse> promptContext = new PromptValidatorContext<TokenResponse>(dc.getContext(), recognized, promptState, promptOptions);
 
-				isValid = await _validator.invoke(promptContext).get();
+				isValid = _validator.invoke(promptContext).get();
 			}
-			else if (recognized.Succeeded)
+			else if (recognized.getSucceeded())
 			{
 				isValid = true;
 			}
@@ -208,14 +214,14 @@ public class OAuthPrompt extends Dialog
 			if (isValid)
 			{
 
-				return await dc.EndDialogAsync(recognized.Value).get();
+				return dc.EndDialogAsync(recognized.getValue()).get();
 			}
 			else
 			{
-				if (!dc.getContext().Responded && isMessage && promptOptions != null && promptOptions.getRetryPrompt() != null)
+				if (!dc.getContext().responded() && isMessage && promptOptions != null && promptOptions.getRetryPrompt() != null)
 				{
 
-					await dc.getContext().SendActivityAsync(promptOptions.getRetryPrompt()).get();
+					dc.getContext().SendActivityAsync(promptOptions.getRetryPrompt()).get();
 				}
 
 				return Dialog.EndOfTurn;
@@ -250,9 +256,9 @@ public class OAuthPrompt extends Dialog
 			magicCode = value.GetValue("state") == null ? null : value.GetValue("state").toString();
 		}
 
-		if (turnContext.Activity.Type == ActivityTypes.Message && _magicCodeRegex.IsMatch(turnContext.Activity.Text))
+		if (turnContext.activity().type() == ActivityTypes.MESSAGE && _magicCodeRegex.IsMatch(turnContext.Activity.Text))
 		{
-			magicCode = turnContext.Activity.Text;
+			magicCode = turnContext.activity().text();
 		}
 
 
@@ -398,7 +404,7 @@ public class OAuthPrompt extends Dialog
 			{
 //C# TO JAVA CONVERTER TODO TASK: Java has no equivalent to C# pattern variables in 'is' expressions:
 //ORIGINAL LINE: if (!(turnContext.Adapter is BotFrameworkAdapter adapter))
-				if (!(turnContext.Adapter instanceof BotFrameworkAdapter adapter))
+				if (!(turnContext.adapter() instanceof BotFrameworkAdapter adapter))
 				{
 					throw new IllegalStateException("OAuthPrompt.Recognize(): not supported by the current adapter");
 				}

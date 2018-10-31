@@ -133,7 +133,7 @@ public abstract class Prompt<T> extends Dialog
 			if (!dc.getContext().Responded)
 			{
 
-				await OnPromptAsync(dc.getContext(), state, options, true).get();
+				OnPromptAsync(dc.getContext(), state, options, true).get();
 			}
 
 			return Dialog.EndOfTurn;
@@ -175,19 +175,17 @@ public abstract class Prompt<T> extends Dialog
 	}
 
 
-//ORIGINAL LINE: public override async CompletableFuture RepromptDialogAsync(TurnContext turnContext, DialogInstance instance, CancellationToken cancellationToken = default(CancellationToken))
-//C# TO JAVA CONVERTER NOTE: Java does not support optional parameters. Overloaded method(s) are created above:
 	@Override
 	public CompletableFuture RepromptDialogAsync(TurnContext turnContext, DialogInstance instance )
 	{
 		Map<String, Object> state = (Map<String, Object>)instance.getState().get(PersistedState);
 		PromptOptions options = (PromptOptions)instance.getState().get(PersistedOptions);
 
-		await OnPromptAsync(turnContext, state, options, false).get();
+		OnPromptAsync(turnContext, state, options, false).get();
 	}
 
 
-	protected final abstract CompletableFuture OnPromptAsync(TurnContext turnContext, java.util.Map<String, Object> state, PromptOptions options, boolean isRetry);
+	protected final abstract CompletableFuture OnPromptAsync(TurnContext turnContext, Map<String, Object> state, PromptOptions options, boolean isRetry);
 	protected abstract CompletableFuture OnPromptAsync(TurnContext turnContext, Map<String, Object> state, PromptOptions options, boolean isRetry );
 
 

@@ -1,6 +1,10 @@
 package com.microsoft.bot.builder.dialogs.choices;
 
-import com.microsoft.bot.builder.dialogs.*;
+import com.microsoft.bot.builder.MessageFactory;
+import com.microsoft.bot.schema.models.ActionTypes;
+import com.microsoft.bot.schema.models.CardAction;
+import com.microsoft.bot.schema.models.InputHints;
+
 import java.util.*;
 
 // Copyright (c) Microsoft Corporation. All rights reserved.
@@ -95,9 +99,9 @@ public class ChoiceFactory
 
 		ChoiceFactoryOptions opt = new ChoiceFactoryOptions();
 		String tempVar = options.getInlineSeparator();
-		opt.setInlineSeparator((tempVar != null) ? tempVar : ", ");
+		opt.withInlineSeparator((tempVar != null) ? tempVar : ", ");
 		String tempVar2 = options.getInlineOr();
-		opt.setInlineOr((tempVar2 != null) ? tempVar2 : " or ");
+		opt.withInlineOr((tempVar2 != null) ? tempVar2 : " or ");
 		String tempVar3 = options.getInlineOrMore();
 		opt.setInlineOrMore((tempVar3 != null) ? tempVar3 : ", or ");
 		Nullable<Boolean> tempVar4 = options.getIncludeNumbers();
@@ -117,7 +121,7 @@ public class ChoiceFactory
 			txt += String.format("%1$s", connector);
 			if (opt.getIncludeNumbers().get())
 			{
-				txt += "(" + (String.valueOf(index) + ") ";
+				txt += "(" + (String.valueOf(index)) + ") ";
 			}
 
 			txt += String.format("%1$s", title);
@@ -201,7 +205,7 @@ public class ChoiceFactory
 			txt += connector;
 			if (includeNumbers)
 			{
-				txt += (String.valueOf(index) + ". ";
+				txt += (String.valueOf(index)) + ". ";
 			}
 			else
 			{
@@ -252,18 +256,18 @@ public class ChoiceFactory
 		choices = (choices != null) ? choices : new ArrayList<Choice>();
 
 		// Map choices to actions
-		ArrayList<Object> actions = choices.Select((choice) ->
+		ArrayList<Object> actions = choices.stream().map((choice) ->
 		{
-				if (choice.Action != null)
+				if (choice.getAction() != null)
 				{
-					return choice.Action;
+					return choice.getAction();
 				}
 				else
 				{
-					CardAction tempVar = new CardAction();
-					tempVar.Type = ActionTypes.ImBack;
-					tempVar.Value = choice.Value;
-					tempVar.Title = choice.Value;
+					CardAction tempVar = new CardAction()
+						.withType(ActionTypes.IM_BACK)
+						.withValue(choice.getValue())
+						.withTitle(choice.getValue());
 					return tempVar;
 				}
 		}).ToList();

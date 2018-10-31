@@ -15,7 +15,28 @@ import org.apache.commons.lang3.StringUtils;
 
 public class ChoicePrompt extends Prompt<FoundChoice>
 {
-	private static final HashMap<String, ChoiceFactoryOptions> DefaultChoiceOptions = new HashMap<String, ChoiceFactoryOptions>(Map.ofEntries(Map.entry(Spanish, new ChoiceFactoryOptions {InlineSeparator = ", ", InlineOr = " o ", InlineOrMore = ", o ", IncludeNumbers = true}), Map.entry(Dutch, new ChoiceFactoryOptions {InlineSeparator = ", ", InlineOr = " of ", InlineOrMore = ", of ", IncludeNumbers = true}), Map.entry(English, new ChoiceFactoryOptions {InlineSeparator = ", ", InlineOr = " or ", InlineOrMore = ", or ", IncludeNumbers = true}), Map.entry(French, new ChoiceFactoryOptions {InlineSeparator = ", ", InlineOr = " ou ", InlineOrMore = ", ou ", IncludeNumbers = true}), Map.entry(German, new ChoiceFactoryOptions {InlineSeparator = ", ", InlineOr = " oder ", InlineOrMore = ", oder ", IncludeNumbers = true}), Map.entry(Japanese, new ChoiceFactoryOptions {InlineSeparator = "、 ", InlineOr = " または ", InlineOrMore = "、 または ", IncludeNumbers = true}), Map.entry(Portuguese, new ChoiceFactoryOptions {InlineSeparator = ", ", InlineOr = " ou ", InlineOrMore = ", ou ", IncludeNumbers = true}), Map.entry(Chinese, new ChoiceFactoryOptions {InlineSeparator = "， ", InlineOr = " 要么 ", InlineOrMore = "， 要么 ", IncludeNumbers = true})));
+    public static String English = "en-us";
+    public static String EnglishOthers = "en-*";
+    public static String Chinese = "zh-cn";
+    public static String Spanish = "es-es";
+    public static String Portuguese = "pt-br";
+    public static String French = "fr-fr";
+    public static String German = "de-de";
+    public static String Italian = "it-it";
+    public static String Japanese = "ja-jp";
+    public static String Dutch = "nl-nl";
+    public static String Korean = "ko-kr";
+
+    private static final HashMap<String, ChoiceFactoryOptions> DefaultChoiceOptions = new HashMap<String, ChoiceFactoryOptions>() {{
+        put(Spanish, new ChoiceFactoryOptions().withInlineSeparator(", ").withInlineOr(" o ").withInlineOrMore(", o ").withIncludeNumbers(Optional.of(true)));
+        put(Dutch, new ChoiceFactoryOptions().withInlineSeparator(", ").withInlineOr(" of ").withInlineOrMore(", of ").withIncludeNumbers(Optional.of(true)));
+        put(English, new ChoiceFactoryOptions().withInlineSeparator(", ").withInlineOr(" or ").withInlineOrMore(", or ").withIncludeNumbers(Optional.of(true)));
+        put(French, new ChoiceFactoryOptions().withInlineSeparator(", ").withInlineOr(" ou ").withInlineOrMore(", ou ").withIncludeNumbers(Optional.of(true)));
+        put(German, new ChoiceFactoryOptions().withInlineSeparator(", ").withInlineOr(" oder ").withInlineOrMore(", oder ").withIncludeNumbers(Optional.of(true)));
+        put(Japanese, new ChoiceFactoryOptions().withInlineSeparator(", ").withInlineOr(" または ").withInlineOrMore("、 または ").withIncludeNumbers(Optional.of(true)));
+        put(Portuguese, new ChoiceFactoryOptions().withInlineSeparator(", ").withInlineOr(" ou ").withInlineOrMore(", ou ").withIncludeNumbers(Optional.of(true)));
+        put(Chinese, new ChoiceFactoryOptions().withInlineSeparator("， ").withInlineOr(" 要么 ").withInlineOrMore("， 要么 ").withIncludeNumbers(Optional.of(true)));
+    }};
 
 
 	public ChoicePrompt(String dialogId, PromptValidator<FoundChoice> validator)
