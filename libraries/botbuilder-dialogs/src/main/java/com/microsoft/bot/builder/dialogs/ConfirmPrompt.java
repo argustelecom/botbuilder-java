@@ -4,16 +4,15 @@
 package com.microsoft.bot.builder.dialogs;
 
 import com.microsoft.bot.builder.TurnContext;
-import com.microsoft.bot.builder.dialogs.choices.Choice;
-import com.microsoft.bot.builder.dialogs.choices.ChoiceFactoryOptions;
-import com.microsoft.bot.builder.dialogs.choices.ChoiceTuple;
+import com.microsoft.bot.builder.dialogs.choices.*;
+import com.microsoft.bot.schema.models.Activity;
 import com.microsoft.bot.schema.models.ActivityTypes;
-import javafx.util.Pair;
 import org.apache.commons.lang3.StringUtils;
 
 
 import java.util.*;
 import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.CompletionException;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
@@ -154,59 +153,53 @@ public class ConfirmPrompt extends Prompt<Boolean>
 
 
 	@Override
-	protected CompletableFuture OnPromptAsync(TurnContext turnContext, java.util.Map<String, Object> state, PromptOptions options, boolean isRetry)
-	{
-		return OnPromptAsync(turnContext, state, options, isRetry, null);
-	}
-
-
-	@Override
 	protected CompletableFuture OnPromptAsync(TurnContext turnContext, Map<String, Object> state, PromptOptions options, boolean isRetry )
 	{
-		if (turnContext == null)
-		{
-			throw new NullPointerException("turnContext");
-		}
+		return CompletableFuture.supplyAsync(() -> {
+            if (turnContext == null)
+            {
+                throw new NullPointerException("turnContext");
+            }
 
-		if (options == null)
-		{
-			throw new NullPointerException("options");
-		}
+            if (options == null)
+            {
+                throw new NullPointerException("options");
+            }
 
-		// Determine culture
-		String culture = (turnContext.activity().locale() != null) ? turnContext.activity().locale() : getDefaultLocale();
-		if (StringUtils.isBlank(culture) || !DefaultChoiceOptions.containsKey(culture))
-		{
-			culture = English;
-		}
+            // Determine culture
+            String culture = (turnContext.activity().locale() != null) ? turnContext.activity().locale() : getDefaultLocale();
+            if (StringUtils.isBlank(culture) || !DefaultChoiceOptions.containsKey(culture))
+            {
+                culture = English;
+            }
 
-		// Format prompt to send
-		IMessageActivity prompt;
-		String channelId = turnContext.activity().channelId();
-		ChoiceFactoryOptions tempVar = getChoiceOptions();
-		ChoiceFactoryOptions choiceOptions = (tempVar != null) ? tempVar : DefaultChoiceOptions.get(culture);
-		ChoiceTuple tempVar2 = getConfirmChoices();
-		ChoiceTuple confirmChoices = (tempVar2 != null) ? tempVar2 : DefaultConfirmChoices.get(culture);
-		ArrayList<Choice> choices = new ArrayList<Choice>(Arrays.asList(confirmChoices.Item1, confirmChoices.Item2));
-		if (isRetry && options.getRetryPrompt() != null)
-		{
-			prompt = AppendChoices(options.getRetryPrompt(), channelId, choices, getStyle(), choiceOptions);
-		}
-		else
-		{
-			prompt = AppendChoices(options.getPrompt(), channelId, choices, getStyle(), choiceOptions);
-		}
+            // Format prompt to send
+            Activity prompt;
+            String channelId = turnContext.activity().channelId();
+            ChoiceFactoryOptions tempVar = getChoiceOptions();
+            ChoiceFactoryOptions choiceOptions = (tempVar != null) ? tempVar : DefaultChoiceOptions.get(culture);
+            ChoiceTuple tempVar2 = getConfirmChoices();
+            ChoiceTuple confirmChoices = (tempVar2 != null) ? tempVar2 : DefaultConfirmChoices.get(culture);
+            ArrayList<Choice> choices = new ArrayList<Choice>(Arrays.asList(confirmChoices.Item1, confirmChoices.Item2));
+            if (isRetry && options.getRetryPrompt() != null)
+            {
+                prompt = AppendChoices(options.getRetryPrompt(), channelId, choices, getStyle(), choiceOptions);
+            }
+            else
+            {
+                prompt = AppendChoices(options.getPrompt(), channelId, choices, getStyle(), choiceOptions);
+            }
 
-		// Send prompt
+            // Send prompt
 
-		turnContext.SendActivityAsync(prompt).get();
-	}
-
-
-	@Override
-	protected CompletableFuture<PromptRecognizerResult<Boolean>> OnRecognizeAsync(TurnContext turnContext, java.util.Map<String, Object> state, PromptOptions options)
-	{
-		return OnRecognizeAsync(turnContext, state, options, null);
+            try {
+                turnContext.SendActivityAsync(prompt).get();
+            } catch (Exception e) {
+                e.printStackTrace();
+                throw new CompletionException(e);
+            }
+            return;
+        }, turnContext.executorService());
 	}
 
 	@Override
@@ -222,28 +215,20 @@ public class ConfirmPrompt extends Prompt<Boolean>
             if (turnContext.activity().type() == ActivityTypes.MESSAGE)
             {
                 // Recognize utterance
-//C# TO JAVA CONVERTER TODO TASK: There is no equivalent to implicit typing in Java unless the Java 10 inferred typing option is selected:
-                var message = turnContext.activity().AsMessageActivity();
+                Activity message = turnContext.activity();
                 String tempVar = getDefaultLocale();
-//C# TO JAVA CONVERTER TODO TASK: There is no equivalent to implicit typing in Java unless the Java 10 inferred typing option is selected:
-                var culture = (turnContext.activity().Locale != null) ? turnContext.activity().locale() : (tempVar != null) ? tempVar : English;
-//C# TO JAVA CONVERTER TODO TASK: There is no equivalent to implicit typing in Java unless the Java 10 inferred typing option is selected:
-                var results = ChoiceRecognizer.RecognizeBoolean(message.Text, culture);
+                String culture = (turnContext.activity().locale() != null) ? turnContext.activity().locale() : (tempVar != null) ? tempVar : English;
+                List<ModelResult> results = ChoiceRecognizer.RecognizeBoolean(message.text(), culture);
                 if (results.size() > 0)
                 {
-//C# TO JAVA CONVERTER TODO TASK: There is no equivalent to implicit typing in Java unless the Java 10 inferred typing option is selected:
-                    var first = results[0];
-                    boolean value;
-                    tangible.OutObject<Boolean> tempOut_value = new tangible.OutObject<Boolean>();
-                    if (Boolean.TryParse(first.Resolution["value"].toString(), tempOut_value))
+                    ModelResult first = results.get(0);
+                    boolean value = Boolean.getBoolean(first.getResolution().toString());
+
+                    // TODO: What is the resolution object? getResolution().["value"]
+                    if (Boolean.getBoolean(first.getResolution().toString()))
                     {
-                        value = tempOut_value.argValue;
-                        result.setSucceeded(true);
-                        result.setValue(value);
-                    }
-                    else
-                    {
-                        value = tempOut_value.argValue;
+                        result.withSucceeded(true);
+                        result.withValue(value);
                     }
                 }
                 else
@@ -253,17 +238,17 @@ public class ConfirmPrompt extends Prompt<Boolean>
                     ChoiceFactoryOptions choiceOptions = (tempVar2 != null) ? tempVar2 : DefaultChoiceOptions.get(culture);
 
                     // This logic reflects the fact that IncludeNumbers is nullable and True is the default set in Inline style
-                    if (!choiceOptions.getIncludeNumbers().isPresent() || choiceOptions.getIncludeNumbers().get())
+                    if (!choiceOptions.includeNumbers().isPresent() || choiceOptions.includeNumbers().get())
                     {
                         // The text may be a number in which case we will interpret that as a choice.
                         ChoiceTuple tempVar3 = getConfirmChoices();
                         ChoiceTuple confirmChoices = (tempVar3 != null) ? tempVar3 : DefaultConfirmChoices.get(culture);
                         ArrayList<Choice> choices = new ArrayList<Choice>(Arrays.asList(confirmChoices.item1(), confirmChoices.item2()));
-                        ArrayList<ModelResult<FoundChoice>> secondAttemptResults = ChoiceRecognizers.RecognizeChoices(message.Text, choices);
+                        ArrayList<ModelResult<FoundChoice>> secondAttemptResults = ChoiceRecognizers.RecognizeChoices(message.text(), choices);
                         if (!secondAttemptResults.isEmpty())
                         {
-                            result.setSucceeded(true);
-                            result.setValue(secondAttemptResults.get(0).getResolution().getIndex() == 0);
+                            result.withSucceeded(true);
+                            result.withValue(secondAttemptResults.get(0).getResolution().getIndex() == 0);
                         }
                     }
                 }

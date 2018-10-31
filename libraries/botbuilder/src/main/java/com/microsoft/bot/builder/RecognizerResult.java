@@ -5,7 +5,8 @@ package com.microsoft.bot.builder;
 
 import com.fasterxml.jackson.annotation.JsonAnyGetter;
 import com.fasterxml.jackson.annotation.JsonProperty;
-import com.google.gson.JsonObject;
+import com.fasterxml.jackson.databind.JsonNode;
+
 
 import java.util.*;
 
@@ -80,12 +81,12 @@ public class RecognizerResult implements RecognizerConvert
 	 </value>
 	*/
     @JsonProperty(value = "entities")
-	private JsonObject Entities;
-	public final JsonObject getEntities()
+	private JsonNode Entities;
+	public final JsonNode getEntities()
 	{
 		return Entities;
 	}
-	public final void setEntities(JsonObject value)
+	public final void setEntities(JsonNode value)
 	{
 		Entities = value;
 	}

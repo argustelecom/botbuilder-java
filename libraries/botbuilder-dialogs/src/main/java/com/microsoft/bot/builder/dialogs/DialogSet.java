@@ -57,13 +57,6 @@ public class DialogSet
 		return this;
 	}
 
-
-	public final CompletableFuture<DialogContext> CreateContextAsync(TurnContext turnContext)
-	{
-		return CreateContextAsync(turnContext, null);
-	}
-
-
 	public final CompletableFuture<DialogContext> CreateContextAsync(TurnContext turnContext )
 	{
 		BotAssert.ContextNotNull(turnContext);

@@ -78,21 +78,19 @@ public class WaterfallStepContext extends DialogContext
 	/** 
 	 Used to skip to the next waterfall step.
 	 
-	 @param result Optional result to pass to next step.
 	 @return A <see cref="Task"/> of <see cref="DialogTurnResult"/> representing the asynchronous operation.
 	*/
-
-	public final CompletableFuture<DialogTurnResult> NextAsync(Object result)
-	{
-		return NextAsync(result);
-	}
-
 	public final CompletableFuture<DialogTurnResult> NextAsync()
 	{
 		return NextAsync(null);
 	}
 
+    /**
+     Used to skip to the next waterfall step.
 
+     @param result Optional result to pass to next step.
+     @return A <see cref="Task"/> of <see cref="DialogTurnResult"/> representing the asynchronous operation.
+     */
 	public final CompletableFuture<DialogTurnResult> NextAsync(Object result )
 	{
 		// Ensure next hasn't been called

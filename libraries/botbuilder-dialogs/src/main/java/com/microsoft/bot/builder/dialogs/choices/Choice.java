@@ -17,7 +17,7 @@ public class Choice
 	}
 	public Choice(String value)
 	{
-		setValue(value);
+		withValue(value);
 	}
 
 	/** 
@@ -28,13 +28,14 @@ public class Choice
 	 </value>
 	*/
 	private String Value;
-	public final String getValue()
+	public final String value()
 	{
 		return Value;
 	}
-	public final void setValue(String value)
+	public final Choice withValue(String value)
 	{
 		Value = value;
+		return this;
 	}
 
 	/** 
@@ -45,13 +46,14 @@ public class Choice
 	 </value>
 	*/
 	private CardAction Action;
-	public final CardAction getAction()
+	public final CardAction action()
 	{
 		return Action;
 	}
-	public final void setAction(CardAction value)
+	public final Choice withAction(CardAction value)
 	{
 		Action = value;
+		return this;
 	}
 
 	/** 
@@ -62,12 +64,13 @@ public class Choice
 	 </value>
 	*/
 	private ArrayList<String> Synonyms;
-	public final ArrayList<String> getSynonyms()
+	public final ArrayList<String> synonyms()
 	{
 		return Synonyms;
 	}
-	public final void setSynonyms(ArrayList<String> value)
+	public final Choice withSynonyms(ArrayList<String> value)
 	{
 		Synonyms = value;
+		return this;
 	}
 }

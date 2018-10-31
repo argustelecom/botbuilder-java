@@ -7,13 +7,13 @@ import com.microsoft.bot.builder.dialogs.*;
 import java.util.*;
 
 
-public delegate List<Token> TokenizerFunction(string text, string locale = null);
-
-public class Tokenizer
+public class Tokenizer implements TokenizerFunction
 {
-	public static TokenizerFunction getDefaultTokenizer()
+    public static TokenizerFunction DefaultTokenizer = new Tokenizer();
+
+    public static TokenizerFunction getDefaultTokenizer()
 	{
-		return DefaultTokenizerImpl;
+        return DefaultTokenizer;
 	}
 
 	/** 
@@ -26,13 +26,13 @@ public class Tokenizer
 	 @return A list of tokens.
 	*/
 
-	public static ArrayList<Token> DefaultTokenizerImpl(String text)
+	public static List<Token> DefaultTokenizerImpl(String text)
 	{
-		return DefaultTokenizerImpl(text, null);
+		return DefaultTokenizer.tokenize(text, null);
 	}
 
-	public static ArrayList<Token> DefaultTokenizerImpl(String text, String locale)
-	{
+    @Override
+    public static List<Token> tokenize(String text, Optional<String> locale) {
 		ArrayList<Token> tokens = new ArrayList<Token>();
 		Token token = null;
 
@@ -44,9 +44,9 @@ public class Tokenizer
 		{
 			// Get both the UNICODE value of the current character and the complete character itself
 			// which can potentially be multiple segments.
-			int codePoint = Character.IsSurrogatePair(text, i) ? text.codePointAt(i) : (int)text.charAt(i);
+			int codePoint = Character.isSurrogatePair(text.charAt(i), text.charAt(i+1)) ? text.codePointAt(i) : (int)text.charAt(i);
 
-			String chr = Character.ConvertFromUtf32(codePoint);
+			String chr = String.format("0x%x%n", codePoint); // Character.ConvertFromUtf32(codePoint);
 
 			// Process current character
 			if (IsBreakingChar(codePoint))
@@ -107,4 +107,5 @@ public class Tokenizer
 	{
 		return value >= from && value <= to;
 	}
+
 }

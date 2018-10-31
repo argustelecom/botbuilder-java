@@ -3,19 +3,28 @@
 
 package com.microsoft.bot.builder.dialogs;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.node.ObjectNode;
+import com.google.gson.JsonObject;
 import com.microsoft.bot.builder.BotAssert;
+import com.microsoft.bot.builder.BotFrameworkAdapter;
 import com.microsoft.bot.builder.TurnContext;
-import com.microsoft.bot.schema.models.Activity;
-import com.microsoft.bot.schema.models.ActivityTypes;
-import com.microsoft.bot.schema.models.Attachment;
-import com.microsoft.bot.schema.models.TokenResponse;
+import com.microsoft.bot.schema.models.*;
+import com.microsoft.bot.schema.ActivityImpl;
+import jdk.nashorn.internal.runtime.regexp.joni.Regex;
 import org.apache.commons.lang3.StringUtils;
 
+import java.net.URISyntaxException;
+import java.time.temporal.ChronoField;
+import java.time.temporal.TemporalUnit;
 import java.util.*;
 import java.time.*;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.CompletionException;
 import java.util.concurrent.ExecutionException;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 
 /**
@@ -62,7 +71,8 @@ public class OAuthPrompt extends Dialog
 	private static final int DefaultPromptTimeout = 54000000;
 
 	// regex to check if code supplied is a 6 digit numerical code (hence, a magic code).
-	private final Regex _magicCodeRegex = new Regex("(\\d{6})");
+    Pattern _magicCodeRegex = Pattern.compile("(\\d{6})");
+
 
 	private OAuthPromptSettings _settings;
 	private PromptValidator<TokenResponse> _validator;
@@ -86,17 +96,10 @@ public class OAuthPrompt extends Dialog
 
 
 	@Override
-	public CompletableFuture<DialogTurnResult> BeginDialogAsync(DialogContext dc, Object options)
-	{
-		return BeginDialogAsync(dc, options, null);
-	}
-
-	@Override
 	public CompletableFuture<DialogTurnResult> BeginDialogAsync(DialogContext dc)
 	{
-		return BeginDialogAsync(dc, null, null);
+		return BeginDialogAsync(dc, null);
 	}
-
 
 	@Override
 	public CompletableFuture<DialogTurnResult> BeginDialogAsync(DialogContext dc, Object options )
@@ -113,14 +116,14 @@ public class OAuthPrompt extends Dialog
 			{
 				// Ensure prompts have input hint set
 				opt = options instanceof PromptOptions ? (PromptOptions)options : null;
-				if (opt.getPrompt() != null && StringUtils.isBlank(opt.getPrompt().InputHint))
+				if (opt.getPrompt() != null && StringUtils.isBlank(opt.getPrompt().inputHint().toString()))
 				{
-					opt.getPrompt().InputHint = InputHints.ExpectingInput;
+					opt.getPrompt().withInputHint(InputHints.EXPECTING_INPUT);
 				}
 
-				if (opt.getRetryPrompt() != null && StringUtils.isBlank(opt.getRetryPrompt().InputHint))
+				if (opt.getRetryPrompt() != null && StringUtils.isBlank(opt.getRetryPrompt().inputHint()))
 				{
-					opt.getRetryPrompt().InputHint = InputHints.ExpectingInput;
+					opt.getRetryPrompt().withInputHint(InputHints.EXPECTING_INPUT);
 				}
 			}
 			else
@@ -130,16 +133,14 @@ public class OAuthPrompt extends Dialog
 		}
 
 		// Initialize state
-		Nullable<Integer> tempVar = _settings.getTimeout();
-		int timeout = (tempVar != null) ? tempVar : DefaultPromptTimeout;
+		Optional<Integer> tempVar = _settings.getTimeout();
+		int timeout = tempVar.orElse(DefaultPromptTimeout);
 		Map<String, Object> state = dc.getActiveDialog().getState();
 		state.put(PersistedOptions, opt);
 		state.put(PersistedState, new HashMap<String, Object>());
-		state.put(PersistedExpires, LocalDateTime.now().AddMilliseconds(timeout));
+		state.put(PersistedExpires, OffsetDateTime.now().plus(Duration.ofMillis(timeout)));
 
 		// Attempt to get the users token
-
-
         TokenResponse output = GetUserTokenAsync(dc.getContext()).get();
 		if (output != null)
 		{
@@ -158,75 +159,84 @@ public class OAuthPrompt extends Dialog
 
 
 	@Override
-	public CompletableFuture<DialogTurnResult> ContinueDialogAsync(DialogContext dc)
-	{
-		return ContinueDialogAsync(dc, null);
-	}
-
-
-	@Override
 	public CompletableFuture<DialogTurnResult> ContinueDialogAsync(DialogContext dc )
 	{
-		if (dc == null)
-		{
-			throw new NullPointerException("dc");
-		}
-
-		// Recognize token
-        PromptRecognizerResult recognized = RecognizeTokenAsync(dc.getContext()).get();
-
-		// Check for timeout
-		Map<String, Object> state = dc.getActiveDialog().getState();
-		LocalDateTime expires = (LocalDateTime)state.get(PersistedExpires);
-		boolean isMessage = dc.getContext().activity().type() == ActivityTypes.MESSAGE;
-		boolean hasTimedOut = isMessage && (LocalDateTime.Compare(LocalDateTime.now(), expires) > 0);
-
-		if (hasTimedOut)
-		{
-			// if the token fetch request timesout, complete the prompt with no result.
-
-            try {
-                return dc.EndDialogAsync().get();
-            } catch (InterruptedException|ExecutionException e) {
-                e.printStackTrace();
-                throw new CompletionException(e);
+	    return CompletableFuture.supplyAsync(() -> {
+            if (dc == null)
+            {
+                throw new NullPointerException("dc");
             }
-        }
-		else
-		{
-			Map<String, Object> promptState = (Map<String, Object>)state.get(PersistedState);
-			PromptOptions promptOptions = (PromptOptions)state.get(PersistedOptions);
 
-			// Validate the return value
-			boolean isValid = false;
-			if (_validator != null)
-			{
-				PromptValidatorContext<TokenResponse> promptContext = new PromptValidatorContext<TokenResponse>(dc.getContext(), recognized, promptState, promptOptions);
+            // Recognize token
+            PromptRecognizerResult recognized = RecognizeTokenAsync(dc.getContext()).get();
 
-				isValid = _validator.invoke(promptContext).get();
-			}
-			else if (recognized.getSucceeded())
-			{
-				isValid = true;
-			}
+            // Check for timeout
+            Map<String, Object> state = dc.getActiveDialog().getState();
+            LocalDateTime expires = (LocalDateTime)state.get(PersistedExpires);
+            boolean isMessage = dc.getContext().activity().type() == ActivityTypes.MESSAGE;
+            boolean hasTimedOut = isMessage && (LocalDateTime.Compare(LocalDateTime.now(), expires) > 0);
 
-			// Return recognized value or re-prompt
-			if (isValid)
-			{
+            if (hasTimedOut)
+            {
+                // if the token fetch request timesout, complete the prompt with no result.
 
-				return dc.EndDialogAsync(recognized.getValue()).get();
-			}
-			else
-			{
-				if (!dc.getContext().responded() && isMessage && promptOptions != null && promptOptions.getRetryPrompt() != null)
-				{
+                try {
+                    return dc.EndDialogAsync().get();
+                } catch (InterruptedException|ExecutionException e) {
+                    e.printStackTrace();
+                    throw new CompletionException(e);
+                }
+            }
+            else
+            {
+                Map<String, Object> promptState = (Map<String, Object>)state.get(PersistedState);
+                PromptOptions promptOptions = (PromptOptions)state.get(PersistedOptions);
 
-					dc.getContext().SendActivityAsync(promptOptions.getRetryPrompt()).get();
-				}
+                // Validate the return value
+                boolean isValid = false;
+                if (_validator != null)
+                {
+                    PromptValidatorContext<TokenResponse> promptContext = new PromptValidatorContext<TokenResponse>(dc.getContext(), recognized, promptState, promptOptions);
 
-				return Dialog.EndOfTurn;
-			}
-		}
+                    try {
+                        isValid = _validator.invoke(promptContext).get();
+                    } catch (InterruptedException|ExecutionException e) {
+                        e.printStackTrace();
+                        throw new CompletionException(e);
+                    }
+                }
+                else if (recognized.succeeded())
+                {
+                    isValid = true;
+                }
+
+                // Return recognized value or re-prompt
+                if (isValid)
+                {
+
+                    try {
+                        return dc.EndDialogAsync(recognized.value()).get();
+                    } catch (InterruptedException|ExecutionException e) {
+                        e.printStackTrace();
+                        throw new CompletionException(e);
+                    }
+                }
+                else
+                {
+                    if (!dc.getContext().responded() && isMessage && promptOptions != null && promptOptions.getRetryPrompt() != null)
+                    {
+
+                        try {
+                            dc.getContext().SendActivityAsync(promptOptions.getRetryPrompt()).get();
+                        } catch (Exception e) {
+                            e.printStackTrace();
+                            throw new CompletionException(e);
+                        }
+                    }
+                    return Dialog.EndOfTurn;
+                }
+            }
+        });
 	}
 
 	/** 
@@ -235,28 +245,25 @@ public class OAuthPrompt extends Dialog
 	 @param turnContext Context for the current turn of the conversation with the user.
 	 @return A <see cref="Task"/> representing the asynchronous operation.
 	*/
-
-	public final CompletableFuture<TokenResponse> GetUserTokenAsync(TurnContext turnContext)
-	{
-		return GetUserTokenAsync(turnContext, null);
-	}
-
-
 	public final CompletableFuture<TokenResponse> GetUserTokenAsync(TurnContext turnContext )
 	{
 		String magicCode = null;
-		if (!(turnContext.adapter() instanceof BotFrameworkAdapter adapter))
+
+		if (!(turnContext.adapter() instanceof BotFrameworkAdapter))
 		{
 			throw new IllegalStateException("OAuthPrompt.GetUserToken(): not supported by the current adapter");
 		}
+        BotFrameworkAdapter adapter = (BotFrameworkAdapter) turnContext.adapter();
 
 		if (IsTeamsVerificationInvoke(turnContext))
 		{
-			JObject value = turnContext.activity().Value instanceof JObject ? (JObject)turnContext.Activity.Value : null;
-			magicCode = value.GetValue("state") == null ? null : value.GetValue("state").toString();
+            JsonNode value = turnContext.activity().value() instanceof JsonNode ? (JsonNode)turnContext.activity().value() : null;
+			magicCode = ((ObjectNode)value).get("state") == null ? null : ((ObjectNode)value).get("state").toString();
 		}
 
-		if (turnContext.activity().type() == ActivityTypes.MESSAGE && _magicCodeRegex.IsMatch(turnContext.Activity.Text))
+        Matcher match =  _magicCodeRegex.matcher(turnContext.activity().text());
+
+		if (turnContext.activity().type() == ActivityTypes.MESSAGE && match.find())
 		{
 			magicCode = turnContext.activity().text();
 		}
@@ -271,40 +278,37 @@ public class OAuthPrompt extends Dialog
 	 @param turnContext Context for the current turn of the conversation with the user.
 	 @return A <see cref="Task"/> representing the asynchronous operation.
 	*/
-
-	public final CompletableFuture SignOutUserAsync(TurnContext turnContext)
-	{
-		return SignOutUserAsync(turnContext, null);
-	}
-
-
 	public final CompletableFuture SignOutUserAsync(TurnContext turnContext )
 	{
-		if (!(turnContext.adapter() instanceof BotFrameworkAdapter adapter))
-		{
-			throw new IllegalStateException("OAuthPrompt.SignOutUser(): not supported by the current adapter");
-		}
+	    return CompletableFuture.runAsync(() -> {
+            if (!(turnContext.adapter() instanceof BotFrameworkAdapter))
+            {
+                throw new IllegalStateException("OAuthPrompt.SignOutUser(): not supported by the current adapter");
+            }
+            BotFrameworkAdapter adapter = (BotFrameworkAdapter) turnContext.adapter();
 
-		// Sign out user
-
-		adapter.SignOutUserAsync(turnContext, _settings.getConnectionName(), turnContext.activity() == null ? null : (turnContext.Activity.From == null ? null : turnContext.Activity.From.Id)).get();
+            // Sign out user
+            try {
+                adapter.SignOutUserAsync(turnContext,
+                        _settings.getConnectionName(),
+                        turnContext.activity() == null ? null : (turnContext.activity().from() == null ? null : turnContext.activity().from().id())).get();
+            } catch (InterruptedException|ExecutionException e) {
+                e.printStackTrace();
+                throw new CompletionException(e);
+            }
+        });
 	}
 
 
-	private CompletableFuture SendOAuthCardAsync(TurnContext turnContext, IMessageActivity prompt)
-	{
-		return SendOAuthCardAsync(turnContext, prompt, null);
-	}
-
-
-	private CompletableFuture SendOAuthCardAsync(TurnContext turnContext, IMessageActivity prompt )
+	private CompletableFuture SendOAuthCardAsync(TurnContext turnContext, Activity prompt )
 	{
 		BotAssert.ContextNotNull(turnContext);
 
-		if (!(turnContext.adapter() instanceof BotFrameworkAdapter adapter))
+		if (!(turnContext.adapter() instanceof BotFrameworkAdapter))
 		{
 			throw new IllegalStateException("OAuthPrompt.Prompt(): not supported by the current adapter");
 		}
+        BotFrameworkAdapter adapter = (BotFrameworkAdapter) turnContext.adapter();
 
 		// Ensure prompt initialized
 		if (prompt == null)
@@ -312,50 +316,53 @@ public class OAuthPrompt extends Dialog
 			prompt = ActivityImpl.CreateMessageActivity();
 		}
 
-		if (prompt.Attachments == null)
+		if (prompt.attachments() == null)
 		{
-			prompt.Attachments = new ArrayList<Attachment>();
+			prompt.withAttachments(new ArrayList<Attachment>());
 		}
 
 		// Append appropriate card if missing
 		if (!ChannelSupportsOAuthCard(turnContext.activity().channelId()))
 		{
-			if (!prompt.Attachments.Any(a -> a.Content instanceof SigninCard))
+			if (!prompt.attachments().stream().anyMatch(a -> a.content() instanceof SigninCard))
 			{
-//C# TO JAVA CONVERTER TODO TASK: There is no equivalent to implicit typing in Java unless the Java 10 inferred typing option is selected:
-
-				var link = await adapter.GetOauthSignInLinkAsync(turnContext, _settings.getConnectionName()).get();
-				Attachment tempVar = new Attachment();
-				tempVar.setContentType(SigninCard.ContentType);
-				tempVar.Content = new SigninCard();
-				tempVar.Content.Text = _settings.getText();
+                String link = null;
+                try {
+                    link = adapter.GetOauthSignInLinkAsync(turnContext, _settings.getConnectionName()).get();
+                } catch (InterruptedException|ExecutionException|URISyntaxException|JsonProcessingException e) {
+                    e.printStackTrace();
+                    throw new CompletionException(e);
+                }
+                Attachment tempVar = new Attachment();
+				tempVar.withContentType(SigninCardExt.ContentType);
+                SigninCard signin = new SigninCard().withText(_settings.getText());
+				tempVar.withContent(signin);
 				CardAction tempVar2 = new CardAction();
-				tempVar2.Title = _settings.getTitle();
-				tempVar2.Value = link;
-				tempVar2.Type = ActionTypes.Signin;
-				tempVar.Content.Buttons = new CardAction[] {tempVar2};
-				prompt.Attachments.Add(tempVar);
+				tempVar2.withTitle(_settings.getTitle());
+				tempVar2.withValue(link);
+				tempVar2.withType(ActionTypes.SIGNIN);
+                signin.withButtons(new ArrayList<CardAction>() {{ add(tempVar2); }});
+				prompt.attachments().add(tempVar);
 			}
 		}
-		else if (!prompt.Attachments.Any(a -> a.Content instanceof OAuthCard))
+		else if (!prompt.attachments().stream().anyMatch(a -> a.content() instanceof OAuthCard))
 		{
 			Attachment tempVar3 = new Attachment();
-			tempVar3.setContentType(OAuthCard.ContentType);
-			tempVar3.Content = new OAuthCard();
-			tempVar3.Content.Text = _settings.getText();
-			tempVar3.Content.ConnectionName = _settings.getConnectionName();
+			tempVar3.withContentType(OAuthCardExt.ContentType);
+			OAuthCard var3Content = new OAuthCard().withText(_settings.getText()).withConnectionName(_settings.getConnectionName());
+			tempVar3.withContent(var3Content);
 			CardAction tempVar4 = new CardAction();
-			tempVar4.Title = _settings.getTitle();
-			tempVar4.Text = _settings.getText();
-			tempVar4.Type = ActionTypes.Signin;
-			tempVar3.Content.Buttons = new CardAction[] {tempVar4};
-			prompt.Attachments.Add(tempVar3);
+			tempVar4.withTitle(_settings.getTitle());
+			tempVar4.withText(_settings.getText());
+			tempVar4.withType(ActionTypes.SIGNIN);
+			var3Content.withButtons(new ArrayList<CardAction>()   {{ add(tempVar4); }});
+			prompt.attachments().add(tempVar3);
 		}
 
 		// Set input hint
-		if (StringUtils.isBlank(prompt.InputHint))
+		if (StringUtils.isBlank(prompt.inputHint().toString()))
 		{
-			prompt.InputHint = InputHints.ExpectingInput;
+			prompt.withInputHint(InputHints.EXPECTING_INPUT);
 		}
 
 
@@ -363,64 +370,55 @@ public class OAuthPrompt extends Dialog
 	}
 
 
-	private CompletableFuture<PromptRecognizerResult<TokenResponse>> RecognizeTokenAsync(TurnContext turnContext)
-	{
-		return RecognizeTokenAsync(turnContext, null);
-	}
-
-
 	private CompletableFuture<PromptRecognizerResult<TokenResponse>> RecognizeTokenAsync(TurnContext turnContext )
 	{
-		PromptRecognizerResult<TokenResponse> result = new PromptRecognizerResult<TokenResponse>();
-		if (IsTokenResponseEvent(turnContext))
-		{
-			JObject tokenResponseObject = turnContext.Activity.Value instanceof JObject ? (JObject)turnContext.Activity.Value : null;
-			boolean token = tokenResponseObject == null ? null : tokenResponseObject.<TokenResponse>ToObject();
-			result.setSucceeded(true);
-			result.setValue(token);
-		}
-		else if (IsTeamsVerificationInvoke(turnContext))
-		{
-			JObject magicCodeObject = turnContext.Activity.Value instanceof JObject ? (JObject)turnContext.Activity.Value : null;
-			String magicCode = magicCodeObject.GetValue("state") == null ? null : magicCodeObject.GetValue("state").toString();
+	    return CompletableFuture.supplyAsync(() -> {
+            PromptRecognizerResult<TokenResponse> result = new PromptRecognizerResult<TokenResponse>();
+            if (IsTokenResponseEvent(turnContext))
+            {
+                JsonNode tokenResponseObject = turnContext.activity().value() instanceof JsonNode ? (JsonNode)turnContext.activity().value() : null;
+                TokenResponse token = tokenResponseObject == null ? null : tokenResponseObject.<TokenResponse>ToObject();
+                result.withSucceeded(true);
+                result.withValue(token);
+            }
+            else if (IsTeamsVerificationInvoke(turnContext))
+            {
+                JsonNode magicCodeObject = turnContext.activity().value() instanceof JsonNode ? (JsonNode)turnContext.activity().value() : null;
+                String magicCode = magicCodeObject.GetValue("state") == null ? null : magicCodeObject.GetValue("state").toString();
 
-			if (!(turnContext.adapter() instanceof BotFrameworkAdapter adapter))
-			{
-				throw new IllegalStateException("OAuthPrompt.Recognize(): not supported by the current adapter");
-			}
+                if (!(turnContext.adapter() instanceof BotFrameworkAdapter))
+                {
+                    throw new IllegalStateException("OAuthPrompt.Recognize(): not supported by the current adapter");
+                }
+                BotFrameworkAdapter adapter = (BotFrameworkAdapter) turnContext.adapter();
 
+                TokenResponse token = adapter.GetUserTokenAsync(turnContext, _settings.getConnectionName(), magicCode).get();
+                if (token != null)
+                {
+                    result.withSucceeded(true);
+                    result.withValue(token);
+                }
+            }
+            else if (turnContext.activity().type() == ActivityTypes.MESSAGE)
+            {
+                if (_magicCodeRegex.matcher(turnContext.activity().text()).find())
+                {
+                    if (!(turnContext.adapter() instanceof BotFrameworkAdapter))
+                    {
+                        throw new IllegalStateException("OAuthPrompt.Recognize(): not supported by the current adapter");
+                    }
+                    BotFrameworkAdapter adapter = (BotFrameworkAdapter) turnContext.adapter();
 
-			var token = adapter.GetUserTokenAsync(turnContext, _settings.getConnectionName(), magicCode).get();
-			if (token != null)
-			{
-				result.setSucceeded(true);
-				result.setValue(token);
-			}
-		}
-		else if (turnContext.activity().type() == ActivityTypes.MESSAGE)
-		{
-			System.Text.RegularExpressions.Match matched = _magicCodeRegex.Match(turnContext.Activity.Text);
-			if (matched.Success)
-			{
-//C# TO JAVA CONVERTER TODO TASK: Java has no equivalent to C# pattern variables in 'is' expressions:
-//ORIGINAL LINE: if (!(turnContext.Adapter is BotFrameworkAdapter adapter))
-				if (!(turnContext.adapter() instanceof BotFrameworkAdapter adapter))
-				{
-					throw new IllegalStateException("OAuthPrompt.Recognize(): not supported by the current adapter");
-				}
-
-//C# TO JAVA CONVERTER TODO TASK: There is no equivalent to implicit typing in Java unless the Java 10 inferred typing option is selected:
-
-				var token = adapter.GetUserTokenAsync(turnContext, _settings.getConnectionName(), matched.Value).get();
-				if (token != null)
-				{
-					result.setSucceeded(true);
-					result.setValue(token);
-				}
-			}
-		}
-
-		return result;
+                    TokenResponse token = adapter.GetUserTokenAsync(turnContext, _settings.getConnectionName(), matched.Value).get();
+                    if (token != null)
+                    {
+                        result.withSucceeded(true);
+                        result.withValue(token);
+                    }
+                }
+            }
+            return result;
+        });
 	}
 
 	private boolean IsTokenResponseEvent(TurnContext turnContext)

@@ -5,8 +5,10 @@ package com.microsoft.bot.builder.dialogs;
 
 import java.util.*;
 import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.CompletionException;
+import java.util.concurrent.ExecutionException;
+
 import com.microsoft.bot.builder.TurnContext;
-import org.apache.commons.lang3.ObjectUtils;
 import org.apache.commons.lang3.StringUtils;
 
 public class DialogContext
@@ -73,7 +75,7 @@ public class DialogContext
 	*/
 	public final DialogInstance getActiveDialog()
 	{
-		if (getStack().Any())
+		if (!getStack().isEmpty())
 		{
 			return getStack().get(0);
 		}
@@ -101,28 +103,35 @@ public class DialogContext
 	*/
 	public final CompletableFuture<DialogTurnResult> BeginDialogAsync(String dialogId, Object options)
 	{
-		if (StringUtils.isBlank(dialogId))
-		{
-			throw new NullPointerException("dialogId");
-		}
+	    return CompletableFuture.supplyAsync(() -> {
+            if (StringUtils.isBlank(dialogId))
+            {
+                throw new NullPointerException("dialogId");
+            }
 
-		// Lookup dialog
-		Dialog dialog = getDialogs().Find(dialogId);
-		if (dialog == null)
-		{
-			throw new RuntimeException(String.format("DialogContext.BeginDialogAsync(): A dialog with an id of '%1$s' wasn't found.", dialogId));
-		}
+            // Lookup dialog
+            Dialog dialog = getDialogs().Find(dialogId);
+            if (dialog == null)
+            {
+                throw new RuntimeException(String.format("DialogContext.BeginDialogAsync(): A dialog with an id of '%1$s' wasn't found.", dialogId));
+            }
 
-		// Push new instance onto stack.
-		DialogInstance instance = new DialogInstance();
-		instance.setId(dialogId);
-		instance.setState(new HashMap<String, Object>());
+            // Push new instance onto stack.
+            DialogInstance instance = new DialogInstance();
+            instance.setId(dialogId);
+            instance.setState(new HashMap<String, Object>());
 
-		getStack().add(0, instance);
+            getStack().add(0, instance);
 
-		// Call dialogs BeginAsync() method.
+            // Call dialogs BeginAsync() method.
 
-		return dialog.BeginDialogAsync(this, options).get();
+            try {
+                return dialog.BeginDialogAsync(this, options).get();
+            } catch (InterruptedException|ExecutionException e) {
+                e.printStackTrace();
+                throw new CompletionException(e);
+            }
+        }, getContext().executorService());
 	}
 
 	/** 
@@ -135,18 +144,24 @@ public class DialogContext
 	*/
 	public final CompletableFuture<DialogTurnResult> PromptAsync(String dialogId, PromptOptions options )
 	{
-		if (StringUtils.isBlank(dialogId))
-		{
-			throw new NullPointerException("dialogId");
-		}
+	    return CompletableFuture.supplyAsync(() -> {
+            if (StringUtils.isBlank(dialogId))
+            {
+                throw new NullPointerException("dialogId");
+            }
 
-		if (options == null)
-		{
-			throw new NullPointerException("options");
-		}
+            if (options == null)
+            {
+                throw new NullPointerException("options");
+            }
 
-
-		return BeginDialogAsync(dialogId, options).get();
+            try {
+                return BeginDialogAsync(dialogId, options).get();
+            } catch (InterruptedException|ExecutionException e) {
+                e.printStackTrace();
+                throw new CompletionException(e);
+            }
+        }, getContext().executorService());
 	}
 
 	/** 
@@ -158,24 +173,27 @@ public class DialogContext
 	*/
 	public final CompletableFuture<DialogTurnResult> ContinueDialogAsync()
 	{
-		// Check for a dialog on the stack
-		if (getActiveDialog() != null)
-		{
-			// Lookup dialog
-			Dialog dialog = getDialogs().Find(getActiveDialog().getId());
-			if (dialog == null)
-			{
-				throw new RuntimeException(String.format("DialogContext.ContinueDialogAsync(): Can't continue dialog. A dialog with an id of '%1$s' wasn't found.", getActiveDialog().getId()));
-			}
+	    return CompletableFuture.supplyAsync(() -> {
+            // Check for a dialog on the stack
+            if (getActiveDialog() != null)
+            {
+                // Lookup dialog
+                Dialog dialog = getDialogs().Find(getActiveDialog().getId());
+                if (dialog == null)
+                {
+                    throw new RuntimeException(String.format("DialogContext.ContinueDialogAsync(): Can't continue dialog. A dialog with an id of '%1$s' wasn't found.", getActiveDialog().getId()));
+                }
 
-			// Continue execution of dialog
+                // Continue execution of dialog
 
-			return dialog.ContinueDialogAsync(this).get();
-		}
-		else
-		{
-			return new DialogTurnResult(DialogTurnStatus.Empty);
-		}
+                return dialog.ContinueDialogAsync(this).get();
+            }
+            else
+            {
+                return new DialogTurnResult(DialogTurnStatus.Empty);
+            }
+
+        }, getContext().executorService());
 	}
 
 
@@ -209,30 +227,33 @@ public class DialogContext
 	 */
 	public final CompletableFuture<DialogTurnResult> EndDialogAsync(Object result )
 	{
-		// Pop active dialog off the stack
-		if (getStack().Any())
-		{
-			getStack().remove(0);
-		}
+	    return CompletableFuture.supplyAsync(() -> {
+            // Pop active dialog off the stack
+            if (!getStack().isEmpty())
+            {
+                getStack().remove(0);
+            }
 
-		// Resume previous dialog
-		if (getActiveDialog() != null)
-		{
-			// Lookup dialog
-			Dialog dialog = getDialogs().Find(getActiveDialog().getId());
-			if (dialog == null)
-			{
-				throw new RuntimeException(String.format("DialogContext.EndDialogAsync(): Can't resume previous dialog. A dialog with an id of '%1$s' wasn't found.", getActiveDialog().getId()));
-			}
+            // Resume previous dialog
+            if (getActiveDialog() != null)
+            {
+                // Lookup dialog
+                Dialog dialog = getDialogs().Find(getActiveDialog().getId());
+                if (dialog == null)
+                {
+                    throw new RuntimeException(String.format("DialogContext.EndDialogAsync(): Can't resume previous dialog. A dialog with an id of '%1$s' wasn't found.", getActiveDialog().getId()));
+                }
 
-			// Return result to previous dialog
+                // Return result to previous dialog
 
-			return dialog.ResumeDialogAsync(this, DialogReason.EndCalled, result).get();
-		}
-		else
-		{
-			return new DialogTurnResult(DialogTurnStatus.Complete, result);
-		}
+                return dialog.ResumeDialogAsync(this, DialogReason.EndCalled, result).get();
+            }
+            else
+            {
+                return new DialogTurnResult(DialogTurnStatus.Complete, result);
+            }
+
+        }, getContext().executorService());
 	}
 
 	/** 
@@ -242,20 +263,25 @@ public class DialogContext
 	*/
 	public final CompletableFuture<DialogTurnResult> CancelAllDialogsAsync()
 	{
-		if (getStack().Any())
-		{
-			while (getStack().Any())
-			{
-
-				EndActiveDialogAsync(DialogReason.CancelCalled).get();
-			}
-
-			return new DialogTurnResult(DialogTurnStatus.Cancelled);
-		}
-		else
-		{
-			return new DialogTurnResult(DialogTurnStatus.Empty);
-		}
+	    return CompletableFuture.supplyAsync(() -> {
+            if (!getStack().isEmpty())
+            {
+                while (!getStack().isEmpty())
+                {
+                    try {
+                        EndActiveDialogAsync(DialogReason.CancelCalled).get();
+                    } catch (InterruptedException|ExecutionException e) {
+                        e.printStackTrace();
+                        throw new CompletionException(e);
+                    }
+                }
+                return new DialogTurnResult(DialogTurnStatus.Cancelled);
+            }
+            else
+            {
+                return new DialogTurnResult(DialogTurnStatus.Empty);
+            }
+        }, getContext().executorService());
 	}
 
 
@@ -268,7 +294,7 @@ public class DialogContext
 	 */
 	public final CompletableFuture<DialogTurnResult> ReplaceDialogAsync(String dialogId)
 	{
-		return ReplaceDialogAsync(dialogId, null, null);
+		return ReplaceDialogAsync(dialogId, null);
 	}
 
 	/**
@@ -281,15 +307,21 @@ public class DialogContext
 	 */
 	public final CompletableFuture<DialogTurnResult> ReplaceDialogAsync(String dialogId, Object options )
 	{
-		// Pop stack
-		if (getStack().Any())
-		{
-			getStack().remove(0);
-		}
+	    return CompletableFuture.supplyAsync(() -> {
+            // Pop stack
+            if (!getStack().isEmpty())
+            {
+                getStack().remove(0);
+            }
 
-		// Start replacement dialog
-
-		return BeginDialogAsync(dialogId, options).get();
+            // Start replacement dialog
+            try {
+                return BeginDialogAsync(dialogId, options).get();
+            } catch (InterruptedException|ExecutionException e) {
+                e.printStackTrace();
+                throw new CompletionException(e);
+            }
+        }, getContext().executorService());
 	}
 
 	/** 
@@ -299,39 +331,53 @@ public class DialogContext
 	*/
 	public final CompletableFuture RepromptDialogAsync()
 	{
-		// Check for a dialog on the stack
-		if (getActiveDialog() != null)
-		{
-			// Lookup dialog
-			Dialog dialog = getDialogs().Find(getActiveDialog().getId());
-			if (dialog == null)
-			{
-				throw new RuntimeException(String.format("DialogSet.RepromptDialogAsync(): Can't find A dialog with an id of '%1$s'.", getActiveDialog().getId()));
-			}
+	    return CompletableFuture.runAsync(() -> {
+            // Check for a dialog on the stack
+            if (getActiveDialog() != null)
+            {
+                // Lookup dialog
+                Dialog dialog = getDialogs().Find(getActiveDialog().getId());
+                if (dialog == null)
+                {
+                    throw new RuntimeException(String.format("DialogSet.RepromptDialogAsync(): Can't find A dialog with an id of '%1$s'.", getActiveDialog().getId()));
+                }
 
-			// Ask dialog to re-prompt if supported
-
-			dialog.RepromptDialogAsync(getContext(), getActiveDialog()).get();
-		}
+                // Ask dialog to re-prompt if supported
+                try {
+                    dialog.RepromptDialogAsync(getContext(), getActiveDialog()).get();
+                } catch (InterruptedException|ExecutionException e) {
+                    e.printStackTrace();
+                    throw new CompletionException(e);
+                }
+            }
+        }, getContext().executorService());
 	}
 
 
 	private CompletableFuture EndActiveDialogAsync(DialogReason reason)
 	{
-		DialogInstance instance = getActiveDialog();
-		if (instance != null)
-		{
-			// Lookup dialog
-			Dialog dialog = getDialogs().Find(instance.getId());
-			if (dialog != null)
-			{
-				// Notify dialog of end
+	    return CompletableFuture.runAsync(() -> {
+            DialogInstance instance = getActiveDialog();
+            if (instance != null)
+            {
+                // Lookup dialog
+                Dialog dialog = getDialogs().Find(instance.getId());
+                if (dialog != null)
+                {
+                    // Notify dialog of end
 
-				dialog.EndDialogAsync(getContext(), instance, reason).get();
-			}
+                    try {
+                        dialog.EndDialogAsync(getContext(), instance, reason).get();
+                    } catch (InterruptedException|ExecutionException e) {
+                        e.printStackTrace();
+                        throw new CompletionException(e);
+                    }
+                }
 
-			// Pop dialog off stack
-			getStack().remove(0);
-		}
+                // Pop dialog off stack
+                getStack().remove(0);
+            }
+
+        }, getContext().executorService());
 	}
 }

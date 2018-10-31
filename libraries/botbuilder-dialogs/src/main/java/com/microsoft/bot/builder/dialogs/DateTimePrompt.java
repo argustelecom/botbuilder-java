@@ -42,13 +42,6 @@ public class DateTimePrompt extends Prompt<List<DateTimeResolution>>
 
 
 	@Override
-	protected CompletableFuture OnPromptAsync(TurnContext turnContext, java.util.Map<String, Object> state, PromptOptions options, boolean isRetry)
-	{
-		return OnPromptAsync(turnContext, state, options, isRetry, null);
-	}
-
-
-	@Override
 	protected CompletableFuture OnPromptAsync(TurnContext turnContext, Map<String, Object> state, PromptOptions options, boolean isRetry )
 	{
 		if (turnContext == null)
@@ -75,12 +68,6 @@ public class DateTimePrompt extends Prompt<List<DateTimeResolution>>
 
 
 	@Override
-	protected CompletableFuture<PromptRecognizerResult<java.util.List<DateTimeResolution>>> OnRecognizeAsync(TurnContext turnContext, java.util.Map<String, Object> state, PromptOptions options)
-	{
-		return OnRecognizeAsync(turnContext, state, options, null);
-	}
-
-	@Override
 	protected CompletableFuture<PromptRecognizerResult<List<DateTimeResolution>>> OnRecognizeAsync(TurnContext turnContext, Map<String, Object> state, PromptOptions options )
 	{
 		if (turnContext == null)
@@ -91,10 +78,9 @@ public class DateTimePrompt extends Prompt<List<DateTimeResolution>>
 		PromptRecognizerResult<List<DateTimeResolution>> result = new PromptRecognizerResult<List<DateTimeResolution>>();
 		if (turnContext.activity().type() == ActivityTypes.MESSAGE)
 		{
-			Activity message = turnContext.activity().AsMessageActivity();
+			Activity message = turnContext.activity();
 			String tempVar = getDefaultLocale();
 			String culture = (turnContext.activity().locale() != null) ? turnContext.activity().locale() : (tempVar != null) ? tempVar : English;
-//C# TO JAVA CONVERTER TODO TASK: There is no equivalent to implicit typing in Java unless the Java 10 inferred typing option is selected:
 			var results = DateTimeRecognizer.RecognizeDateTime(message.text(), culture);
 			if (results.size() > 0)
 			{

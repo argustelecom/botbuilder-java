@@ -5,6 +5,8 @@ package com.microsoft.bot.builder.dialogs;
 import com.microsoft.bot.builder.TurnContext;
 import org.apache.commons.lang3.StringUtils;
 import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.CompletionException;
+import java.util.concurrent.ExecutionException;
 
 public class ComponentDialog extends Dialog
 {
@@ -34,146 +36,155 @@ public class ComponentDialog extends Dialog
 	}
 
 
-	@Override
-	public CompletableFuture<DialogTurnResult> BeginDialogAsync(DialogContext outerDc, Object options)
-	{
-		return BeginDialogAsync(outerDc, options, null);
-	}
 
 	@Override
 	public CompletableFuture<DialogTurnResult> BeginDialogAsync(DialogContext outerDc)
 	{
-		return BeginDialogAsync(outerDc, null, null);
+		return BeginDialogAsync(outerDc, null);
 	}
 
 	@Override
 	public CompletableFuture<DialogTurnResult> BeginDialogAsync(DialogContext outerDc, Object options )
 	{
-		if (outerDc == null)
-		{
-			throw new NullPointerException("outerDc");
-		}
+	    return CompletableFuture.supplyAsync(() -> {
+            if (outerDc == null)
+            {
+                throw new NullPointerException("outerDc");
+            }
 
-		// Start the inner dialog.
-		DialogState dialogState = new DialogState();
-		outerDc.getActiveDialog().getState().put(PersistedDialogState, dialogState);
-		DialogContext innerDc = new DialogContext(_dialogs, outerDc.getContext(), dialogState);
-		DialogTurnResult turnResult = OnBeginDialogAsync(innerDc, options).get();
+            // Start the inner dialog.
+            DialogState dialogState = new DialogState();
+            outerDc.getActiveDialog().getState().put(PersistedDialogState, dialogState);
+            DialogContext innerDc = new DialogContext(_dialogs, outerDc.getContext(), dialogState);
+            DialogTurnResult turnResult = null;
+            try {
+                turnResult = OnBeginDialogAsync(innerDc, options).get();
+            } catch (InterruptedException|ExecutionException e) {
+                e.printStackTrace();
+                throw new CompletionException(e);
+            }
 
-		// Check for end of inner dialog
-		if (turnResult.getStatus() != DialogTurnStatus.Waiting)
-		{
-			// Return result to calling dialog
+            // Check for end of inner dialog
+            if (turnResult.getStatus() != DialogTurnStatus.Waiting)
+            {
+                // Return result to calling dialog
 
-			return EndComponentAsync(outerDc, ((DialogTurnResult) turnResult).getResult()).get();
-		}
-		else
-		{
-			// Just signal waiting
-			return Dialog.EndOfTurn;
-		}
+                try {
+                    return EndComponentAsync(outerDc, ((DialogTurnResult) turnResult).getResult()).get();
+                } catch (InterruptedException|ExecutionException e) {
+                    e.printStackTrace();
+                    throw new CompletionException(e);
+                }
+            }
+            else
+            {
+                // Just signal waiting
+                return Dialog.EndOfTurn;
+            }
+        }, outerDc.getContext().executorService());
 	}
 
 
 	@Override
 	public CompletableFuture<DialogTurnResult> ContinueDialogAsync(DialogContext outerDc)
 	{
-		return ContinueDialogAsync(outerDc, null);
+	    return CompletableFuture.supplyAsync(() -> {
+            if (outerDc == null)
+            {
+                throw new NullPointerException("outerDc");
+            }
+
+            // Continue execution of inner dialog.
+            DialogState dialogState = (DialogState)outerDc.getActiveDialog().getState().get(PersistedDialogState);
+            DialogContext innerDc = new DialogContext(_dialogs, outerDc.getContext(), dialogState);
+
+            DialogTurnResult turnResult = null;
+            try {
+                turnResult = OnContinueDialogAsync(innerDc).get();
+            } catch (InterruptedException|ExecutionException e) {
+                e.printStackTrace();
+                throw new CompletionException(e);
+            }
+
+            if (turnResult.getStatus() != DialogTurnStatus.Waiting)
+            {
+
+                try {
+                    return EndComponentAsync(outerDc, turnResult.getResult()).get();
+                } catch (InterruptedException|ExecutionException e) {
+                    e.printStackTrace();
+                    throw new CompletionException(e);
+                }
+            }
+            else
+            {
+                return Dialog.EndOfTurn;
+            }
+
+        }, outerDc.getContext().executorService());
 	}
 
-
-	@Override
-	public CompletableFuture<DialogTurnResult> ContinueDialogAsync(DialogContext outerDc )
-	{
-		if (outerDc == null)
-		{
-			throw new NullPointerException("outerDc");
-		}
-
-		// Continue execution of inner dialog.
-		DialogState dialogState = (DialogState)outerDc.getActiveDialog().getState().get(PersistedDialogState);
-		DialogContext innerDc = new DialogContext(_dialogs, outerDc.getContext(), dialogState);
-
-		var turnResult = OnContinueDialogAsync(innerDc).get();
-
-		if (turnResult.Status != DialogTurnStatus.Waiting)
-		{
-
-			return EndComponentAsync(outerDc, turnResult.Result).get();
-		}
-		else
-		{
-			return Dialog.EndOfTurn;
-		}
-	}
-
-
-	@Override
-	public CompletableFuture<DialogTurnResult> ResumeDialogAsync(DialogContext outerDc, DialogReason reason, Object result)
-	{
-		return ResumeDialogAsync(outerDc, reason, result, null);
-	}
-
-	@Override
-	public CompletableFuture<DialogTurnResult> ResumeDialogAsync(DialogContext outerDc, DialogReason reason)
-	{
-		return ResumeDialogAsync(outerDc, reason, null, null);
-	}
 
 	@Override
 	public CompletableFuture<DialogTurnResult> ResumeDialogAsync(DialogContext outerDc, DialogReason reason, Object result )
 	{
-		// Containers are typically leaf nodes on the stack but the dev is free to push other dialogs
-		// on top of the stack which will result in the container receiving an unexpected call to
-		// dialogResume() when the pushed on dialog ends.
-		// To avoid the container prematurely ending we need to implement this method and simply
-		// ask our inner dialog stack to re-prompt.
-		RepromptDialogAsync(outerDc.getContext(), outerDc.getActiveDialog()).get();
-		return Dialog.EndOfTurn;
-	}
-
-
-	@Override
-	public CompletableFuture RepromptDialogAsync(TurnContext turnContext, DialogInstance instance)
-	{
-		return RepromptDialogAsync(turnContext, instance, null);
+		return CompletableFuture.supplyAsync(() -> {
+            // Containers are typically leaf nodes on the stack but the dev is free to push other dialogs
+            // on top of the stack which will result in the container receiving an unexpected call to
+            // dialogResume() when the pushed on dialog ends.
+            // To avoid the container prematurely ending we need to implement this method and simply
+            // ask our inner dialog stack to re-prompt.
+            RepromptDialogAsync(outerDc.getContext(), outerDc.getActiveDialog()).get();
+            return Dialog.EndOfTurn;
+        }, outerDc.getContext().executorService());
 	}
 
 
 	@Override
 	public CompletableFuture RepromptDialogAsync(TurnContext turnContext, DialogInstance instance )
 	{
-		// Delegate to inner dialog.
-		DialogState dialogState = (DialogState)instance.getState().get(PersistedDialogState);
-		DialogContext innerDc = new DialogContext(_dialogs, turnContext, dialogState);
+	    return CompletableFuture.runAsync(() -> {
+            // Delegate to inner dialog.
+            DialogState dialogState = (DialogState)instance.getState().get(PersistedDialogState);
+            DialogContext innerDc = new DialogContext(_dialogs, turnContext, dialogState);
 
-		innerDc.RepromptDialogAsync().get();
+            try {
+                innerDc.RepromptDialogAsync().get();
+            } catch (InterruptedException|ExecutionException e) {
+                e.printStackTrace();
+            }
 
-		// Notify component
+            // Notify component
+            OnRepromptDialogAsync(turnContext, instance).get();
 
-		OnRepromptDialogAsync(turnContext, instance).get();
+        });
+
 	}
-
-
-	@Override
-	public CompletableFuture EndDialogAsync(TurnContext turnContext, DialogInstance instance, DialogReason reason)
-	{
-		return EndDialogAsync(turnContext, instance, reason, null);
-	}
-
 
 	@Override
 	public CompletableFuture EndDialogAsync(TurnContext turnContext, DialogInstance instance, DialogReason reason )
 	{
-		// Forward cancel to inner dialogs
-		if (reason == DialogReason.CancelCalled)
-		{
-			DialogState dialogState = (DialogState)instance.getState().get(PersistedDialogState);
-			DialogContext innerDc = new DialogContext(_dialogs, turnContext, dialogState);
-			innerDc.CancelAllDialogsAsync().get();
-		}
+	    return CompletableFuture.runAsync(() -> {
+            // Forward cancel to inner dialogs
+            if (reason == DialogReason.CancelCalled)
+            {
+                DialogState dialogState = (DialogState)instance.getState().get(PersistedDialogState);
+                DialogContext innerDc = new DialogContext(_dialogs, turnContext, dialogState);
+                try {
+                    innerDc.CancelAllDialogsAsync().get();
+                } catch (InterruptedException|ExecutionException e) {
+                    e.printStackTrace();
+                    throw new CompletionException(e);
+                }
+            }
 
-		OnEndDialogAsync(turnContext, instance, reason).get();
+            try {
+                OnEndDialogAsync(turnContext, instance, reason).get();
+            } catch (InterruptedException|ExecutionException e) {
+                e.printStackTrace();
+                throw new CompletionException(e);
+            }
+        });
 	}
 
 	/** 
@@ -205,21 +216,11 @@ public class ComponentDialog extends Dialog
 	}
 
 
-	protected CompletableFuture<DialogTurnResult> OnBeginDialogAsync(DialogContext innerDc, Object options)
-	{
-		return OnBeginDialogAsync(innerDc, options, null);
-	}
-
 	protected CompletableFuture<DialogTurnResult> OnBeginDialogAsync(DialogContext innerDc, Object options )
 	{
 		return innerDc.BeginDialogAsync(getInitialDialogId(), options);
 	}
 
-
-	protected CompletableFuture<DialogTurnResult> OnContinueDialogAsync(DialogContext innerDc)
-	{
-		return OnContinueDialogAsync(innerDc, null);
-	}
 
 	protected CompletableFuture<DialogTurnResult> OnContinueDialogAsync(DialogContext innerDc )
 	{
@@ -232,11 +233,6 @@ public class ComponentDialog extends Dialog
 		return CompletableFuture.completedFuture(null);
 	}
 
-
-	protected CompletableFuture OnRepromptDialogAsync(TurnContext turnContext, DialogInstance instance)
-	{
-		return OnRepromptDialogAsync(turnContext, instance, null);
-	}
 
 	protected CompletableFuture OnRepromptDialogAsync(TurnContext turnContext, DialogInstance instance )
 	{

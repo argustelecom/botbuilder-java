@@ -125,7 +125,7 @@ public class ChoicePrompt extends Prompt<FoundChoice>
 		}
 
 		// Format prompt to send
-		IMessageActivity prompt;
+		Activity prompt;
 		java.util.List<Choice> tempVar = options.getChoices();
 		ArrayList<Choice> choices = (tempVar != null) ? tempVar : new ArrayList<Choice>();
 		String channelId = turnContext.activity().channelId();

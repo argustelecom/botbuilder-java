@@ -1,38 +1,42 @@
+// Copyright (c) Microsoft Corporation. All rights reserved.
+// Licensed under the MIT License.
+
 package com.microsoft.bot.builder.dialogs.choices;
 
 import com.microsoft.bot.builder.MessageFactory;
 import com.microsoft.bot.schema.models.ActionTypes;
+import com.microsoft.bot.schema.models.Activity;
 import com.microsoft.bot.schema.models.CardAction;
 import com.microsoft.bot.schema.models.InputHints;
+import com.sun.istack.internal.Nullable;
+import org.apache.commons.lang3.StringUtils;
 
+import javax.swing.text.html.Option;
 import java.util.*;
+import java.util.stream.Collectors;
 
-// Copyright (c) Microsoft Corporation. All rights reserved.
-// Licensed under the MIT License.
 
 
 
 public class ChoiceFactory
 {
 
-	public static IMessageActivity ForChannel(String channelId, java.util.List<Choice> list, String text, String speak)
+	public static Activity ForChannel(String channelId, java.util.List<Choice> list, String text, String speak)
 	{
 		return ForChannel(channelId, list, text, speak, null);
 	}
 
-	public static IMessageActivity ForChannel(String channelId, java.util.List<Choice> list, String text)
+	public static Activity ForChannel(String channelId, java.util.List<Choice> list, String text)
 	{
 		return ForChannel(channelId, list, text, null, null);
 	}
 
-	public static IMessageActivity ForChannel(String channelId, java.util.List<Choice> list)
+	public static Activity ForChannel(String channelId, java.util.List<Choice> list)
 	{
 		return ForChannel(channelId, list, null, null, null);
 	}
 
-//C# TO JAVA CONVERTER NOTE: Java does not support optional parameters. Overloaded method(s) are created above:
-//ORIGINAL LINE: public static IMessageActivity ForChannel(string channelId, IList<Choice> list, string text = null, string speak = null, ChoiceFactoryOptions options = null)
-	public static IMessageActivity ForChannel(String channelId, List<Choice> list, String text, String speak, ChoiceFactoryOptions options)
+	public static Activity ForChannel(String channelId, List<Choice> list, String text, String speak, ChoiceFactoryOptions options)
 	{
 		channelId = (channelId != null) ? channelId : "";
 
@@ -42,7 +46,7 @@ public class ChoiceFactory
 		int maxTitleLength = 0;
 		for (Choice choice : list)
 		{
-			boolean l = choice.getAction() != null && StringUtils.isBlank(choice.getAction().Title) ? choice.getAction().Title.getLength() : choice.getValue().length();
+			boolean l = choice.action() != null && StringUtils.isBlank(choice.action().title()) ? choice.action().title().length() : choice.value().length();
 			if (l > maxTitleLength)
 			{
 				maxTitleLength = l;
@@ -80,32 +84,30 @@ public class ChoiceFactory
 		return Inline(choices, text, speak, null);
 	}
 
-	public static Activity Inline(java.util.List<Choice> choices, String text)
+	public static Activity Inline(List<Choice> choices, String text)
 	{
 		return Inline(choices, text, null, null);
 	}
 
-	public static Activity Inline(java.util.List<Choice> choices)
+	public static Activity Inline(List<Choice> choices)
 	{
 		return Inline(choices, null, null, null);
 	}
 
-//C# TO JAVA CONVERTER NOTE: Java does not support optional parameters. Overloaded method(s) are created above:
-//ORIGINAL LINE: public static Activity Inline(IList<Choice> choices, string text = null, string speak = null, ChoiceFactoryOptions options = null)
 	public static Activity Inline(List<Choice> choices, String text, String speak, ChoiceFactoryOptions options)
 	{
 		choices = (choices != null) ? choices : new ArrayList<Choice>();
 		options = (options != null) ? options : new ChoiceFactoryOptions();
 
 		ChoiceFactoryOptions opt = new ChoiceFactoryOptions();
-		String tempVar = options.getInlineSeparator();
+		String tempVar = options.inlineSeparator();
 		opt.withInlineSeparator((tempVar != null) ? tempVar : ", ");
-		String tempVar2 = options.getInlineOr();
+		String tempVar2 = options.inlineOr();
 		opt.withInlineOr((tempVar2 != null) ? tempVar2 : " or ");
-		String tempVar3 = options.getInlineOrMore();
-		opt.setInlineOrMore((tempVar3 != null) ? tempVar3 : ", or ");
-		Nullable<Boolean> tempVar4 = options.getIncludeNumbers();
-		opt.setIncludeNumbers((tempVar4 != null) ? tempVar4 : true);
+		String tempVar3 = options.inlineOrMore();
+		opt.withInlineOrMore((tempVar3 != null) ? tempVar3 : ", or ");
+		Optional<Boolean> tempVar4 = options.includeNumbers();
+		opt.withIncludeNumbers((tempVar4 != null) ? tempVar4 : Optional.of(true));
 
 		// Format list of choices
 		String connector = "";
@@ -116,10 +118,10 @@ public class ChoiceFactory
 		{
 			Choice choice = choices.get(index);
 
-			boolean title = choice.getAction() != null && choice.getAction().Title != null ? choice.getAction().Title : choice.getValue();
+			boolean title = choice.action() != null && choice.action().title() != null ? choice.action().title() : choice.value();
 
 			txt += String.format("%1$s", connector);
-			if (opt.getIncludeNumbers().get())
+			if (opt.includeNumbers().get())
 			{
 				txt += "(" + (String.valueOf(index)) + ") ";
 			}
@@ -127,11 +129,11 @@ public class ChoiceFactory
 			txt += String.format("%1$s", title);
 			if (index == (choices.size() - 2))
 			{
-				connector = ((index == 0 ? opt.getInlineOr() : opt.getInlineOrMore()) != null) ? (index == 0 ? opt.getInlineOr() : opt.getInlineOrMore()) : "";
+				connector = ((index == 0 ? opt.inlineOr() : opt.inlineOrMore()) != null) ? (index == 0 ? opt.inlineOr() : opt.inlineOrMore()) : "";
 			}
 			else
 			{
-				String tempVar5 = opt.getInlineSeparator();
+				String tempVar5 = opt.inlineSeparator();
 				connector = (tempVar5 != null) ? tempVar5 : "";
 			}
 		}
@@ -139,57 +141,53 @@ public class ChoiceFactory
 		txt += "";
 
 		// Return activity with choices as an inline list.
-		return MessageFactory.Text(txt, speak, InputHints.ExpectingInput);
+		return MessageFactory.Text(txt, speak, InputHints.EXPECTING_INPUT.toString());
 	}
 
 
-	public static Activity List(java.util.List<String> choices, String text, String speak)
+	public static Activity List(List<String> choices, String text, String speak)
 	{
 		return List(choices, text, speak, null);
 	}
 
-	public static Activity List(java.util.List<String> choices, String text)
+	public static Activity List(List<String> choices, String text)
 	{
 		return List(choices, text, null, null);
 	}
 
-	public static Activity List(java.util.List<String> choices)
+	public static Activity List(List<String> choices)
 	{
 		return List(choices, null, null, null);
 	}
 
-//C# TO JAVA CONVERTER NOTE: Java does not support optional parameters. Overloaded method(s) are created above:
-//ORIGINAL LINE: public static Activity List(IList<string> choices, string text = null, string speak = null, ChoiceFactoryOptions options = null)
 	public static Activity List(List<String> choices, String text, String speak, ChoiceFactoryOptions options)
 	{
-		return List(ToChoices(choices), text, speak, options);
+		return ListChoice(ToChoices(choices), text, speak, options);
 	}
 
 
-	public static Activity List(java.util.List<Choice> choices, String text, String speak)
+	public static Activity ListChoice(List<Choice> choices, String text, String speak)
 	{
-		return List(choices, text, speak, null);
+		return ListChoice(choices, text, speak, null);
 	}
 
-	public static Activity List(java.util.List<Choice> choices, String text)
+	public static Activity ListChoice(List<Choice> choices, String text)
 	{
-		return List(choices, text, null, null);
+		return ListChoice(choices, text, null, null);
 	}
 
-	public static Activity List(java.util.List<Choice> choices)
+	public static Activity ListChoice(List<Choice> choices)
 	{
-		return List(choices, null, null, null);
+		return ListChoice(choices, null, null, null);
 	}
 
-//C# TO JAVA CONVERTER NOTE: Java does not support optional parameters. Overloaded method(s) are created above:
-//ORIGINAL LINE: public static Activity List(IList<Choice> choices, string text = null, string speak = null, ChoiceFactoryOptions options = null)
-	public static Activity List(List<Choice> choices, String text, String speak, ChoiceFactoryOptions options)
+	public static Activity ListChoice(List<Choice> choices, String text, String speak, ChoiceFactoryOptions options)
 	{
 		choices = (choices != null) ? choices : new ArrayList<Choice>();
 		options = (options != null) ? options : new ChoiceFactoryOptions();
 
-		Nullable<Boolean> tempVar = options.getIncludeNumbers();
-		boolean includeNumbers = (tempVar != null) ? tempVar : true;
+		Optional<Boolean> tempVar = options.includeNumbers();
+        Optional<Boolean>  includeNumbers = (tempVar != null) ? tempVar : Optional.of(true);
 
 		// Format list of choices
 		String connector = "";
@@ -200,7 +198,7 @@ public class ChoiceFactory
 		{
 			Choice choice = choices.get(index);
 
-			boolean title = choice.getAction() != null && choice.getAction().Title != null ? choice.getAction().Title : choice.getValue();
+			boolean title = choice.action() != null && choice.action().title() != null ? choice.action().title() : choice.value();
 
 			txt += connector;
 			if (includeNumbers)
@@ -217,69 +215,67 @@ public class ChoiceFactory
 		}
 
 		// Return activity with choices as a numbered list.
-		return MessageFactory.Text(txt, speak, InputHints.ExpectingInput);
+		return MessageFactory.Text(txt, speak, InputHints.EXPECTING_INPUT.toString());
 	}
 
 
-	public static IMessageActivity SuggestedAction(java.util.List<String> choices, String text)
+	public static Activity SuggestedAction(List<String> choices, String text)
 	{
 		return SuggestedAction(choices, text, null);
 	}
 
-	public static IMessageActivity SuggestedAction(java.util.List<String> choices)
+	public static Activity SuggestedAction(java.util.List<String> choices)
 	{
 		return SuggestedAction(choices, null, null);
 	}
 
-//C# TO JAVA CONVERTER NOTE: Java does not support optional parameters. Overloaded method(s) are created above:
-//ORIGINAL LINE: public static IMessageActivity SuggestedAction(IList<string> choices, string text = null, string speak = null)
-	public static IMessageActivity SuggestedAction(List<String> choices, String text, String speak)
+	public static Activity SuggestedAction(List<String> choices, String text, String speak)
 	{
 		return SuggestedAction(ToChoices(choices), text, speak);
 	}
 
 
-	public static IMessageActivity SuggestedAction(java.util.List<Choice> choices, String text)
+	public static Activity SuggestedActionChoice(List<Choice> choices, String text)
 	{
-		return SuggestedAction(choices, text, null);
+		return SuggestedActionChoice(choices, text, null);
 	}
 
-	public static IMessageActivity SuggestedAction(java.util.List<Choice> choices)
+	public static Activity SuggestedActionChoice(List<Choice> choices)
 	{
-		return SuggestedAction(choices, null, null);
+		return SuggestedActionChoice(choices, null, null);
 	}
 
-//C# TO JAVA CONVERTER NOTE: Java does not support optional parameters. Overloaded method(s) are created above:
-//ORIGINAL LINE: public static IMessageActivity SuggestedAction(IList<Choice> choices, string text = null, string speak = null)
-	public static IMessageActivity SuggestedAction(List<Choice> choices, String text, String speak)
+	public static Activity SuggestedActionChoice(List<Choice> choices, String text, String speak)
 	{
 		choices = (choices != null) ? choices : new ArrayList<Choice>();
 
 		// Map choices to actions
-		ArrayList<Object> actions = choices.stream().map((choice) ->
+		ArrayList<CardAction> actions = choices.stream().map((choice) ->
 		{
-				if (choice.getAction() != null)
+				if (choice.action() != null)
 				{
-					return choice.getAction();
+					return choice.action();
 				}
 				else
 				{
 					CardAction tempVar = new CardAction()
 						.withType(ActionTypes.IM_BACK)
-						.withValue(choice.getValue())
-						.withTitle(choice.getValue());
+						.withValue(choice.value())
+						.withTitle(choice.value());
 					return tempVar;
 				}
-		}).ToList();
+		}).collect(Collectors.toCollection(ArrayList::new));
 
 		// Return activity with choices as suggested actions
-		return MessageFactory.SuggestedActions(actions, text, speak, InputHints.ExpectingInput);
+		return MessageFactory.SuggestedActionsCard(actions, text, speak, InputHints.EXPECTING_INPUT.toString());
 	}
 
 	public static List<Choice> ToChoices(List<String> choices)
 	{
-		ArrayList<Choice>() : choices.Select(choice -> new Choice tempVar = new ArrayList<Choice>() : choices.Select(choice -> new Choice();
-		tempVar.Value = choice;
-		return (choices == null) ? tempVar).ToList();
+	    if (choices == null)
+        {
+            return (List<Choice>) new ArrayList<Choice>();
+        }
+		return choices.stream().map(choice -> new Choice().withValue(choice)).collect(Collectors.toList());
 	}
 }

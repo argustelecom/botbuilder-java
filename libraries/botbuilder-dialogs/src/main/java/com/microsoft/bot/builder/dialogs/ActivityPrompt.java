@@ -57,9 +57,9 @@ public abstract class ActivityPrompt extends Dialog
                 opt.getPrompt().withInputHint(InputHints.EXPECTING_INPUT);
             }
 
-            if (opt.getRetryPrompt() != null && StringUtils.isBlank(opt.getRetryPrompt().InputHint))
+            if (opt.getRetryPrompt() != null && StringUtils.isBlank(opt.getRetryPrompt().inputHint().toString()))
             {
-                opt.getRetryPrompt().withInputHint() = InputHints.ExpectingInput;
+                opt.getRetryPrompt().withInputHint(InputHints.EXPECTING_INPUT);
             }
 
             // Initialize prompt state
@@ -98,12 +98,23 @@ public abstract class ActivityPrompt extends Dialog
 
             // Validate the return value
             PromptValidatorContext<Activity> promptContext = new PromptValidatorContext<Activity>(dc.getContext(), recognized, state, options);
-            Boolean isValid = _validator.invoke(promptContext).get();
+            Boolean isValid = null;
+            try {
+                isValid = _validator.invoke(promptContext).get();
+            } catch (InterruptedException|ExecutionException e) {
+                e.printStackTrace();
+                throw new CompletionException(e);
+            }
 
             // Return recognized value or re-prompt
             if (isValid)
             {
-                return dc.EndDialogAsync(recognized.getValue()).get();
+                try {
+                    return dc.EndDialogAsync(recognized.value()).get();
+                } catch (InterruptedException|ExecutionException e) {
+                    e.printStackTrace();
+                    throw new CompletionException(e);
+                }
             }
             else
             {
@@ -114,30 +125,28 @@ public abstract class ActivityPrompt extends Dialog
 	}
 
 
-	@Override
-	public CompletableFuture<DialogTurnResult> ResumeDialogAsync(DialogContext dc, DialogReason reason, Object result)
-	{
-		return ResumeDialogAsync(dc, reason, result, null);
-	}
 
 	@Override
 	public CompletableFuture<DialogTurnResult> ResumeDialogAsync(DialogContext dc, DialogReason reason)
 	{
-		return ResumeDialogAsync(dc, reason, null, null);
+		return ResumeDialogAsync(dc, reason, null);
 	}
 
 
 	@Override
 	public CompletableFuture<DialogTurnResult> ResumeDialogAsync(DialogContext dc, DialogReason reason, Object result )
 	{
-		// Prompts are typically leaf nodes on the stack but the dev is free to push other dialogs
-		// on top of the stack which will result in the prompt receiving an unexpected call to
-		// dialogResume() when the pushed on dialog ends.
-		// To avoid the prompt prematurely ending we need to implement this method and
-		// simply re-prompt the user.
+	    return CompletableFuture.supplyAsync(() -> {
+            // Prompts are typically leaf nodes on the stack but the dev is free to push other dialogs
+            // on top of the stack which will result in the prompt receiving an unexpected call to
+            // dialogResume() when the pushed on dialog ends.
+            // To avoid the prompt prematurely ending we need to implement this method and
+            // simply re-prompt the user.
 
-		RepromptDialogAsync(dc.getContext(), dc.getActiveDialog()).get();
-		return Dialog.EndOfTurn;
+            RepromptDialogAsync(dc.getContext(), dc.getActiveDialog()).get();
+            return Dialog.EndOfTurn;
+
+        }, dc.getContext().executorService());
 	}
 
 
