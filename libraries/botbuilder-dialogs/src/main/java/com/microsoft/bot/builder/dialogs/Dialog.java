@@ -3,11 +3,12 @@
 
 package com.microsoft.bot.builder.dialogs;
 
-
 import com.microsoft.bot.builder.TurnContext;
 import org.apache.commons.lang3.StringUtils;
 
 import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.CompletionException;
+import java.util.concurrent.ExecutionException;
 
 /**
  Base class for all dialogs.
@@ -39,10 +40,16 @@ public abstract class Dialog
 	 @param options (Optional) arguments that were passed to the dialog during `begin()` call that started the instance.
 	 @return A <see cref="Task"/> representing the asynchronous operation.
 	*/
+	public abstract CompletableFuture<DialogTurnResult> BeginDialogAsync(DialogContext dc, Object options);
 
-	public final abstract CompletableFuture<DialogTurnResult> BeginDialogAsync(DialogContext dc, Object options);
-	public final abstract CompletableFuture<DialogTurnResult> BeginDialogAsync(DialogContext dc);
-	public abstract CompletableFuture<DialogTurnResult> BeginDialogAsync(DialogContext dc, Object options );
+    /**
+     Method called when a new dialog has been pushed onto the stack and is being activated.
+
+     @param dc The dialog context for the current turn of conversation.
+     @return A <see cref="Task"/> representing the asynchronous operation.
+     */
+	public abstract CompletableFuture<DialogTurnResult> BeginDialogAsync(DialogContext dc);
+
 
 	/** 
 	 Method called when an instance of the dialog is the "current" dialog and the
@@ -53,67 +60,68 @@ public abstract class Dialog
 	 @param dc The dialog context for the current turn of conversation.
 	 @return A <see cref="Task"/> representing the asynchronous operation.
 	*/
-
-	public CompletableFuture<DialogTurnResult> ContinueDialogAsync(DialogContext dc)
-	{
-		return ContinueDialogAsync(dc, null);
-	}
-
-
 	public CompletableFuture<DialogTurnResult> ContinueDialogAsync(DialogContext dc )
 	{
-		// By default just end the current dialog.
+	    return CompletableFuture.supplyAsync(() -> {
+            // By default just end the current dialog.
 
-		return dc.EndDialogAsync().get();
+            try {
+                return dc.EndDialogAsync().get();
+            } catch (InterruptedException|ExecutionException e) {
+                e.printStackTrace();
+                throw new CompletionException(e);
+            }
+        });
 	}
 
-	/** 
-	 Method called when an instance of the dialog is being returned to from another
-	 dialog that was started by the current instance using `DialogSet.begin()`.
-	 If this method is NOT implemented then the dialog will be automatically ended with a call
-	 to `DialogSet.endDialogWithResult()`. Any result passed from the called dialog will be passed
-	 to the current dialogs parent.
-	 
-	 @param dc The dialog context for the current turn of conversation.
-	 @param reason Reason why the dialog resumed.
-	 @param result (Optional) value returned from the dialog that was called. The type of the value returned is dependant on the dialog that was called.
-	 @return A <see cref="Task"/> representing the asynchronous operation.
-	*/
 
-	public CompletableFuture<DialogTurnResult> ResumeDialogAsync(DialogContext dc, DialogReason reason, Object result)
+    /**
+     Method called when an instance of the dialog is being returned to from another
+     dialog that was started by the current instance using `DialogSet.begin()`.
+     If this method is NOT implemented then the dialog will be automatically ended with a call
+     to `DialogSet.endDialogWithResult()`. Any result passed from the called dialog will be passed
+     to the current dialogs parent.
+
+     @param dc The dialog context for the current turn of conversation.
+     @param reason Reason why the dialog resumed.
+     @return A <see cref="Task"/> representing the asynchronous operation.
+     */
+    public CompletableFuture<DialogTurnResult> ResumeDialogAsync(DialogContext dc, DialogReason reason)
 	{
-		return ResumeDialogAsync(dc, reason, result, null);
+		return ResumeDialogAsync(dc, reason, null);
 	}
 
-	public CompletableFuture<DialogTurnResult> ResumeDialogAsync(DialogContext dc, DialogReason reason)
+
+    /**
+     Method called when an instance of the dialog is being returned to from another
+     dialog that was started by the current instance using `DialogSet.begin()`.
+     If this method is NOT implemented then the dialog will be automatically ended with a call
+     to `DialogSet.endDialogWithResult()`. Any result passed from the called dialog will be passed
+     to the current dialogs parent.
+
+     @param dc The dialog context for the current turn of conversation.
+     @param reason Reason why the dialog resumed.
+     @param result (Optional) value returned from the dialog that was called. The type of the value returned is dependant on the dialog that was called.
+     @return A <see cref="Task"/> representing the asynchronous operation.
+     */
+    public CompletableFuture<DialogTurnResult> ResumeDialogAsync(DialogContext dc, DialogReason reason, Object result )
 	{
-		return ResumeDialogAsync(dc, reason, null, null);
-	}
+	    return CompletableFuture.supplyAsync(() -> {
+            // By default just end the current dialog and return result to parent.
 
-
-	public CompletableFuture<DialogTurnResult> ResumeDialogAsync(DialogContext dc, DialogReason reason, Object result )
-	{
-		// By default just end the current dialog and return result to parent.
-
-		return dc.EndDialogAsync(result).get();
-	}
-
-
-	public CompletableFuture RepromptDialogAsync(TurnContext turnContext, DialogInstance instance)
-	{
-		return RepromptDialogAsync(turnContext, instance, null);
-	}
+            try {
+                return dc.EndDialogAsync(result).get();
+            } catch (InterruptedException|ExecutionException e) {
+                e.printStackTrace();
+                throw new CompletionException(e);
+            }
+        });
+    }
 
 	public CompletableFuture RepromptDialogAsync(TurnContext turnContext, DialogInstance instance )
 	{
 		// No-op by default
 		return CompletableFuture.completedFuture(null);
-	}
-
-
-	public CompletableFuture EndDialogAsync(TurnContext turnContext, DialogInstance instance, DialogReason reason)
-	{
-		return EndDialogAsync(turnContext, instance, reason, null);
 	}
 
 	public CompletableFuture EndDialogAsync(TurnContext turnContext, DialogInstance instance, DialogReason reason )

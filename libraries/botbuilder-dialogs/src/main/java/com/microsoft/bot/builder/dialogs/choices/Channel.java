@@ -5,6 +5,7 @@ package com.microsoft.bot.builder.dialogs.choices;
 
 import com.microsoft.bot.builder.TurnContext;
 import com.microsoft.bot.builder.dialogs.*;
+import com.microsoft.bot.connector.Channels;
 import org.apache.commons.lang3.StringUtils;
 
 public class Channel
@@ -19,18 +20,18 @@ public class Channel
 	{
 		switch (channelId)
 		{
-			case Connector.Channels.Facebook:
-			case Connector.Channels.Skype:
+			case Channels.Facebook:
+			case Channels.Skype:
 				return buttonCnt <= 10;
 
-			case Connector.Channels.Kik:
+			case Channels.Kik:
 				return buttonCnt <= 20;
 
-			case Connector.Channels.Slack:
-			case Connector.Channels.Telegram:
-			case Connector.Channels.Emulator:
-			case Connector.Channels.Directline:
-			case Connector.Channels.Webchat:
+			case Channels.Slack:
+			case Channels.Telegram:
+			case Channels.Emulator:
+			case Channels.Directline:
+			case Channels.Webchat:
 				return buttonCnt <= 100;
 
 			default:
@@ -44,22 +45,20 @@ public class Channel
 		return SupportsCardActions(channelId, 100);
 	}
 
-//C# TO JAVA CONVERTER NOTE: Java does not support optional parameters. Overloaded method(s) are created above:
-//ORIGINAL LINE: public static bool SupportsCardActions(string channelId, int buttonCnt = 100)
 	public static boolean SupportsCardActions(String channelId, int buttonCnt)
 	{
 		switch (channelId)
 		{
-			case Connector.Channels.Facebook:
-			case Connector.Channels.Skype:
-			case Connector.Channels.Msteams:
+			case Channels.Facebook:
+			case Channels.Skype:
+			case Channels.Msteams:
 				return buttonCnt <= 3;
 
-			case Connector.Channels.Slack:
-			case Connector.Channels.Emulator:
-			case Connector.Channels.Directline:
-			case Connector.Channels.Webchat:
-			case Connector.Channels.Cortana:
+			case Channels.Slack:
+			case Channels.Emulator:
+			case Channels.Directline:
+			case Channels.Webchat:
+			case Channels.Cortana:
 				return buttonCnt <= 100;
 
 			default:
@@ -71,7 +70,7 @@ public class Channel
 	{
 		switch (channelId)
 		{
-			case Connector.Channels.Cortana:
+			case Channels.Cortana:
 				return false;
 
 			default:
@@ -86,14 +85,7 @@ public class Channel
 
 	public static String GetChannelId(TurnContext turnContext)
 	{
-		return StringUtils.isBlank(turnContext.Activity.ChannelId) ? "" : turnContext.Activity.ChannelId;
+		return StringUtils.isBlank(turnContext.activity().channelId()) ? "" : turnContext.activity().channelId();
 	}
 
-	// This class has been deprecated in favor of the class in Microsoft.Bot.Connector.Channels located
-	// at https://github.com/Microsoft/botbuilder-dotnet/libraries/Microsoft.Bot.Connector/Channels.cs.
-	// This change is non-breaking and this class now inherits from the class in the connector library.
-	@Deprecated
-	public static class Channels extends Connector.Channels
-	{
-	}
 }

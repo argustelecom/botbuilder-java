@@ -10,17 +10,17 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import com.microsoft.bot.builder.adapters.TestAdapter;
 import com.microsoft.bot.builder.adapters.TestFlow;
 import com.microsoft.bot.connector.implementation.ConnectorClientImpl;
+import com.microsoft.bot.schema.ActivityImpl;
 import com.microsoft.bot.schema.models.ChannelAccount;
 import com.microsoft.bot.schema.models.ResourceResponse;
 import com.microsoft.rest.RestClient;
 import org.apache.commons.lang3.StringUtils;
 import org.junit.Assert;
+import org.junit.Before;
 import org.junit.Test;
 
 import java.util.UUID;
-import java.util.concurrent.CompletableFuture;
-import java.util.concurrent.CompletionException;
-import java.util.concurrent.ExecutionException;
+import java.util.concurrent.*;
 import java.util.function.Consumer;
 
 import static java.util.concurrent.CompletableFuture.completedFuture;
@@ -31,14 +31,26 @@ public class BotStateTest {
     protected ConnectorClientImpl connector;
     protected ChannelAccount bot;
     protected ChannelAccount user;
+    protected ExecutorService executorService;
+    protected boolean setUpIsDone = false;
 
-
+    /**
+     * Sets up the test fixture.
+     * (Called before every test case method.)
+     */
+    @Before
+    public void setUp() {
+        if (setUpIsDone) {
+            return;
+        }
+        executorService = Executors.newFixedThreadPool(10);
+        setUpIsDone = true;
+    }
     protected void initializeClients(RestClient restClient, String botId, String userId) {
 
         connector = new ConnectorClientImpl(restClient);
         bot = new ChannelAccount().withId(botId);
         user = new ChannelAccount().withId(userId);
-
     }
 
 
@@ -62,7 +74,8 @@ public class BotStateTest {
 
     //@Test
     public void State_RememberIStoreItemUserState() throws ExecutionException, InterruptedException {
-        UserState userState = new UserState(new MemoryStorage());
+
+        UserState userState = new UserState(new MemoryStorage(executorService));
         StatePropertyAccessor<TestPocoState> testProperty = userState.<TestPocoState>CreateProperty("test");
         TestAdapter adapter = new TestAdapter()
                 .Use(new AutoSaveStateMiddleware(userState));
@@ -111,18 +124,20 @@ public class BotStateTest {
 
     @Test
     public void State_RememberPocoUserState() throws ExecutionException, InterruptedException {
-        UserState userState = new UserState(new MemoryStorage());
+        UserState userState = new UserState(new MemoryStorage(executorService));
         StatePropertyAccessor<TestPocoState> testPocoProperty = userState.CreateProperty("testPoco");
         TestAdapter adapter = new TestAdapter()
-                .Use(new AutoSaveStateMiddleware());
+                .Use(new AutoSaveStateMiddleware(userState));
         new TestFlow(adapter,
                 (context) -> {
                     TestPocoState testPocoState = testPocoProperty.GetAsync(context, () -> new TestPocoState()).get();
+
                     Assert.assertNotNull("user state should exist", userState);
                     switch (context.activity().text()) {
                         case "set value":
                             testPocoState.setValue("test");
                             context.SendActivityAsync("value saved").get();
+
                             break;
                         case "get value":
                             Assert.assertFalse(StringUtils.isBlank(testPocoState.getValue()));
@@ -137,8 +152,36 @@ public class BotStateTest {
     }
 
     @Test
+    public void State_SimpleAccessor() throws ExecutionException, InterruptedException {
+        UserState userState = new UserState(new MemoryStorage(executorService));
+        ActivityImpl activity = new ActivityImpl();
+        activity.withChannelId("test");
+
+        TurnContextImpl context = new TurnContextImpl(new SimpleAdapter(), activity, executorService);
+
+
+        StatePropertyAccessor<TestState> testProperty = userState.CreateProperty("test");
+
+        TestState conversationState = testProperty.GetAsync(context, () -> new TestState()).get();
+        Assert.assertNotNull("state.conversation should exist", conversationState);
+        conversationState.withStringValue("test");
+        //testProperty.SetAsync(context, conversationState).get();
+        userState.SaveChangesAsync(context).get();
+        userState.LoadAsync(context, true).get();
+
+        TestState conversationState2 = testProperty.GetAsync(context, () -> new TestState()).get();
+        Assert.assertNotNull("state conversaiont", conversationState2.stringValue());
+        Assert.assertEquals("test", conversationState2.stringValue());
+
+
+
+    }
+
+
+    @Test
     public void State_RememberIStoreItemConversationState() throws ExecutionException, InterruptedException {
-        UserState userState = new UserState(new MemoryStorage());
+        UserState userState = new UserState(new MemoryStorage(executorService));
+
         StatePropertyAccessor<TestState> testProperty = userState.CreateProperty("test");
 
         TestAdapter adapter = new TestAdapter()
@@ -151,12 +194,16 @@ public class BotStateTest {
                     Assert.assertNotNull("state.conversation should exist", conversationState);
                     switch (context.activity().text()) {
                         case "set value":
-                            conversationState.withValue("test");
+                            conversationState.withStringValue("test");
+
+                            // ---
+                            testProperty.SetAsync(context, conversationState).get();
+                            userState.SaveChangesAsync(context).get();
                             context.SendActivityAsync("value saved").get();
                             break;
                         case "get value":
-                            Assert.assertFalse(StringUtils.isBlank(conversationState.value()));
-                            context.SendActivityAsync(conversationState.value()).get();
+                            Assert.assertFalse(StringUtils.isBlank(conversationState.stringValue()));
+                            context.SendActivityAsync(conversationState.stringValue()).get();
                             break;
                     }
                     return completedFuture(null);
@@ -168,7 +215,7 @@ public class BotStateTest {
 
     @Test
     public void State_RememberPocoConversationState() throws ExecutionException, InterruptedException {
-        UserState userState = new UserState(new MemoryStorage());
+        UserState userState = new UserState(new MemoryStorage(executorService));
         StatePropertyAccessor<TestPocoState> testPocoProperty = userState.CreateProperty("testPoco");
         TestAdapter adapter = new TestAdapter()
                 .Use(new AutoSaveStateMiddleware(userState));
@@ -217,7 +264,7 @@ public class BotStateTest {
     public void State_CustomStateManagerTest() throws ExecutionException, InterruptedException {
 
         String testGuid = UUID.randomUUID().toString();
-        CustomKeyState customState = new CustomKeyState(new MemoryStorage());
+        CustomKeyState customState = new CustomKeyState(new MemoryStorage(executorService));
         TestAdapter adapter = new TestAdapter()
                 .Use(new AutoSaveStateMiddleware(customState));
         StatePropertyAccessor<TestPocoState> testProperty = customState.CreateProperty("test");
@@ -259,9 +306,10 @@ public class BotStateTest {
                 .Test("get value", testGuid.toString())
                 .StartTest();
     }
+
     @Test
     public void State_RoundTripTypedObjectwTrace() throws ExecutionException, InterruptedException {
-        ConversationState convoState = new ConversationState(new MemoryStorage());
+        ConversationState convoState = new ConversationState(new MemoryStorage(executorService));
         StatePropertyAccessor<TypedObject> testProperty = convoState.CreateProperty("typed");
         TestAdapter adapter = new TestAdapter()
                 .Use(new AutoSaveStateMiddleware(convoState));
@@ -297,7 +345,7 @@ public class BotStateTest {
                                     System.out.println(String.format(">>Test Callback(tid:%s): Send activity : %s", Thread.currentThread().getId(),
                                             "TypedObject"));
                                     System.out.flush();
-                                    context.SendActivityAsync("TypedObject");
+                                    context.SendActivityAsync("TypedObject").get();
                                 } catch (Exception e) {
                                     e.printStackTrace();
                                     Assert.fail(String.format("Error sending activity! - get value"));
@@ -315,7 +363,7 @@ public class BotStateTest {
 
     @Test
     public void State_RoundTripTypedObject() throws ExecutionException, InterruptedException {
-        ConversationState convoState = new ConversationState(new MemoryStorage());
+        ConversationState convoState = new ConversationState(new MemoryStorage(executorService));
         StatePropertyAccessor<TypedObject> testProperty = convoState.CreateProperty("typed");
         TestAdapter adapter = new TestAdapter()
                 .Use(new AutoSaveStateMiddleware());
@@ -359,7 +407,7 @@ public class BotStateTest {
         new TestFlow(adapter,
                 (context) ->
                 {
-                    TestBotState botStateManager = new TestBotState(new MemoryStorage());
+                    TestBotState botStateManager = new TestBotState(new MemoryStorage(executorService));
                     StatePropertyAccessor<CustomState> testProperty = botStateManager.CreateProperty("test");
 
                     botStateManager.LoadAsync(context, false).get();

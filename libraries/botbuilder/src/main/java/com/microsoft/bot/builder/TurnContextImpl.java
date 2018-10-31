@@ -14,6 +14,7 @@ import java.util.List;
 import java.util.concurrent.Callable;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.CompletionException;
+import java.util.concurrent.ExecutorService;
 
 import static com.microsoft.bot.schema.models.ActivityTypes.MESSAGE;
 import static com.microsoft.bot.schema.models.ActivityTypes.TRACE;
@@ -30,8 +31,9 @@ import static java.util.stream.Collectors.toList;
  */
 public class TurnContextImpl implements TurnContext, AutoCloseable {
     private final BotAdapter adapter;
-    private final ActivityImpl activity;
+    private final Activity activity;
     private Boolean responded = false;
+    private ExecutorService _executorService;
 
     private final List<SendActivitiesHandler> onSendActivities = new ArrayList<SendActivitiesHandler>();
     private final List<UpdateActivityHandler> onUpdateActivity = new ArrayList<UpdateActivityHandler>();
@@ -48,7 +50,7 @@ public class TurnContextImpl implements TurnContext, AutoCloseable {
      * {@code adapter} is {@code null}.
      * For use by bot adapter implementations only.
      */
-    public TurnContextImpl(BotAdapter adapter, ActivityImpl activity) {
+    public TurnContextImpl(BotAdapter adapter, Activity activity, ExecutorService executorService) {
         if (adapter == null)
             throw new IllegalArgumentException("adapter");
         this.adapter = adapter;
@@ -57,8 +59,12 @@ public class TurnContextImpl implements TurnContext, AutoCloseable {
         this.activity = activity;
 
         turnServices = new TurnContextStateCollectionImpl();
+        _executorService = executorService;
     }
 
+    public ExecutorService executorService() {
+        return _executorService;
+    }
 
     /**
      *  Gets the services registered on this context object.
@@ -213,7 +219,7 @@ public class TurnContextImpl implements TurnContext, AutoCloseable {
                 activityToSend.withInputHint(InputHints.fromString(inputHint));
 
             try {
-                return SendActivityAsync(activityToSend).join();
+                return SendActivityAsync(activityToSend).get();
             } catch (Exception e) {
                 e.printStackTrace();
                 throw new CompletionException(e);
@@ -241,7 +247,7 @@ public class TurnContextImpl implements TurnContext, AutoCloseable {
             Activity[] activities = { activity };
             ResourceResponse[] responses = new ResourceResponse[0];
             try {
-                responses = SendActivities(activities).join();
+                responses = SendActivitiesAsync(activities).join();
             } catch (Exception e) {
                 e.printStackTrace();
                 throw new CompletionException(e);
@@ -268,7 +274,7 @@ public class TurnContextImpl implements TurnContext, AutoCloseable {
      * the receiving channel assigned to the activities.
      */
     @Override
-    public CompletableFuture<ResourceResponse[]> SendActivities(Activity[] activities) throws Exception {
+    public CompletableFuture<ResourceResponse[]> SendActivitiesAsync(Activity[] activities) throws Exception {
         // Bind the relevant Conversation Reference properties, such as URLs and
         // ChannelId's, to the activities we're about to send.
         ConversationReference cr = GetConversationReference(this.activity);
@@ -333,7 +339,7 @@ public class TurnContextImpl implements TurnContext, AutoCloseable {
      * of the activity to replace.</p>
      */
     @Override
-    public ResourceResponse UpdateActivity(Activity activity) throws Exception {
+    public ResourceResponse UpdateActivityAsync(Activity activity) throws Exception {
 
 
 
@@ -351,7 +357,7 @@ public class TurnContextImpl implements TurnContext, AutoCloseable {
      * @throws Microsoft.Bot.Schema.ErrorResponseException
      * The HTTP operation failed and the response contained additional information.
      */
-    public CompletableFuture DeleteActivity(String activityId) throws Exception {
+    public CompletableFuture DeleteActivityAsync(String activityId) throws Exception {
         if (StringUtils.isWhitespace(activityId) || activityId == null)
             throw new IllegalArgumentException("activityId");
 
@@ -376,7 +382,7 @@ public class TurnContextImpl implements TurnContext, AutoCloseable {
      * The conversation reference's {@link ConversationReference.ActivityId}
      * indicates the activity in the conversation to delete.
      */
-    public CompletableFuture DeleteActivity(ConversationReference conversationReference) throws Exception {
+    public CompletableFuture DeleteActivityAsync(ConversationReference conversationReference) throws Exception {
         if (conversationReference == null)
             throw new IllegalArgumentException("conversationReference");
 

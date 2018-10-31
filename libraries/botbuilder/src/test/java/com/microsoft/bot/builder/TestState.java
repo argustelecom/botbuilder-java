@@ -1,8 +1,10 @@
 package com.microsoft.bot.builder;
 
+import com.fasterxml.jackson.annotation.JsonProperty;
 import com.microsoft.bot.builder.StoreItem;
 
 public class TestState implements StoreItem {
+    @JsonProperty(value="etag")
     private String etag;
 
     @Override
@@ -15,14 +17,15 @@ public class TestState implements StoreItem {
         this.etag = etag;
     }
 
-    private String value;
+    @JsonProperty(value="stringVal")
+    private String stringVal;
 
-    public String value() {
-        return this.value;
+    public String stringValue() {
+        return this.stringVal;
     }
 
-    public void withValue(String value) {
-        this.value = value;
+    public void withStringValue(String value) {
+        this.stringVal = value;
     }
 }
 

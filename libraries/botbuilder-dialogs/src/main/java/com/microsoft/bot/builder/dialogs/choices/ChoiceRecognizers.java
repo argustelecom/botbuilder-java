@@ -9,21 +9,7 @@ import java.util.*;
 
 public class ChoiceRecognizers
 {
-
-	public static ArrayList<ModelResult<FoundChoice>> RecognizeChoices(String utterance, java.util.List<String> choices)
-	{
-		return RecognizeChoices(utterance, choices, null);
-	}
-
-	public static ArrayList<ModelResult<FoundChoice>> RecognizeChoices(String utterance, List<String> choices, FindChoicesOptions options)
-	{
-		Choice tempVar = new Choice();
-		tempVar.setValue(s);
-		return RecognizeChoices(utterance, choices.Select(s -> tempVar).ToList(), options);
-	}
-
-
-	public static java.util.ArrayList<ModelResult<FoundChoice>> RecognizeChoices(String utterance, java.util.List<Choice> list)
+	public static ArrayList<ModelResult<FoundChoice>> RecognizeChoices(String utterance, List<Choice> list)
 	{
 		return RecognizeChoices(utterance, list, null);
 	}
@@ -35,13 +21,13 @@ public class ChoiceRecognizers
 		//   like the "the third one" or "the red one" or "the first division book" would miss-recognize as
 		//   a numerical index or ordinal as well.
 		String tempVar = options.getLocale();
-		boolean locale = options == null ? null : (tempVar != null) ? tempVar : Recognizers.Text.Culture.English;
+		String locale = options == null ? null : (tempVar != null) ? tempVar : Recognizers.Text.Culture.English;
 		ArrayList<ModelResult<FoundChoice>> matched = Find.FindChoices(utterance, list, options);
 		if (matched.isEmpty())
 		{
 			// Next try finding by ordinal
 			ArrayList<ModelResult<FoundChoice>> matches = RecognizeOrdinal(utterance, locale);
-			if (matches.Any())
+			if (!matches.isEmpty())
 			{
 				for (ModelResult<FoundChoice> match : matches)
 				{
@@ -62,7 +48,7 @@ public class ChoiceRecognizers
 			// Sort any found matches by their position within the utterance.
 			// - The results from findChoices() are already properly sorted so we just need this
 			//   for ordinal & numerical lookups.
-			Collections.sort(matched, (a, b) -> a.Start - b.Start);
+			Collections.sort(matched, (a, b) -> a.getStart() - b.getStart());
 		}
 
 		return matched;
@@ -82,7 +68,7 @@ public class ChoiceRecognizers
 				tempVar.setTypeName("choice");
 				tempVar.setText(match.getText());
 				FoundChoice tempVar2 = new FoundChoice();
-				tempVar2.setValue(choice.getValue());
+				tempVar2.setValue(choice.value());
 				tempVar2.setIndex(index);
 				tempVar2.setScore(1.0f);
 				tempVar.setResolution(tempVar2);

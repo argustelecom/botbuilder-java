@@ -129,7 +129,7 @@ public class TurnContextTests {
         var message1 = TestMessage.Message("message1");
         var message2 = TestMessage.Message("message2");
 
-        var response = await c.SendActivities(new Activity[] { message1, message2 } );
+        var response = await c.SendActivitiesAsync(new Activity[] { message1, message2 } );
 
         Assert.IsTrue(c.Responded);
         Assert.IsTrue(response.Length == 2);
@@ -279,7 +279,7 @@ public class TurnContextTests {
         TurnContext c = new TurnContext(a, new Activity());
         
         var message = TestMessage.Message("test");            
-        var updateResult = await c.UpdateActivity(message);
+        var updateResult = await c.UpdateActivityAsync(message);
 
         Assert.IsTrue(foundActivity);
         Assert.IsTrue(updateResult.Id == "test");
@@ -307,7 +307,7 @@ public class TurnContextTests {
             wasCalled = true;
             return await next();
         });
-        await c.UpdateActivity(TestMessage.Message());
+        await c.UpdateActivityAsync(TestMessage.Message());
         Assert.IsTrue(wasCalled);            
         Assert.IsTrue(foundActivity);
     }
@@ -334,7 +334,7 @@ public class TurnContextTests {
             return null;
         });
 
-        await c.UpdateActivity(TestMessage.Message());
+        await c.UpdateActivityAsync(TestMessage.Message());
         Assert.IsTrue(wasCalled); // Interceptor was called
         Assert.IsFalse(adapterCalled); // Adapter was not                        
     }
@@ -360,7 +360,7 @@ public class TurnContextTests {
             return await next(); 
         });
 
-        await c.UpdateActivity(TestMessage.Message());
+        await c.UpdateActivityAsync(TestMessage.Message());
         Assert.IsTrue(adapterCalled); // Adapter was not                        
     }
 
@@ -378,7 +378,7 @@ public class TurnContextTests {
 
         SimpleAdapter a = new SimpleAdapter(ValidateDelete);
         TurnContext c = new TurnContext(a, TestMessage.Message()); 
-        await c.DeleteActivity("12345"); 
+        await c.DeleteActivityAsync("12345");
         Assert.IsTrue(deleteCalled);
     }
 
@@ -399,7 +399,7 @@ public class TurnContextTests {
 
         var reference = new ConversationReference("12345");
 
-        await c.DeleteActivity(reference);
+        await c.DeleteActivityAsync(reference);
         Assert.IsTrue(deleteCalled);
     }
 
@@ -425,7 +425,7 @@ public class TurnContextTests {
             // Do Not Call Next
         });
 
-        await c.DeleteActivity("1234"); 
+        await c.DeleteActivityAsync("1234");
         Assert.IsTrue(wasCalled); // Interceptor was called
         Assert.IsFalse(adapterCalled); // Adapter was not
     }
@@ -452,7 +452,7 @@ public class TurnContextTests {
             await next();
         });
 
-        await c.DeleteActivity("1234");
+        await c.DeleteActivityAsync("1234");
         Assert.IsTrue(adapterCalled); // Adapter was called + valided the change
     }
 

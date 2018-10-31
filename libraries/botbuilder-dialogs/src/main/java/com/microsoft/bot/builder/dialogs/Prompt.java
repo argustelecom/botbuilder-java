@@ -3,13 +3,20 @@
 
 package com.microsoft.bot.builder.dialogs;
 
-import Newtonsoft.Json.*;
 import com.microsoft.bot.builder.TurnContext;
+import com.microsoft.bot.builder.dialogs.choices.Choice;
+import com.microsoft.bot.builder.dialogs.choices.ChoiceFactory;
+import com.microsoft.bot.builder.dialogs.choices.ChoiceFactoryOptions;
+import com.microsoft.bot.builder.dialogs.choices.ListStyle;
+import com.microsoft.bot.schema.models.Activity;
 import com.microsoft.bot.schema.models.ActivityTypes;
+import com.microsoft.bot.schema.models.InputHints;
 import org.apache.commons.lang3.StringUtils;
 
 import java.util.*;
 import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.CompletionException;
+import java.util.concurrent.ExecutionException;
 
 
 /**
@@ -36,182 +43,173 @@ public abstract class Prompt<T> extends Dialog
 		_validator = (PromptValidatorContext promptContext ) -> validator.invoke(promptContext);
 	}
 
-
-	@Override
-	public CompletableFuture<DialogTurnResult> BeginDialogAsync(DialogContext dc, Object options)
-	{
-		return BeginDialogAsync(dc, options);
-	}
-
-
 	@Override
 	public CompletableFuture<DialogTurnResult> BeginDialogAsync(DialogContext dc, Object options )
 	{
-		if (dc == null)
-		{
-			throw new NullPointerException("dc");
-		}
+	    return CompletableFuture.supplyAsync(() -> {
+            if (dc == null)
+            {
+                throw new NullPointerException("dc");
+            }
 
-		if (!(options instanceof PromptOptions))
-		{
-			throw new IndexOutOfBoundsException("Prompt options are required for Prompt dialogs");
-		}
+            if (!(options instanceof PromptOptions))
+            {
+                throw new IndexOutOfBoundsException("Prompt options are required for Prompt dialogs");
+            }
 
-		// Ensure prompts have input hint set
-		PromptOptions opt = (PromptOptions)options;
-		if (opt.getPrompt() != null && StringUtils.isBlank(opt.getPrompt().InputHint))
-		{
-			opt.getPrompt().InputHint = InputHints.ExpectingInput;
-		}
+            // Ensure prompts have input hint set
+            PromptOptions opt = (PromptOptions)options;
+            if (opt.getPrompt() != null && StringUtils.isBlank(opt.getPrompt().inputHint().toString()))
+            {
+                opt.getPrompt().withInputHint(InputHints.EXPECTING_INPUT);
+            }
 
-		if (opt.getRetryPrompt() != null && StringUtils.isBlank(opt.getRetryPrompt().InputHint))
-		{
-			opt.getRetryPrompt().InputHint = InputHints.ExpectingInput;
-		}
+            if (opt.getRetryPrompt() != null && StringUtils.isBlank(opt.getRetryPrompt().inputHint().toString()))
+            {
+                opt.getRetryPrompt().withInputHint(InputHints.EXPECTING_INPUT);
+            }
 
-		// Initialize prompt state
-		Map<String, Object> state = dc.getActiveDialog().getState();
-		state.put(PersistedOptions, opt);
-		state.put(PersistedState, new HashMap<String, Object>());
+            // Initialize prompt state
+            Map<String, Object> state = dc.getActiveDialog().getState();
+            state.put(PersistedOptions, opt);
+            state.put(PersistedState, new HashMap<String, Object>());
 
-		// Send initial prompt
+            // Send initial prompt
 
-		OnPromptAsync(dc.getContext(), (Map<String, Object>)state.get(PersistedState), (PromptOptions)state.get(PersistedOptions), false).get();
-		return Dialog.EndOfTurn;
+            OnPromptAsync(dc.getContext(), (Map<String, Object>)state.get(PersistedState), (PromptOptions)state.get(PersistedOptions), false).get();
+            return Dialog.EndOfTurn;
+
+        }, dc.getContext().executorService());
 	}
 
-
-	@Override
-	public CompletableFuture<DialogTurnResult> ContinueDialogAsync(DialogContext dc)
-	{
-		return ContinueDialogAsync(dc, null);
-	}
-
+	// Helper that gets invoked from derived classes.
+    public CompletableFuture<DialogTurnResult> BeginDialogPromptAsync(DialogContext dc) {
+	    return BeginDialogAsync(dc, null);
+    }
 
 	@Override
 	public CompletableFuture<DialogTurnResult> ContinueDialogAsync(DialogContext dc )
 	{
-		if (dc == null)
-		{
-			throw new NullPointerException("dc");
-		}
+		return CompletableFuture.supplyAsync(() -> {
+            if (dc == null)
+            {
+                throw new NullPointerException("dc");
+            }
 
-		// Don't do anything for non-message activities
-		if (dc.getContext().activity().type() != ActivityTypes.MESSAGE)
-		{
-			return Dialog.EndOfTurn;
-		}
+            // Don't do anything for non-message activities
+            if (dc.getContext().activity().type() != ActivityTypes.MESSAGE)
+            {
+                return Dialog.EndOfTurn;
+            }
 
-		// Perform base recognition
-		DialogInstance instance = dc.getActiveDialog();
-		Map<String, Object> state = (Map<String, Object>)instance.getState().get(PersistedState);
-		PromptOptions options = (PromptOptions)instance.getState().get(PersistedOptions);
+            // Perform base recognition
+            DialogInstance instance = dc.getActiveDialog();
+            Map<String, Object> state = (Map<String, Object>)instance.getState().get(PersistedState);
+            PromptOptions options = (PromptOptions)instance.getState().get(PersistedOptions);
 
-        PromptRecognizerResult recognized = OnRecognizeAsync(dc.getContext(), state, options).get();
+            PromptRecognizerResult recognized = null;
+            try {
+                recognized = OnRecognizeAsync(dc.getContext(), state, options).get();
+            } catch (InterruptedException|ExecutionException e) {
+                e.printStackTrace();
+                throw new CompletionException(e);
+            }
 
-		// Validate the return value
-		boolean isValid = false;
-		if (_validator != null)
-		{
-			PromptValidatorContext<T> promptContext = new PromptValidatorContext<T>(dc.getContext(), recognized, state, options);
+            // Validate the return value
+            boolean isValid = false;
+            if (_validator != null)
+            {
+                PromptValidatorContext<T> promptContext = new PromptValidatorContext<T>(dc.getContext(), recognized, state, options);
 
-			isValid = _validator.invoke(promptContext).get();
-		}
-		else if (recognized.Succeeded)
-		{
-			isValid = true;
-		}
+                isValid = _validator.invoke(promptContext).get();
+            }
+            else if (recognized.succeeded())
+            {
+                isValid = true;
+            }
 
-		// Return recognized value or re-prompt
-		if (isValid)
-		{
+            // Return recognized value or re-prompt
+            if (isValid)
+            {
 
-			return dc.EndDialogAsync(recognized).getValue()).get();
-		}
-		else
-		{
-			if (!dc.getContext().Responded)
-			{
+                try {
+                    return dc.EndDialogAsync(recognized.value()).get();
+                } catch (InterruptedException|ExecutionException e) {
+                    e.printStackTrace();
+                    throw new CompletionException(e);
+                }
+            }
+            else
+            {
+                if (!dc.getContext().responded())
+                {
+                    try {
+                        OnPromptAsync(dc.getContext(), state, options, true).get();
+                    } catch (InterruptedException|ExecutionException e) {
+                        e.printStackTrace();
+                        throw new CompletionException(e);
+                    }
+                }
+                return Dialog.EndOfTurn;
+            }
 
-				await OnPromptAsync(dc.getContext(), state, options, true).get();
-			}
-
-			return Dialog.EndOfTurn;
-		}
-	}
-
-
-	@Override
-	public CompletableFuture<DialogTurnResult> ResumeDialogAsync(DialogContext dc, DialogReason reason, Object result)
-	{
-		return ResumeDialogAsync(dc, reason, result, null);
+        }, dc.getContext().executorService());
 	}
 
 	@Override
 	public CompletableFuture<DialogTurnResult> ResumeDialogAsync(DialogContext dc, DialogReason reason)
 	{
-		return ResumeDialogAsync(dc, reason, null, null);
+		return ResumeDialogAsync(dc, reason, null);
 	}
-
 
 	@Override
 	public CompletableFuture<DialogTurnResult> ResumeDialogAsync(DialogContext dc, DialogReason reason, Object result )
 	{
-		// Prompts are typically leaf nodes on the stack but the dev is free to push other dialogs
-		// on top of the stack which will result in the prompt receiving an unexpected call to
-		// dialogResume() when the pushed on dialog ends.
-		// To avoid the prompt prematurely ending we need to implement this method and
-		// simply re-prompt the user.
+	    return CompletableFuture.supplyAsync(() -> {
+            // Prompts are typically leaf nodes on the stack but the dev is free to push other dialogs
+            // on top of the stack which will result in the prompt receiving an unexpected call to
+            // dialogResume() when the pushed on dialog ends.
+            // To avoid the prompt prematurely ending we need to implement this method and
+            // simply re-prompt the user.
 
-		await RepromptDialogAsync(dc.getContext(), dc.getActiveDialog()).get();
-		return Dialog.EndOfTurn;
+            RepromptDialogAsync(dc.getContext(), dc.getActiveDialog()).get();
+            return Dialog.EndOfTurn;
+        });
 	}
 
-
-	@Override
-	public CompletableFuture RepromptDialogAsync(TurnContext turnContext, DialogInstance instance)
-	{
-		return RepromptDialogAsync(turnContext, instance, null);
-	}
-
-
-//ORIGINAL LINE: public override async CompletableFuture RepromptDialogAsync(TurnContext turnContext, DialogInstance instance, CancellationToken cancellationToken = default(CancellationToken))
-//C# TO JAVA CONVERTER NOTE: Java does not support optional parameters. Overloaded method(s) are created above:
 	@Override
 	public CompletableFuture RepromptDialogAsync(TurnContext turnContext, DialogInstance instance )
 	{
-		Map<String, Object> state = (Map<String, Object>)instance.getState().get(PersistedState);
-		PromptOptions options = (PromptOptions)instance.getState().get(PersistedOptions);
+	    return CompletableFuture.runAsync(() -> {
+            Map<String, Object> state = (Map<String, Object>)instance.getState().get(PersistedState);
+            PromptOptions options = (PromptOptions)instance.getState().get(PersistedOptions);
 
-		await OnPromptAsync(turnContext, state, options, false).get();
+            try {
+                OnPromptAsync(turnContext, state, options, false).get();
+            } catch (InterruptedException|ExecutionException e) {
+                e.printStackTrace();
+                throw new CompletionException(e);
+            }
+        }, turnContext.executorService());
 	}
 
 
-	protected final abstract CompletableFuture OnPromptAsync(TurnContext turnContext, java.util.Map<String, Object> state, PromptOptions options, boolean isRetry);
 	protected abstract CompletableFuture OnPromptAsync(TurnContext turnContext, Map<String, Object> state, PromptOptions options, boolean isRetry );
 
-
-	protected final abstract CompletableFuture<PromptRecognizerResult<T>> OnRecognizeAsync(TurnContext turnContext, java.util.Map<String, Object> state, PromptOptions options);
 	protected abstract CompletableFuture<PromptRecognizerResult<T>> OnRecognizeAsync(TurnContext turnContext, Map<String, Object> state, PromptOptions options );
 
-
-	protected final IMessageActivity AppendChoices(IMessageActivity prompt, String channelId, java.util.List<Choice> choices, ListStyle style, ChoiceFactoryOptions options)
+	protected final Activity AppendChoices(Activity prompt, String channelId, java.util.List<Choice> choices, ListStyle style)
 	{
-		return AppendChoices(prompt, channelId, choices, style, options, null);
+		return AppendChoices(prompt, channelId, choices, style, null);
 	}
 
-	protected final IMessageActivity AppendChoices(IMessageActivity prompt, String channelId, java.util.List<Choice> choices, ListStyle style)
-	{
-		return AppendChoices(prompt, channelId, choices, style, null, null);
-	}
-
-	protected final IMessageActivity AppendChoices(IMessageActivity prompt, String channelId, List<Choice> choices, ListStyle style, ChoiceFactoryOptions options )
+	protected final Activity AppendChoices(Activity prompt, String channelId, List<Choice> choices, ListStyle style, ChoiceFactoryOptions options )
 	{
 		// Get base prompt text (if any)
-		boolean text = prompt != null && !StringUtils.isBlank(prompt.Text) ? prompt.Text : "";
+		String text = prompt != null && !StringUtils.isBlank(prompt.text()) ? prompt.text() : "";
 
 		// Create temporary msg
-		IMessageActivity msg;
+        Activity msg;
 		switch (style)
 		{
 			case Inline:
@@ -219,16 +217,16 @@ public abstract class Prompt<T> extends Dialog
 				break;
 
 			case List:
-				msg = ChoiceFactory.List(choices, text, null, options);
+				msg = ChoiceFactory.ListChoice(choices, text, null, options);
 				break;
 
 			case SuggestedAction:
-				msg = ChoiceFactory.SuggestedAction(choices, text);
+				msg = ChoiceFactory.SuggestedActionChoice(choices, text);
 				break;
 
 			case None:
-				msg = Activity.CreateMessageActivity();
-				msg.Text = text;
+				msg = ActivityImpl.CreateMessageActivity();
+				msg.withText = text;
 				break;
 
 			default:

@@ -8,26 +8,28 @@ public class PromptRecognizerResult<T>
 {
 	public PromptRecognizerResult()
 	{
-		setSucceeded(false);
+		withSucceeded(false);
 	}
 
 	private boolean Succeeded;
-	public final boolean getSucceeded()
+	public final boolean succeeded()
 	{
 		return Succeeded;
 	}
-	public final void setSucceeded(boolean value)
+	public final PromptRecognizerResult<T> withSucceeded(boolean value)
 	{
 		Succeeded = value;
+		return this;
 	}
 
 	private T Value;
-	public final T getValue()
+	public final T value()
 	{
 		return Value;
 	}
-	public final void setValue(T value)
+	public final PromptRecognizerResult<T>  withValue(T value)
 	{
 		Value = value;
+		return this;
 	}
 }

@@ -9,6 +9,7 @@ import org.apache.commons.lang3.StringUtils;
 import java.util.*;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.CompletionException;
+import java.util.concurrent.ExecutionException;
 
 
 /**
@@ -78,8 +79,8 @@ public abstract class BotState implements PropertyManager
             if (force || cachedState == null || cachedState.getState() == null) {
                 Map<String, ? extends Object> items = null;
                 try {
-                    items = _storage.ReadAsync(new String[]{storageKey}).join();
-                } catch (JsonProcessingException e) {
+                    items = _storage.ReadAsync(new String[]{storageKey}).get();
+                } catch (JsonProcessingException|InterruptedException|ExecutionException e) {
                     e.printStackTrace();
                     throw new CompletionException(e);
                 }
@@ -89,17 +90,19 @@ public abstract class BotState implements PropertyManager
                 {
                     val = items.get(storageKey);
                 }
+                else
+                    val = new HashMap<String, Object>();
 
                 CachedBotState bs = new CachedBotState();
                 try {
-                    bs.setState(new HashMap<String, Object>());
+                    bs.setState((Map<String,Object>) val);
                 } catch (JsonProcessingException e) {
                     e.printStackTrace();
                     throw new CompletionException(e);
                 }
-                turnContext.turnState().Add(_contextServiceKey, bs);
+                turnContext.turnState().Add(_contextServiceKey, bs, force);
             }
-        });
+        }, turnContext.executorService());
     }
 
 
@@ -156,7 +159,7 @@ public abstract class BotState implements PropertyManager
                 e.printStackTrace();
                 throw new CompletionException(e);
             }
-        });
+        }, turnContext.executorService());
     }
 
     /**
@@ -179,7 +182,7 @@ public abstract class BotState implements PropertyManager
                 turnContext.turnState().Add(_contextServiceKey, new CachedBotState());
             }
 
-            });
+            }, turnContext.executorService());
     }
 
     /**
@@ -212,12 +215,12 @@ public abstract class BotState implements PropertyManager
                 throw new NullPointerException("propertyName");
             }
 
-            CachedBotState cachedState = turnContext.turnState().<CachedBotState>Get(_contextServiceKey);
+            CachedBotState cachedState = turnContext.turnState().Get(_contextServiceKey);
 
             // if there is no value, this will throw, to signal to IPropertyAccesor that a default value should be computed
             // This allows this to work with value types
             return (T) cachedState.getState().get(propertyName);
-        });
+        }, turnContext.executorService());
     }
 
     /**
@@ -243,7 +246,7 @@ public abstract class BotState implements PropertyManager
             CachedBotState cachedState = turnContext.turnState().<CachedBotState>Get(_contextServiceKey);
             cachedState.getState().remove(propertyName);
             return;
-        });
+        }, turnContext.executorService());
     }
 
     /**
@@ -270,6 +273,6 @@ public abstract class BotState implements PropertyManager
             CachedBotState cachedState = turnContext.turnState().<CachedBotState>Get(_contextServiceKey);
             cachedState.getState().put(propertyName, value);
             return;
-        });
+        }, turnContext.executorService());
     }
 }

@@ -26,6 +26,15 @@ import java.util.Map;
  *
  */
 public interface TurnContextStateCollection extends Iterable<Map.Entry<String, Object>>, AutoCloseable {
+
+    /**
+     * Add a service with a specified key.
+     * @param TService The type of service to be added.
+     * @param key The key to store the service under.
+     * @param service The service to add.
+     * @throws IllegalArgumentException Thrown when a service is already registered with the specified {@code key}
+     */
+    <TService extends Object> void Add(String key, TService service) throws IllegalArgumentException;
 	/**
 	 * Add a service with a specified key.
 	 * @param TService The type of service to be added.
@@ -33,7 +42,7 @@ public interface TurnContextStateCollection extends Iterable<Map.Entry<String, O
 	 * @param service The service to add.
 	 * @throws IllegalArgumentException Thrown when a service is already registered with the specified {@code key}
 	 */
-	<TService extends Object> void Add(String key, TService service) throws IllegalArgumentException;
+	<TService extends Object> void Add(String key, TService service, boolean force) throws IllegalArgumentException;
 
 	/**
 	 * Get a service by its key.

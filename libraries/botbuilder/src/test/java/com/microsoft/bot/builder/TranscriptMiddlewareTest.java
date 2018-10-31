@@ -76,7 +76,7 @@ public class TranscriptMiddlewareTest {
         TestAdapter adapter = new TestAdapter();
         ActivityImpl activity = ActivityImpl.CreateMessageActivity()
                 .withFrom(new ChannelAccount().withName("MyAccount").withId("acctid").withRole(RoleTypes.USER));
-        TurnContextImpl context = new TurnContextImpl(adapter, activity);
+        TurnContextImpl context = new TurnContextImpl(adapter, activity, adapter.executorService());
         NextDelegate nd = new NextDelegate() {
             @Override
             public CompletableFuture invoke() {
@@ -117,7 +117,7 @@ public class TranscriptMiddlewareTest {
                         .withType(ActivityTypes.TYPING.toString())
                         .withRelatesTo(context.activity().relatesTo());
                 try {
-                    context.SendActivityAsync((Activity)typingActivity);
+                    context.SendActivityAsync((Activity)typingActivity).get();
                 } catch (Exception e) {
                     e.printStackTrace();
                     Assert.fail();
@@ -182,7 +182,7 @@ public class TranscriptMiddlewareTest {
                 if (context.activity().text().equals("update")) {
                     activityToUpdate[0].withText("new response");
                     try {
-                        context.UpdateActivity(activityToUpdate[0]);
+                        context.UpdateActivityAsync(activityToUpdate[0]);
                     } catch (Exception e) {
                         e.printStackTrace();
                     }
@@ -230,7 +230,7 @@ public class TranscriptMiddlewareTest {
                 conversationId[0] = context.activity().conversation().id();
                 if (context.activity().text().equals("deleteIt")) {
                     try {
-                        context.DeleteActivity(activityId[0]).join();
+                        context.DeleteActivityAsync(activityId[0]).get();
                     } catch (Exception e) {
                         e.printStackTrace();
                         Assert.fail();
@@ -254,7 +254,7 @@ public class TranscriptMiddlewareTest {
                 .Send("deleteIt")
                 .StartTest();
         Thread.sleep(1500);
-        PagedResult pagedResult = transcriptStore.GetTranscriptActivitiesAsync("test", conversationId[0]).join();
+        PagedResult pagedResult = transcriptStore.GetTranscriptActivitiesAsync("test", conversationId[0]).get();
         for (Object act : pagedResult.getItems()) {
             System.out.printf("Here is the object: %s : Type: %s\n", act.getClass().getTypeName(), ((Activity)act).type());
         }

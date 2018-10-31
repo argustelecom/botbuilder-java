@@ -19,13 +19,14 @@ public class ChoiceFactoryOptions
 	 </value>
 	*/
 	private String InlineSeparator;
-	public final String getInlineSeparator()
+	public final String inlineSeparator()
 	{
 		return InlineSeparator;
 	}
-	public final void setInlineSeparator(String value)
+	public final ChoiceFactoryOptions withInlineSeparator(String value)
 	{
 		InlineSeparator = value;
+		return this;
 	}
 
 	/** 
@@ -37,13 +38,14 @@ public class ChoiceFactoryOptions
 	 </value>
 	*/
 	private String InlineOr;
-	public final String getInlineOr()
+	public final String inlineOr()
 	{
 		return InlineOr;
 	}
-	public final void setInlineOr(String value)
+	public final ChoiceFactoryOptions withInlineOr(String value)
 	{
 		InlineOr = value;
+		return this;
 	}
 
 	/** 
@@ -55,13 +57,14 @@ public class ChoiceFactoryOptions
 	 </value>
 	*/
 	private String InlineOrMore;
-	public final String getInlineOrMore()
+	public final String inlineOrMore()
 	{
 		return InlineOrMore;
 	}
-	public final void setInlineOrMore(String value)
+	public final ChoiceFactoryOptions withInlineOrMore(String value)
 	{
 		InlineOrMore = value;
+		return this;
 	}
 
 	/** 
@@ -74,12 +77,13 @@ public class ChoiceFactoryOptions
 	 </value>
 	*/
 	private Optional<Boolean> IncludeNumbers;
-	public final Optional<Boolean> getIncludeNumbers()
+	public final Optional<Boolean> includeNumbers()
 	{
 		return IncludeNumbers;
 	}
-	public final void setIncludeNumbers(Optional<Boolean> value)
+	public final ChoiceFactoryOptions withIncludeNumbers(Optional<Boolean> value)
 	{
 		IncludeNumbers = value;
+		return this;
 	}
 }

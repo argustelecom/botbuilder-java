@@ -298,7 +298,7 @@ public class TestFlow {
                     return e.getMessage();
                 }
 
-            })
+            }, executor)
                     .thenApply(arg -> { // Assert Reply
                         int finalTimeout = Integer.MAX_VALUE;
                         if (isDebug())

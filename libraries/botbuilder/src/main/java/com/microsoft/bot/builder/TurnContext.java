@@ -24,6 +24,7 @@ import com.microsoft.bot.schema.models.ConversationReference;
 import com.microsoft.bot.schema.models.ResourceResponse;
 
 import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.ExecutorService;
 
 //public delegate Task DeleteActivityHandler(TurnContext context, ConversationReference reference, Func<Task> next);
 
@@ -52,7 +53,10 @@ public interface TurnContext
 	 */
 	Activity activity();
 
-
+	/**
+	 * Executor Service
+	 */
+	ExecutorService executorService();
 
 	/**
 	 * Indicates whether at least one response was sent for the current turn.
@@ -104,7 +108,7 @@ public interface TurnContext
 	 * an array of {@link ResourceResponse} objects containing the IDs that
 	 * the receiving channel assigned to the activities.
 	 */
-	CompletableFuture<ResourceResponse[]> SendActivities(Activity[] activities) throws Exception;
+	CompletableFuture<ResourceResponse[]> SendActivitiesAsync(Activity[] activities) throws Exception;
 
 	/**
 	 * Replaces an existing activity.
@@ -116,14 +120,14 @@ public interface TurnContext
 	 * <p>Before calling this, set the ID of the replacement activity to the ID
 	 * of the activity to replace.</p>
 	 */
-	ResourceResponse UpdateActivity(Activity activity) throws Exception;
+	ResourceResponse UpdateActivityAsync(Activity activity) throws Exception;
 
 	/**
 	 * Deletes an existing activity.
 	 * @param activityId The ID of the activity to delete.
 	 * @return A task that represents the work queued to execute.
 	 */
-	CompletableFuture DeleteActivity(String activityId) throws Exception;
+	CompletableFuture DeleteActivityAsync(String activityId) throws Exception;
 
 	/**
 	 * Deletes an existing activity.
@@ -132,7 +136,7 @@ public interface TurnContext
 	 * The conversation reference's {@link ConversationReference.ActivityId}
 	 * indicates the activity in the conversation to delete.
 	 */
-	CompletableFuture DeleteActivity(ConversationReference conversationReference) throws Exception;
+	CompletableFuture DeleteActivityAsync(ConversationReference conversationReference) throws Exception;
 
 	/**
 	 * Adds a response handler for send activity operations.

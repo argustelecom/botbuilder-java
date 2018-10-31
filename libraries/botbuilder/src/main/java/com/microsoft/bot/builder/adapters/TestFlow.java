@@ -94,7 +94,7 @@ public class TestFlow {
 			System.out.print(String.format("USER SAYS: %s (Thread Id: %s)\n", userSays, Thread.currentThread().getId()));
 			System.out.flush();
 			try {
-				this.adapter.SendTextToBotAsync(userSays, this.callback);
+				this.adapter.SendTextToBotAsync(userSays, this.callback).get();
 				return "Successfully sent " + userSays;
 			} catch (Exception e) {
 				Assert.fail(e.getMessage());
@@ -119,7 +119,7 @@ public class TestFlow {
 
 
 			try {
-				this.adapter.ProcessActivityAsync((ActivityImpl) userActivity, this.callback);
+				this.adapter.ProcessActivityAsync((ActivityImpl) userActivity, this.callback).get();
 				return "TestFlow: Send() -> ProcessActivity: " + userActivity.text();
 			} catch (Exception e) {
 				return e.getMessage();
@@ -290,7 +290,7 @@ public class TestFlow {
 				System.out.flush();
 
 				try {
-					this.adapter.SendTextToBotAsync(userSays, this.callback).join();
+					this.adapter.SendTextToBotAsync(userSays, this.callback).get();
 					return null;
 				} catch (Exception e) {
 					return e.getMessage();
@@ -349,9 +349,7 @@ public class TestFlow {
 						}
 					})
 					.get(timeout, TimeUnit.MILLISECONDS);
-		} catch (InterruptedException e) {
-			e.printStackTrace();
-		} catch (ExecutionException e) {
+		} catch (InterruptedException|ExecutionException e) {
 			e.printStackTrace();
 		} catch (TimeoutException e) {
 			e.printStackTrace();

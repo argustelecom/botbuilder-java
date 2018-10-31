@@ -4,12 +4,16 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.microsoft.bot.schema.models.Entity;
+import org.omg.PortableInterceptor.SYSTEM_EXCEPTION;
 
 import java.util.HashMap;
 import java.util.Map;
 import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.ExecutorService;
 
 import static java.util.concurrent.CompletableFuture.completedFuture;
 
@@ -20,20 +24,25 @@ public class DictionaryStorage implements Storage {
     private static ObjectMapper objectMapper;
 
     // TODO: Object needs to be defined
-    private final Map<String, Object> memory;
+    private Map<String, Object> memory;
     private final Object syncroot = new Object();
     private int _eTag = 0;
     private final String typeNameForNonEntity = "__type_name_";
+    private ExecutorService _executorService;
 
-    public DictionaryStorage() {
-            this(null);
+    public DictionaryStorage(ExecutorService executorService) {
+        this(null, executorService);
     }
-    public DictionaryStorage(Map<String, Object> dictionary ) {
+    public DictionaryStorage(Map<String, Object> dictionary, ExecutorService executorService) {
+        _executorService = executorService;
         DictionaryStorage.objectMapper = new ObjectMapper()
                 .configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false)
+                .enableDefaultTyping()
                 .findAndRegisterModules();
-        this.memory = (dictionary != null) ? dictionary : new HashMap<String, Object>();
+        this.memory = (dictionary != null) ? dictionary : new ConcurrentHashMap<String, Object>();
     }
+
+    public ExecutorService executorService() { return _executorService; }
 
     public CompletableFuture DeleteAsync(String[] keys) {
         synchronized (this.syncroot) {
@@ -86,7 +95,7 @@ public class DictionaryStorage implements Storage {
             }
 
             return storeItems;
-        });
+        }, executorService());
     }
 
     @Override
@@ -106,7 +115,10 @@ public class DictionaryStorage implements Storage {
                 }
                 // Dictionary stores Key:JsonNode (with type information held within the JsonNode)
                 JsonNode newState = DictionaryStorage.objectMapper.valueToTree(newValue);
+
+                // Modify to add type information
                 ((ObjectNode)newState).put(this.typeNameForNonEntity, newValue.getClass().getTypeName());
+
 
                 // Set ETag if applicable
                 if (newValue instanceof StoreItem) {

@@ -33,7 +33,7 @@ public class BotFrameworkAdapterTest {
         };
 
         SimpleAdapter a = new SimpleAdapter(validateResponse);
-        TurnContextImpl c = new TurnContextImpl(a, new ActivityImpl());
+        TurnContextImpl c = new TurnContextImpl(a, new ActivityImpl(), a.executorService());
 
         String activityId = UUID.randomUUID().toString();
         ActivityImpl activity = TestMessage.Message()

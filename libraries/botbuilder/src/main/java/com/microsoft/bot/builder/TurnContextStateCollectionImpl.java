@@ -6,10 +6,11 @@ package com.microsoft.bot.builder;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
 
 public final class TurnContextStateCollectionImpl implements TurnContextStateCollection, AutoCloseable
 {
-    private final HashMap<String, Object> _services = new HashMap<String, Object>();
+    private final ConcurrentHashMap<String, Object> _services = new ConcurrentHashMap<String, Object>();
 
     public TurnContextStateCollectionImpl() throws IllegalArgumentException {
     }
@@ -34,10 +35,15 @@ public final class TurnContextStateCollectionImpl implements TurnContextStateCol
 
     @Override
     public <TService extends Object> void Add(String key, TService service) throws IllegalArgumentException  {
+        Add(key, service, false);
+    }
+
+        @Override
+    public <TService extends Object> void Add(String key, TService service, boolean force) throws IllegalArgumentException  {
         if (key == null) throw new IllegalArgumentException("key");
         if (service == null) throw new IllegalArgumentException("service");
 
-        if (_services.containsKey(key))
+        if (_services.containsKey(key) && force == false)
             throw new IllegalArgumentException (String.format("Key %s already exists", key));
         _services.put(key, service);
     }

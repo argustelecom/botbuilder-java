@@ -5,6 +5,8 @@ package com.microsoft.bot.builder;
 
 
 import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.CompletionException;
+import java.util.concurrent.ExecutionException;
 
 /**
   Middleware to automatically call .SaveChanges() at the end of the turn for all BotState class it is managing.
@@ -68,8 +70,14 @@ public class AutoSaveStateMiddleware implements Middleware
 	public final CompletableFuture OnTurnAsync(TurnContext turnContext, NextDelegate next)
 	{
 		return CompletableFuture.runAsync(() -> {
-			next.invoke().join();
-			getBotStateSet().SaveAllChangesAsync(turnContext, false).join();
-		});
+			try {
+				next.invoke().get();
+				getBotStateSet().SaveAllChangesAsync(turnContext, false).get();
+			} catch (InterruptedException|ExecutionException e) {
+				e.printStackTrace();
+				throw new CompletionException(e);
+			}
+
+		}, turnContext.executorService());
 	}
 }

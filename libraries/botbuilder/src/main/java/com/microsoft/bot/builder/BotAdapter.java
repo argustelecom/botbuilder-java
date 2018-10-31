@@ -9,9 +9,7 @@ import com.microsoft.bot.schema.models.ConversationReference;
 import com.microsoft.bot.schema.models.ConversationReferenceHelper;
 import com.microsoft.bot.schema.models.ResourceResponse;
 
-import java.util.concurrent.CompletableFuture;
-import java.util.concurrent.CompletionException;
-import java.util.concurrent.ExecutionException;
+import java.util.concurrent.*;
 import java.util.function.Consumer;
 import java.util.function.Function;
 
@@ -38,14 +36,30 @@ public abstract class BotAdapter {
 	/**
 	 * The collection of middleware in the adapter's pipeline.
 	 */
-	protected final MiddlewareSet _middlewareSet = new MiddlewareSet();
+
+	protected ExecutorService _executorService;
+    protected MiddlewareSet _middlewareSet = null;
 
 	/**
 	 * Creates a default adapter.
 	 */
-	public BotAdapter() {
+	public BotAdapter(ExecutorService executorService) {
 		super();
+		_executorService = executorService;
+		_middlewareSet = new MiddlewareSet(executorService());
 	}
+
+
+	public ExecutorService executorService() { return _executorService; }
+	public BotAdapter withExecutorService(ExecutorService executorService) {
+        if (_executorService != null)
+        {
+            _executorService.shutdownNow();
+        }
+        _executorService = executorService;
+        _middlewareSet.withExecutorService(executorService);
+        return this;
+    }
 
 	/**
 	 * Adds middleware to the adapter's pipeline.
@@ -170,7 +184,7 @@ public abstract class BotAdapter {
 		ConversationReferenceHelper conv = new ConversationReferenceHelper(reference);
 		ActivityImpl activity = conv.GetPostToBotMessage();
 
-		try (TurnContextImpl context = new TurnContextImpl(this, activity)) {
+		try (TurnContextImpl context = new TurnContextImpl(this, activity, executorService())) {
 			return this.RunPipelineAsync(context, callback);
 		}
 	}

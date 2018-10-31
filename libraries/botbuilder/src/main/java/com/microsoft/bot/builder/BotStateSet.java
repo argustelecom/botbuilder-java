@@ -5,6 +5,8 @@ package com.microsoft.bot.builder;
 
 import java.util.*;
 import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.CompletionException;
+import java.util.concurrent.ExecutionException;
 
 /**
   Manages a collection of botState and provides ability to load and save in parallel.
@@ -76,9 +78,14 @@ public class BotStateSet
 	public final CompletableFuture LoadAllAsync(TurnContext turnContext, boolean force)
 	{
 		return CompletableFuture.runAsync(() -> {
-			CompletableFuture[] tasks = this.getBotStates().stream().map(bs -> bs.LoadAsync(turnContext, force)).toArray(CompletableFuture[]::new);
-			CompletableFuture.allOf(tasks).join();
-		});
+			try {
+				CompletableFuture[] tasks = this.getBotStates().stream().map(bs -> bs.LoadAsync(turnContext, force)).toArray(CompletableFuture[]::new);
+				CompletableFuture.allOf(tasks).get();
+			} catch (InterruptedException|ExecutionException e) {
+				e.printStackTrace();
+				throw new CompletionException(e);
+			}
+		}, turnContext.executorService());
 	}
 
 	/** 
@@ -104,8 +111,13 @@ public class BotStateSet
 	public final CompletableFuture SaveAllChangesAsync(TurnContext turnContext, boolean force)
 	{
 		return CompletableFuture.runAsync(() -> {
-			CompletableFuture[] tasks = this.getBotStates().stream().map(bs -> bs.SaveChangesAsync(turnContext, force)).toArray(CompletableFuture[]::new);
-			CompletableFuture.allOf(tasks).join();
-		});
+			try {
+				CompletableFuture[] tasks = this.getBotStates().stream().map(bs -> bs.SaveChangesAsync(turnContext, force)).toArray(CompletableFuture[]::new);
+				CompletableFuture.allOf(tasks).get();
+			} catch (InterruptedException|ExecutionException e) {
+				e.printStackTrace();
+				throw new CompletionException(e);
+			}
+		}, turnContext.executorService());
 	}
 }

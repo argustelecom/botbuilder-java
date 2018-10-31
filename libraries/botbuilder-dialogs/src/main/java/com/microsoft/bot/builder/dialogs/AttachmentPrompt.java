@@ -5,6 +5,8 @@ package com.microsoft.bot.builder.dialogs;
 
 import java.util.*;
 import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.CompletionException;
+
 import com.microsoft.bot.builder.TurnContext;
 import com.microsoft.bot.schema.models.Activity;
 import com.microsoft.bot.schema.models.ActivityTypes;
@@ -20,46 +22,51 @@ public class AttachmentPrompt extends Prompt<List<Attachment>>
 		this(dialogId, null);
 	}
 
-	public AttachmentPrompt(String dialogId, PromptValidator<List<Attachment>> validator)
+    @Override
+    public CompletableFuture<DialogTurnResult> BeginDialogAsync(DialogContext dc) {
+        return BeginDialogPromptAsync(dc);
+    }
+
+    public AttachmentPrompt(String dialogId, PromptValidator<List<Attachment>> validator)
 	{
 		super(dialogId, validator);
 	}
 
 
 	@Override
-	protected CompletableFuture OnPromptAsync(TurnContext turnContext, java.util.Map<String, Object> state, PromptOptions options, boolean isRetry)
-	{
-		return OnPromptAsync(turnContext, state, options, isRetry, null);
-	}
-
-	@Override
 	protected CompletableFuture OnPromptAsync(TurnContext turnContext, Map<String, Object> state, PromptOptions options, boolean isRetry)
 	{
-		if (turnContext == null)
-		{
-			throw new NullPointerException("turnContext");
-		}
+	    return CompletableFuture.runAsync(() -> {
+            if (turnContext == null)
+            {
+                throw new NullPointerException("turnContext");
+            }
 
-		if (options == null)
-		{
-			throw new NullPointerException("options");
-		}
+            if (options == null)
+            {
+                throw new NullPointerException("options");
+            }
 
-		if (isRetry && options.getRetryPrompt() != null)
-		{
-			turnContext.SendActivityAsync(options.getRetryPrompt()).get();
-		}
-		else if (options.getPrompt() != null)
-		{
-			turnContext.SendActivityAsync(options.getPrompt()).get();
-		}
-	}
+            if (isRetry && options.getRetryPrompt() != null)
+            {
+                try {
+                    turnContext.SendActivityAsync(options.getRetryPrompt()).get();
+                } catch (Exception e) {
+                    e.printStackTrace();
+                    throw new CompletionException(e);
+                }
+            }
+            else if (options.getPrompt() != null)
+            {
+                try {
+                    turnContext.SendActivityAsync(options.getPrompt()).get();
+                } catch (Exception e) {
+                    e.printStackTrace();
+                    throw new CompletionException(e);
+                }
+            }
 
-
-	@Override
-	protected CompletableFuture<PromptRecognizerResult<java.util.List<Attachment>>> OnRecognizeAsync(TurnContext turnContext, java.util.Map<String, Object> state, PromptOptions options)
-	{
-		return OnRecognizeAsync(turnContext, state, options, null);
+        });
 	}
 
 	@Override
@@ -71,13 +78,13 @@ public class AttachmentPrompt extends Prompt<List<Attachment>>
 		}
 
 		PromptRecognizerResult<List<Attachment>> result = new PromptRecognizerResult<List<Attachment>>();
-		if (turnContext.activity().type() == ActivityTypes.MESSAGE.toString())
+		if (turnContext.activity().type() == ActivityTypes.MESSAGE)
 		{
-			Activity message = turnContext.activity().AsMessageActivity();
+			Activity message = turnContext.activity();
 			if (message.attachments() != null && message.attachments().size() > 0)
 			{
-				result.setSucceeded(true);
-				result.setValue(message.attachments());
+				result.withSucceeded(true);
+				result.withValue(message.attachments());
 			}
 		}
 
