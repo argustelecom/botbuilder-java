@@ -10,6 +10,8 @@ import org.apache.commons.lang3.StringUtils;
 
 import java.util.*;
 import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.CompletionException;
+import java.util.concurrent.ExecutionException;
 
 /**
  A related set of dialogs that can all call each other.
@@ -59,23 +61,31 @@ public class DialogSet
 
 	public final CompletableFuture<DialogContext> CreateContextAsync(TurnContext turnContext )
 	{
-		BotAssert.ContextNotNull(turnContext);
+	    return CompletableFuture.supplyAsync(() -> {
+            BotAssert.ContextNotNull(turnContext);
 
-		// ToDo: Component Dialog doesn't call this code path. This needs to be cleaned up in 4.1.
-		if (_dialogState == null)
-		{
-			// Note: This shouldn't ever trigger, as the _dialogState is set in the constructor and validated there.
-			throw new IllegalStateException(String.format("DialogSet.CreateContextAsync(): DialogSet created with a null IStatePropertyAccessor."));
-		}
+            // ToDo: Component Dialog doesn't call this code path. This needs to be cleaned up in 4.1.
+            if (_dialogState == null)
+            {
+                // Note: This shouldn't ever trigger, as the _dialogState is set in the constructor and validated there.
+                throw new IllegalStateException(String.format("DialogSet.CreateContextAsync(): DialogSet created with a null IStatePropertyAccessor."));
+            }
 
-		// Load/initialize dialog state
-		Object state = _dialogState.GetAsync(turnContext, () ->
-		{
-				return new DialogState();
-		}).get();
+            // Load/initialize dialog state
+            DialogState state = null;
+            try {
+                state = _dialogState.GetAsync(turnContext, () ->
+                {
+                    return new DialogState();
+                }).get();
+            } catch (InterruptedException|ExecutionException e) {
+                e.printStackTrace();
+                throw new CompletionException(e);
+            }
 
-		// Create and return context
-		return new DialogContext(this, turnContext, state);
+            // Create and return context
+            return new DialogContext(this, turnContext, state);
+        });
 	}
 
 	/** 
@@ -91,7 +101,7 @@ public class DialogSet
 			throw new NullPointerException("dialogId");
 		}
 
-		TValue result;
+		Dialog result = null;
 		if (_dialogs.containsKey(dialogId) ? (result = _dialogs.get(dialogId)) == result : false)
 		{
 			return result;

@@ -25,8 +25,6 @@ import java.util.function.Consumer;
 
 import static java.util.concurrent.CompletableFuture.completedFuture;
 
-//    [TestClass]
-//            [TestCategory("State Management")]
 public class BotStateTest {
     protected ConnectorClientImpl connector;
     protected ChannelAccount bot;

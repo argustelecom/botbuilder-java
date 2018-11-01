@@ -110,7 +110,7 @@ public class WaterfallDialog extends Dialog
             }
 
             // Don't do anything for non-message activities.
-            if (dc.getContext().activity().type() != ActivityTypes.MESSAGE)
+            if (dc.getContext().activity().type() != ActivityTypes.MESSAGE.toString())
             {
                 return Dialog.EndOfTurn;
             }
