@@ -5,6 +5,8 @@ package com.microsoft.bot.builder.dialogs;
 
 import java.util.*;
 import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.CompletionException;
+
 import com.microsoft.bot.builder.TurnContext;
 import com.microsoft.bot.builder.dialogs.choices.*;
 import com.microsoft.bot.schema.models.Activity;
@@ -98,59 +100,53 @@ public class ChoicePrompt extends Prompt<FoundChoice>
 
 
 	@Override
-	protected CompletableFuture OnPromptAsync(TurnContext turnContext, java.util.Map<String, Object> state, PromptOptions options, boolean isRetry)
-	{
-		return OnPromptAsync(turnContext, state, options, isRetry, null);
-	}
-
-
-	@Override
 	protected CompletableFuture OnPromptAsync(TurnContext turnContext, Map<String, Object> state, PromptOptions options, boolean isRetry )
 	{
-		if (turnContext == null)
-		{
-			throw new NullPointerException("turnContext");
-		}
+	    return CompletableFuture.supplyAsync(() -> {
+            if (turnContext == null)
+            {
+                throw new NullPointerException("turnContext");
+            }
 
-		if (options == null)
-		{
-			throw new NullPointerException("options");
-		}
+            if (options == null)
+            {
+                throw new NullPointerException("options");
+            }
 
-		// Determine culture
-		String culture = (turnContext.activity().locale() != null) ? turnContext.activity().locale() : getDefaultLocale();
-		if (StringUtils.isBlank(culture) || !DefaultChoiceOptions.containsKey(culture))
-		{
-			culture = English;
-		}
+            // Determine culture
+            String culture = (turnContext.activity().locale() != null) ? turnContext.activity().locale() : getDefaultLocale();
+            if (StringUtils.isBlank(culture) || !DefaultChoiceOptions.containsKey(culture))
+            {
+                culture = English;
+            }
 
-		// Format prompt to send
-		Activity prompt;
-		java.util.List<Choice> tempVar = options.getChoices();
-		ArrayList<Choice> choices = (tempVar != null) ? tempVar : new ArrayList<Choice>();
-		String channelId = turnContext.activity().channelId();
-		ChoiceFactoryOptions tempVar2 = getChoiceOptions();
-		ChoiceFactoryOptions choiceOptions = (tempVar2 != null) ? tempVar2 : DefaultChoiceOptions.get(culture);
-		if (isRetry && options.getRetryPrompt() != null)
-		{
-			prompt = AppendChoices(options.getRetryPrompt(), channelId, choices, getStyle(), choiceOptions);
-		}
-		else
-		{
-			prompt = AppendChoices(options.getPrompt(), channelId, choices, getStyle(), choiceOptions);
-		}
+            // Format prompt to send
+            Activity prompt;
+            java.util.List<Choice> tempVar = options.getChoices();
+            ArrayList<Choice> choices = (tempVar != null) ? tempVar : new ArrayList<Choice>();
+            String channelId = turnContext.activity().channelId();
+            ChoiceFactoryOptions tempVar2 = getChoiceOptions();
+            ChoiceFactoryOptions choiceOptions = (tempVar2 != null) ? tempVar2 : DefaultChoiceOptions.get(culture);
+            if (isRetry && options.getRetryPrompt() != null)
+            {
+                prompt = AppendChoices(options.getRetryPrompt(), channelId, choices, getStyle(), choiceOptions);
+            }
+            else
+            {
+                prompt = AppendChoices(options.getPrompt(), channelId, choices, getStyle(), choiceOptions);
+            }
 
-		// Send prompt
+            // Send prompt
 
-		turnContext.SendActivityAsync(prompt).get();
-	}
+            try {
+                turnContext.SendActivityAsync(prompt).get();
+            } catch (Exception e) {
+                e.printStackTrace();
+                throw new CompletionException(e);
+            }
+        }, turnContext.executorService());
+    }
 
-
-	@Override
-	protected CompletableFuture<PromptRecognizerResult<FoundChoice>> OnRecognizeAsync(TurnContext turnContext, java.util.Map<String, Object> state, PromptOptions options)
-	{
-		return OnRecognizeAsync(turnContext, state, options, null);
-	}
 
 	@Override
 	protected CompletableFuture<PromptRecognizerResult<FoundChoice>> OnRecognizeAsync(TurnContext turnContext, Map<String, Object> state, PromptOptions options )

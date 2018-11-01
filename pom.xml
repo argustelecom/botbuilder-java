@@ -13,9 +13,11 @@
   
   <modules>
     <module>libraries/botbuilder-schema</module>
-    <module>libraries/botbuilder</module>
-    <module>libraries/botbuilder-dialogs</module>
     <module>libraries/bot-connector</module>
+    <module>libraries/botbuilder</module>
+     <module>libraries/botbuilder-dialogs</module>
+      <module>libraries/botbuilder-ai-qna</module>
+      <!--<module>libraries/botbuilder-ai-luis</module>-->
     <module>samples/bot-connector-sample</module>
   </modules>
 </project>

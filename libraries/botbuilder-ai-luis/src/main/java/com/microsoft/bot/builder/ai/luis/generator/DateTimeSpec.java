@@ -1,6 +1,6 @@
-package Microsoft.Bot.Builder.AI.Luis;
+package com.microsoft.bot.builder.ai.luis;
 
-import Newtonsoft.Json.*;
+
 
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License.

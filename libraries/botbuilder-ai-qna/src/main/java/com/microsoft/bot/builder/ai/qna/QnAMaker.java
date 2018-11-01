@@ -1,12 +1,17 @@
-package Microsoft.Bot.Builder.AI.QnA;
-
-import Newtonsoft.Json.*;
-
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License.
 
+package com.microsoft.bot.builder.ai.qna;
 
-/** 
+import com.fasterxml.jackson.annotation.JsonProperty;
+import com.microsoft.bot.schema.ActivityImpl;
+import com.microsoft.bot.schema.models.Activity;
+import okhttp3.OkHttpClient;
+import org.apache.commons.lang3.StringUtils;
+
+import java.util.concurrent.CompletableFuture;
+
+/**
  Provides access to a QnA Maker knowledge base.
 */
 public class QnAMaker
@@ -15,8 +20,8 @@ public class QnAMaker
 	public static final String QnAMakerTraceType = "https://www.qnamaker.ai/schemas/trace";
 	public static final String QnAMakerTraceLabel = "QnAMaker Trace";
 
-	private static final HttpClient DefaultHttpClient = new HttpClient();
-	private HttpClient _httpClient;
+	private static final OkHttpClient DefaultHttpClient = new OkHttpClient();
+	private OkHttpClient _httpClient;
 
 	private QnAMakerEndpoint _endpoint;
 	private QnAMakerOptions _options;
@@ -42,7 +47,7 @@ public class QnAMaker
 
 //C# TO JAVA CONVERTER NOTE: Java does not support optional parameters. Overloaded method(s) are created above:
 //ORIGINAL LINE: public QnAMaker(QnAMakerEndpoint endpoint, QnAMakerOptions options = null, HttpClient httpClient = null)
-	public QnAMaker(QnAMakerEndpoint endpoint, QnAMakerOptions options, HttpClient httpClient)
+	public QnAMaker(QnAMakerEndpoint endpoint, QnAMakerOptions options, OkHttpClient httpClient)
 	{
 		_httpClient = (httpClient != null) ? httpClient : DefaultHttpClient;
 
@@ -50,17 +55,17 @@ public class QnAMaker
 //ORIGINAL LINE: _endpoint = endpoint ?? throw new ArgumentNullException(nameof(endpoint));
 		_endpoint = (endpoint != null) ? endpoint : throw new NullPointerException("endpoint");
 
-		if (tangible.StringHelper.isNullOrEmpty(endpoint.getKnowledgeBaseId()))
+		if (StringUtils.isBlank(endpoint.getKnowledgeBaseId()))
 		{
 			throw new IllegalArgumentException("KnowledgeBaseId");
 		}
 
-		if (tangible.StringHelper.isNullOrEmpty(endpoint.getHost()))
+		if (StringUtils.isBlank(endpoint.getHost()))
 		{
 			throw new IllegalArgumentException("Host");
 		}
 
-		if (tangible.StringHelper.isNullOrEmpty(endpoint.getEndpointKey()))
+		if (StringUtils.isBlank(endpoint.getEndpointKey()))
 		{
 			throw new IllegalArgumentException("EndpointKey");
 		}
@@ -117,9 +122,7 @@ public class QnAMaker
 		this(service, null, null);
 	}
 
-//C# TO JAVA CONVERTER NOTE: Java does not support optional parameters. Overloaded method(s) are created above:
-//ORIGINAL LINE: public QnAMaker(QnAMakerService service, QnAMakerOptions options = null, HttpClient httpClient = null)
-	public QnAMaker(QnAMakerService service, QnAMakerOptions options, HttpClient httpClient)
+	public QnAMaker(QnAMakerService service, QnAMakerOptions options, OkHttpClient httpClient)
 	{
 		this(new QnAMakerEndpoint(service), options, httpClient);
 	}
@@ -130,9 +133,7 @@ public class QnAMaker
 	 @param turnContext The Turn Context that contains the user question to be queried against your knowledge base.
 	 @return A list of answers for the user query, sorted in decreasing order of ranking score.
 	*/
-//C# TO JAVA CONVERTER TODO TASK: There is no equivalent in Java to the 'async' keyword:
-//ORIGINAL LINE: public async Task<QueryResult[]> GetAnswersAsync(ITurnContext turnContext)
-	public final Task<QueryResult[]> GetAnswersAsync(ITurnContext turnContext)
+	public final CompletableFuture<QueryResult[]> GetAnswersAsync(TurnContext turnContext)
 	{
 		if (turnContext == null)
 		{
@@ -144,14 +145,13 @@ public class QnAMaker
 			throw new NullPointerException("Activity");
 		}
 
-//C# TO JAVA CONVERTER TODO TASK: There is no equivalent to implicit typing in Java unless the Java 10 inferred typing option is selected:
-		var messageActivity = turnContext.Activity.AsMessageActivity();
+		Activity messageActivity = turnContext.activity();
 		if (messageActivity == null)
 		{
 			throw new IllegalArgumentException("Activity type is not a message");
 		}
 
-		if (tangible.StringHelper.isNullOrEmpty(turnContext.Activity.Text))
+		if (StringUtils.isBlank(turnContext.activity().text()))
 		{
 			throw new IllegalArgumentException("Null or empty text");
 		}
@@ -175,7 +175,6 @@ public class QnAMaker
 				metadataBoost = _metadataBoost;
 			}
 		}
-//C# TO JAVA CONVERTER TODO TASK: There is no equivalent to implicit typing in Java unless the Java 10 inferred typing option is selected:
 		var jsonRequest = JsonConvert.SerializeObject(AnonymousType(messageActivity.Text, _options.getTop(), _options.getStrictFilters(), _options.getMetadataBoost()), Formatting.None);
 
 		request.Content = new StringContent(jsonRequest, System.Text.Encoding.UTF8, "application/json");
@@ -191,28 +190,21 @@ public class QnAMaker
 			request.Headers.Add("Authorization", String.format("EndpointKey %1$s", _endpoint.getEndpointKey()));
 		}
 
-//C# TO JAVA CONVERTER TODO TASK: There is no equivalent to implicit typing in Java unless the Java 10 inferred typing option is selected:
-//C# TO JAVA CONVERTER TODO TASK: There is no equivalent to 'await' in Java:
-		var response = await _httpClient.SendAsync(request).ConfigureAwait(false);
+		var response = _httpClient.SendAsync(request).get();
 		if (!response.IsSuccessStatusCode)
 		{
 			return null;
 		}
 
-//C# TO JAVA CONVERTER TODO TASK: There is no equivalent to implicit typing in Java unless the Java 10 inferred typing option is selected:
-//C# TO JAVA CONVERTER TODO TASK: There is no equivalent to 'await' in Java:
-		var jsonResponse = await response.Content.ReadAsStringAsync().ConfigureAwait(false);
+		var jsonResponse = response.Content.ReadAsStringAsync().get();
 
-//C# TO JAVA CONVERTER TODO TASK: There is no equivalent to implicit typing in Java unless the Java 10 inferred typing option is selected:
 		var results = isLegacyProtocol ? ConvertLegacyResults(JsonConvert.<InternalQueryResults>DeserializeObject(jsonResponse)) : JsonConvert.<QueryResults>DeserializeObject(jsonResponse);
 
-//C# TO JAVA CONVERTER TODO TASK: There is no equivalent to implicit typing in Java unless the Java 10 inferred typing option is selected:
 		for (var answer : results.Answers)
 		{
 			answer.Score = answer.Score / 100;
 		}
 
-//C# TO JAVA CONVERTER TODO TASK: There is no Java equivalent to LINQ queries:
 		Object[] result = results.Answers.Where(answer -> answer.Score > _options.getScoreThreshold()).ToArray();
 
 		QnAMakerTraceInfo traceInfo = new QnAMakerTraceInfo();
@@ -223,10 +215,8 @@ public class QnAMaker
 		traceInfo.setTop(_options.getTop());
 		traceInfo.setStrictFilters(_options.getStrictFilters());
 		traceInfo.setMetadataBoost(_options.getMetadataBoost());
-//C# TO JAVA CONVERTER TODO TASK: There is no equivalent to implicit typing in Java unless the Java 10 inferred typing option is selected:
-		var traceActivity = Activity.CreateTraceActivity(QnAMakerMiddlewareName, QnAMakerTraceType, traceInfo, QnAMakerTraceLabel);
-//C# TO JAVA CONVERTER TODO TASK: There is no equivalent to 'await' in Java:
-		await turnContext.SendActivityAsync(traceActivity).ConfigureAwait(false);
+		Activity traceActivity = ActivityImpl.CreateTraceActivity(QnAMakerMiddlewareName, QnAMakerTraceType, traceInfo, QnAMakerTraceLabel);
+		turnContext.SendActivityAsync(traceActivity).get();
 
 		return result;
 	}
@@ -247,8 +237,7 @@ public class QnAMaker
 
 	private static class InternalQueryResult extends QueryResult
 	{
-//C# TO JAVA CONVERTER TODO TASK: Java annotations will not correspond to .NET attributes:
-//ORIGINAL LINE: [JsonProperty(PropertyName = "qnaId")] public int QnaId {get;set;}
+@JsonProperty(value = "qnaId")
 		private int QnaId;
 		public final int getQnaId()
 		{
@@ -266,9 +255,9 @@ public class QnAMaker
 		 Gets or sets the answers for a user query,
 		 sorted in decreasing order of ranking score.
 		*/
-//C# TO JAVA CONVERTER TODO TASK: Java annotations will not correspond to .NET attributes:
-//ORIGINAL LINE: [JsonProperty("answers")] public InternalQueryResult[] Answers {get;set;}
-		private InternalQueryResult[] Answers;
+        @JsonProperty(value = "answers")
+
+        private InternalQueryResult[] Answers;
 		public final InternalQueryResult[] getAnswers()
 		{
 			return Answers;

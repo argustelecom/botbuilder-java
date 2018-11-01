@@ -1,12 +1,15 @@
-package Microsoft.Bot.Builder.AI.QnA;
+package com.microsoft.bot.builder.ai.qna;
 
-import Newtonsoft.Json.*;
+
 
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License.
 
 
-/** 
+import com.fasterxml.jackson.annotation.JsonProperty;
+import com.microsoft.bot.schema.models.Activity;
+
+/**
  This class represents all the trace info that we collect from the QnAMaker Middleware.
 */
 public class QnAMakerTraceInfo
@@ -37,8 +40,7 @@ public class QnAMakerTraceInfo
 	 Results that QnAMaker returned.
 	 </value>
 	*/
-//C# TO JAVA CONVERTER TODO TASK: Java annotations will not correspond to .NET attributes:
-//ORIGINAL LINE: [JsonProperty("queryResults")] public QueryResult[] QueryResults {get;set;}
+    @JsonProperty(value = "queryResults")
 	private QueryResult[] QueryResults;
 	public final QueryResult[] getQueryResults()
 	{
@@ -56,8 +58,7 @@ public class QnAMakerTraceInfo
 	 ID of the Knowledgebase that is being used.
 	 </value>
 	*/
-//C# TO JAVA CONVERTER TODO TASK: Java annotations will not correspond to .NET attributes:
-//ORIGINAL LINE: [JsonProperty("knowledgeBaseId")] public string KnowledgeBaseId {get;set;}
+    @JsonProperty(value = "knowledgeBaseId")
 	private String KnowledgeBaseId;
 	public final String getKnowledgeBaseId()
 	{
@@ -77,8 +78,7 @@ public class QnAMakerTraceInfo
 	 The minimum score threshold, used to filter returned results.
 	 </value>
 	*/
-//C# TO JAVA CONVERTER TODO TASK: Java annotations will not correspond to .NET attributes:
-//ORIGINAL LINE: [JsonProperty("scoreThreshold")] public float ScoreThreshold {get;set;}
+    @JsonProperty(value = "scoreThreshold")
 	private float ScoreThreshold;
 	public final float getScoreThreshold()
 	{
@@ -96,8 +96,7 @@ public class QnAMakerTraceInfo
 	 Number of ranked results that are asked to be returned.
 	 </value>
 	*/
-//C# TO JAVA CONVERTER TODO TASK: Java annotations will not correspond to .NET attributes:
-//ORIGINAL LINE: [JsonProperty("top")] public int Top {get;set;}
+    @JsonProperty(value = "top")
 	private int Top;
 	public final int getTop()
 	{

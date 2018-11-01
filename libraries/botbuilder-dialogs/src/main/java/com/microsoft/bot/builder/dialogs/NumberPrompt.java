@@ -95,7 +95,7 @@ public class NumberPrompt<T> extends Prompt<T>
             }
 
             PromptRecognizerResult<T> result = new PromptRecognizerResult<T>();
-            if (turnContext.activity().type() == ActivityTypes.MESSAGE)
+            if (turnContext.activity().type() == ActivityTypes.MESSAGE.toString())
             {
                 Activity message = turnContext.activity();
                 String tempVar = getDefaultLocale();

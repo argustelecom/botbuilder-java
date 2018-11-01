@@ -1,11 +1,10 @@
-package Microsoft.Bot.Builder.AI.Luis;
-
-import Newtonsoft.Json.Linq.*;
-import java.util.*;
-
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License.
 
+package com.microsoft.bot.builder.ai.luis;
+
+import Newtonsoft.Json.Linq.*;
+import java.util.*;
 
 /** <inheritdoc />
  
@@ -142,29 +141,29 @@ public class LuisRecognizer implements IRecognizer
 			}
 		}
 
-		return !tangible.StringHelper.isNullOrEmpty(topIntent) ? topIntent : defaultIntent;
+		return !StringUtils.isBlank(topIntent) ? topIntent : defaultIntent;
 	}
 
 	/** <inheritdoc />
 	*/
 //C# TO JAVA CONVERTER TODO TASK: There is no equivalent in Java to the 'async' keyword:
-//ORIGINAL LINE: public async Task<RecognizerResult> RecognizeAsync(ITurnContext turnContext, CancellationToken cancellationToken)
-	public final Task<RecognizerResult> RecognizeAsync(ITurnContext turnContext, CancellationToken cancellationToken)
+//ORIGINAL LINE: public async CompletableFuture<RecognizerResult> RecognizeAsync(TurnContext turnContext, CancellationToken cancellationToken)
+	public final CompletableFuture<RecognizerResult> RecognizeAsync(TurnContext turnContext, CancellationToken cancellationToken)
 	{
-//C# TO JAVA CONVERTER TODO TASK: There is no equivalent to 'await' in Java:
-		return await RecognizeInternalAsync(turnContext, cancellationToken).ConfigureAwait(false);
+//C# TO JAVA CONVERTER TODO TASK: There is no equivalent to ' ' in Java:
+		return   RecognizeInternalAsync(turnContext, cancellationToken).get();
 	}
 
 	/** <inheritdoc />
 	*/
 //C# TO JAVA CONVERTER TODO TASK: There is no equivalent in Java to the 'async' keyword:
-//ORIGINAL LINE: public async Task<T> RecognizeAsync<T>(ITurnContext turnContext, CancellationToken cancellationToken) where T : IRecognizerConvert, new()
+//ORIGINAL LINE: public async CompletableFuture<T> RecognizeAsync<T>(TurnContext turnContext, CancellationToken cancellationToken) where T : IRecognizerConvert, new()
 //C# TO JAVA CONVERTER TODO TASK: The C# 'new()' constraint has no equivalent in Java:
-	public final <T extends IRecognizerConvert> Task<T> RecognizeAsync(ITurnContext turnContext, CancellationToken cancellationToken)
+	public final <T extends IRecognizerConvert> CompletableFuture<T> RecognizeAsync(TurnContext turnContext, CancellationToken cancellationToken)
 	{
 		T result = new T();
-//C# TO JAVA CONVERTER TODO TASK: There is no equivalent to 'await' in Java:
-		result.Convert(await RecognizeInternalAsync(turnContext, cancellationToken).ConfigureAwait(false));
+//C# TO JAVA CONVERTER TODO TASK: There is no equivalent to ' ' in Java:
+		result.Convert(  RecognizeInternalAsync(turnContext, cancellationToken).Configure (false));
 		return result;
 	}
 
@@ -465,8 +464,8 @@ public class LuisRecognizer implements IRecognizer
 	}
 
 //C# TO JAVA CONVERTER TODO TASK: There is no equivalent in Java to the 'async' keyword:
-//ORIGINAL LINE: private async Task<RecognizerResult> RecognizeInternalAsync(ITurnContext turnContext, CancellationToken cancellationToken)
-	private Task<RecognizerResult> RecognizeInternalAsync(ITurnContext turnContext, CancellationToken cancellationToken)
+//ORIGINAL LINE: private async CompletableFuture<RecognizerResult> RecognizeInternalAsync(TurnContext turnContext, CancellationToken cancellationToken)
+	private CompletableFuture<RecognizerResult> RecognizeInternalAsync(TurnContext turnContext, CancellationToken cancellationToken)
 	{
 		BotAssert.ContextNotNull(turnContext);
 
@@ -484,10 +483,10 @@ public class LuisRecognizer implements IRecognizer
 
 		Nullable<Boolean> tempVar = _options.getLog();
 //C# TO JAVA CONVERTER TODO TASK: There is no equivalent to implicit typing in Java unless the Java 10 inferred typing option is selected:
-//C# TO JAVA CONVERTER TODO TASK: There is no equivalent to 'await' in Java:
+//C# TO JAVA CONVERTER TODO TASK: There is no equivalent to ' ' in Java:
 //C# TO JAVA CONVERTER TODO TASK: C# to Java Converter could not resolve the named parameters in the following line:
-//ORIGINAL LINE: var luisResult = await _runtime.Prediction.ResolveAsync(_application.ApplicationId, utterance, timezoneOffset: _options.TimezoneOffset, verbose: _options.IncludeAllIntents, staging: _options.Staging, spellCheck: _options.SpellCheck, bingSpellCheckSubscriptionKey: _options.BingSpellCheckSubscriptionKey, log: _options.Log ?? true, cancellationToken: cancellationToken).ConfigureAwait(false);
-		var luisResult = await _runtime.Prediction.ResolveAsync(_application.getApplicationId(), utterance, timezoneOffset: _options.getTimezoneOffset(), verbose: _options.getIncludeAllIntents(), staging: _options.getStaging(), spellCheck: _options.getSpellCheck(), bingSpellCheckSubscriptionKey: _options.getBingSpellCheckSubscriptionKey(), log: (tempVar != null) ? tempVar : true, cancellationToken: cancellationToken).ConfigureAwait(false);
+//ORIGINAL LINE: var luisResult =   _runtime.Prediction.ResolveAsync(_application.ApplicationId, utterance, timezoneOffset: _options.TimezoneOffset, verbose: _options.IncludeAllIntents, staging: _options.Staging, spellCheck: _options.SpellCheck, bingSpellCheckSubscriptionKey: _options.BingSpellCheckSubscriptionKey, log: _options.Log ?? true, cancellationToken: cancellationToken).get();
+		var luisResult =   _runtime.Prediction.ResolveAsync(_application.getApplicationId(), utterance, timezoneOffset: _options.getTimezoneOffset(), verbose: _options.getIncludeAllIntents(), staging: _options.getStaging(), spellCheck: _options.getSpellCheck(), bingSpellCheckSubscriptionKey: _options.getBingSpellCheckSubscriptionKey(), log: (tempVar != null) ? tempVar : true, cancellationToken: cancellationToken).get();
 
 		RecognizerResult recognizerResult = new RecognizerResult();
 		recognizerResult.Text = utterance;
@@ -513,8 +512,8 @@ public class LuisRecognizer implements IRecognizer
 //C# TO JAVA CONVERTER TODO TASK: There is no equivalent to implicit typing in Java unless the Java 10 inferred typing option is selected:
 		var traceInfo = JObject.FromObject(new {recognizerResult, luisModel = AnonymousType(_application.getApplicationId()), luisOptions = _options, luisResult});
 
-//C# TO JAVA CONVERTER TODO TASK: There is no equivalent to 'await' in Java:
-		await turnContext.TraceActivityAsync("LuisRecognizer", traceInfo, LuisTraceType, LuisTraceLabel, cancellationToken).ConfigureAwait(false);
+//C# TO JAVA CONVERTER TODO TASK: There is no equivalent to ' ' in Java:
+		  turnContext.TraceActivityAsync("LuisRecognizer", traceInfo, LuisTraceType, LuisTraceLabel, cancellationToken).get();
 		return recognizerResult;
 	}
 }

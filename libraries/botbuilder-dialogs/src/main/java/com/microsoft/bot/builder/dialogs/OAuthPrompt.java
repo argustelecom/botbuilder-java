@@ -118,7 +118,7 @@ public class OAuthPrompt extends Dialog
                         opt.getPrompt().withInputHint(InputHints.EXPECTING_INPUT);
                     }
 
-                    if (opt.getRetryPrompt() != null && StringUtils.isBlank(opt.getRetryPrompt().inputHint()))
+                    if (opt.getRetryPrompt() != null && StringUtils.isBlank(opt.getRetryPrompt().inputHint().toString()))
                     {
                         opt.getRetryPrompt().withInputHint(InputHints.EXPECTING_INPUT);
                     }
@@ -160,7 +160,12 @@ public class OAuthPrompt extends Dialog
             {
                 // Prompt user to login
 
-                SendOAuthCardAsync(dc.getContext(), opt == null ? null : opt.getPrompt()).get();
+                try {
+                    SendOAuthCardAsync(dc.getContext(), opt == null ? null : opt.getPrompt()).get();
+                } catch (InterruptedException|ExecutionException e) {
+                    e.printStackTrace();
+                    throw new CompletionException(e);
+                }
                 return Dialog.EndOfTurn;
             }
 

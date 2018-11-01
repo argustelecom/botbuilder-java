@@ -3,7 +3,7 @@
     <modelVersion>4.0.0</modelVersion>
 
     <groupId>com.microsoft.bot.builder.dialogs</groupId>
-    <artifactId>botbuilder</artifactId>
+    <artifactId>botbuilder-dialogs</artifactId>
     <packaging>jar</packaging>
     <version>4.0-SNAPSHOT</version>
 
@@ -28,6 +28,13 @@
         </developer>
     </developers>
 
+    <parent>
+        <groupId>com.microsoft.bot</groupId>
+        <artifactId>bot-parent</artifactId>
+        <version>4.0.0-a0</version>
+        <relativePath>../../pom.xml</relativePath>
+    </parent>
+
     <scm>
         <connection>scm:git:https://github.com/Microsoft/botbuilder-java</connection>
         <developerConnection>scm:git:https://github.com/Microsoft/botbuilder-java</developerConnection>
@@ -45,7 +52,6 @@
             <version>4.12</version>
             <scope>test</scope>
         </dependency>
-
 	  <dependency>
 		<groupId>org.apache.logging.log4j</groupId>
 		<artifactId>log4j-api</artifactId>
@@ -62,8 +68,6 @@
             <version>1.7.25</version>
             <scope>test</scope>
         </dependency>
-
-
         <dependency>
             <groupId>com.microsoft.rest</groupId>
             <artifactId>client-runtime</artifactId>
@@ -107,53 +111,23 @@
         <dependency>
             <groupId>com.microsoft.bot.schema</groupId>
             <artifactId>botbuilder-schema</artifactId>
-            <version>4.0.0-SNAPSHOT</version>
+            <version>4.0.0-a0</version>
         </dependency>
         <dependency>
             <groupId>com.microsoft.bot.connector</groupId>
             <artifactId>bot-connector</artifactId>
-            <version>4.0.0-SNAPSHOT</version>
+            <version>4.0.0-a0</version>
         </dependency>
         <dependency>
             <groupId>com.microsoft.bot.builder</groupId>
-            <artifactId>bot-builder</artifactId>
-            <version>4.0.0-SNAPSHOT</version>
+            <artifactId>botbuilder</artifactId>
+            <version>4.0.0-a0</version>
         </dependency>
 		
         <dependency>
             <groupId>junit</groupId>
             <artifactId>junit</artifactId>
             <version>4.12</version>
-            <scope>compile</scope>
-        </dependency>
-        <dependency>
-            <groupId>com.microsoft.bot.schema</groupId>
-            <artifactId>botbuilder-schema</artifactId>
-            <version>4.0.0-b0</version>
-            <scope>compile</scope>
-        </dependency>
-        <dependency>
-            <groupId>com.microsoft.bot.builder</groupId>
-            <artifactId>botbuilder</artifactId>
-            <version>4.0-SNAPSHOT</version>
-            <scope>compile</scope>
-        </dependency>
-        <dependency>
-            <groupId>com.microsoft.bot.schema</groupId>
-            <artifactId>botbuilder-schema</artifactId>
-            <version>4.0.0-b0</version>
-            <scope>compile</scope>
-        </dependency>
-        <dependency>
-            <groupId>com.microsoft.bot.schema</groupId>
-            <artifactId>botbuilder-schema</artifactId>
-            <version>4.0.0-b0</version>
-            <scope>compile</scope>
-        </dependency>
-        <dependency>
-            <groupId>com.microsoft.bot.schema</groupId>
-            <artifactId>botbuilder-schema</artifactId>
-            <version>4.0.0-b0</version>
             <scope>compile</scope>
         </dependency>
     </dependencies>
