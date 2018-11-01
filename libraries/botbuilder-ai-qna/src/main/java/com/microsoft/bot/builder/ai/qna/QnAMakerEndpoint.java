@@ -1,4 +1,4 @@
-package Microsoft.Bot.Builder.AI.QnA;
+package com.microsoft.bot.builder.ai.qna;
 
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License.

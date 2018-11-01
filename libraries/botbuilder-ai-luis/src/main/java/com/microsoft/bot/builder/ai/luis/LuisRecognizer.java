@@ -142,7 +142,7 @@ public class LuisRecognizer implements IRecognizer
 			}
 		}
 
-		return !tangible.StringHelper.isNullOrEmpty(topIntent) ? topIntent : defaultIntent;
+		return !StringUtils.isBlank(topIntent) ? topIntent : defaultIntent;
 	}
 
 	/** <inheritdoc />

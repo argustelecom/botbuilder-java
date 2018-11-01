@@ -16,6 +16,8 @@
     <module>libraries/bot-connector</module>
     <module>libraries/botbuilder</module>
      <module>libraries/botbuilder-dialogs</module>
+      <module>libraries/botbuilder-ai-qna</module>
+      <!--<module>libraries/botbuilder-ai-luis</module> NEED LUIS CLIENT BEFORE WE CAN ENABLE -->
     <module>samples/bot-connector-sample</module>
   </modules>
 </project>
