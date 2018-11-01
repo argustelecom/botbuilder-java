@@ -1,4 +1,4 @@
-package Microsoft.Bot.Builder.AI.Luis;
+package com.microsoft.bot.builder.ai.luis;
 
 
 
