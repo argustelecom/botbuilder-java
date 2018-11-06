@@ -36,12 +36,6 @@ public class Place extends EntityImpl {
     private Object hasMap;
 
     /**
-     * The type of the thing.
-     */
-    @JsonProperty(value = "type")
-    private String type;
-
-    /**
      * The name of the thing.
      */
     @JsonProperty(value = "name")
@@ -108,22 +102,13 @@ public class Place extends EntityImpl {
     }
 
     /**
-     * Get the type value.
-     *
-     * @return the type value
-     */
-    public String type() {
-        return this.type;
-    }
-
-    /**
      * Set the type value.
      *
      * @param type the type value to set
      * @return the Place object itself.
      */
     public Place withType(String type) {
-        this.type = type;
+        super.withType(type);
         return this;
     }
 

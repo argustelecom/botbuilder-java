@@ -37,8 +37,8 @@ public class GeoCoordinates extends EntityImpl {
     /**
      * The type of the thing.
      */
-    @JsonProperty(value = "type")
-    private String type;
+    //@JsonProperty(value = "type")
+    //private String type;
 
     /**
      * The name of the thing.
@@ -112,7 +112,7 @@ public class GeoCoordinates extends EntityImpl {
      * @return the type value
      */
     public String type() {
-        return this.type;
+        return super.type();
     }
 
     /**
@@ -122,7 +122,7 @@ public class GeoCoordinates extends EntityImpl {
      * @return the GeoCoordinates object itself.
      */
     public GeoCoordinates withType(String type) {
-        this.type = type;
+        super.withType(type);
         return this;
     }
 

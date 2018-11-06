@@ -15,11 +15,13 @@ import com.microsoft.bot.schema.models.Entity;
 import java.io.IOException;
 import java.util.HashMap;
 import java.util.Map;
-
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 
 public class EntityImpl extends Entity {
-    private ObjectMapper objectMapper = new ObjectMapper();
+    private ObjectMapper _objectMapper = new ObjectMapper();
+    private Map<String, String> _typeMapString;
 
     /**
      * Initializes a new instance of the Entity class.
@@ -35,7 +37,7 @@ public class EntityImpl extends Entity {
      * types)
      */
     public EntityImpl(String type) {
-        this.type = type;
+        withType(type);
         CustomInit();
     }
 
@@ -43,11 +45,21 @@ public class EntityImpl extends Entity {
      * An initialization method that performs custom operations like setting defaults
      */
     void CustomInit() {
+        _typeMapString = Stream.of(new String[][] {
+                { "com.microsoft.bot.schema.models.Mention", "mention" },
+                { "com.microsoft.bot.schema.models.Place", "Place" },
+                { "com.microsoft.bot.schema.models.GeoCoordinates", "GeoCoordinates" }
+        }).collect(Collectors.toMap(data -> data[0], data -> data[1]));
+        String className = this.getClass().getTypeName();
+        if (_typeMapString.containsKey(className)) {
+            withType(_typeMapString.get(className));
+        }
     }
     /**
      * Gets or sets entity Type (typically from schema.org types)
+     * 11/5/2018: Why is this here?
      */
-    public String type;
+    //public String type;
 
 
     /**
@@ -92,7 +104,7 @@ public class EntityImpl extends Entity {
         // Serialize
         String tempJson;
         try {
-            tempJson = objectMapper.writeValueAsString(this);
+            tempJson = _objectMapper.writeValueAsString(this);
         } catch (JsonProcessingException e) {
             e.printStackTrace();
             return null;
@@ -101,7 +113,7 @@ public class EntityImpl extends Entity {
         // Deserialize
         T newObj = null;
         try {
-            newObj = (T) objectMapper.readValue(tempJson, type);
+            newObj = (T) _objectMapper.readValue(tempJson, type);
         } catch (IOException e) {
             e.printStackTrace();
             return null;
@@ -123,7 +135,7 @@ public class EntityImpl extends Entity {
         // Serialize
         String tempJson;
         try {
-            tempJson = objectMapper.writeValueAsString(obj);
+            tempJson = _objectMapper.writeValueAsString(obj);
         } catch (JsonProcessingException e) {
             e.printStackTrace();
             return false;
@@ -131,7 +143,7 @@ public class EntityImpl extends Entity {
 
         EntityImpl tempEntity;
         try {
-            tempEntity = objectMapper.readValue(tempJson, EntityImpl.class);
+            tempEntity = _objectMapper.readValue(tempJson, EntityImpl.class);
         } catch (IOException e) {
             e.printStackTrace();
             return false;
@@ -140,7 +152,7 @@ public class EntityImpl extends Entity {
         for (Map.Entry<String, JsonNode> entry : tempEntity.properties.entrySet()) {
             this.properties.put(entry.getKey(), entry.getValue());
         }
-        this.type = obj.getClass().getTypeName();
+        withType(obj.getClass().getTypeName());
 
         return true;
 

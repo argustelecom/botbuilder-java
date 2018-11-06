@@ -27,12 +27,6 @@ public class Mention extends EntityImpl {
     private String text;
 
     /**
-     * Entity Type (typically from schema.org types).
-     */
-    @JsonProperty(value = "type")
-    private String type;
-
-    /**
      * Get the mentioned value.
      *
      * @return the mentioned value
@@ -73,22 +67,13 @@ public class Mention extends EntityImpl {
     }
 
     /**
-     * Get the type value.
-     *
-     * @return the type value
-     */
-    public String type() {
-        return this.type;
-    }
-
-    /**
      * Set the type value.
      *
      * @param type the type value to set
      * @return the Mention object itself.
      */
     public Mention withType(String type) {
-        this.type = type;
+        super.withType(type);
         return this;
     }
 
