@@ -71,11 +71,6 @@
           <version>RELEASE</version>
           <scope>compile</scope>
       </dependency>
-      <dependency>
-          <groupId>org.jacoco</groupId>
-          <artifactId>org.jacoco.ant</artifactId>
-          <version>0.8.2</version>
-      </dependency>
   </dependencies>
 
   <profiles>
