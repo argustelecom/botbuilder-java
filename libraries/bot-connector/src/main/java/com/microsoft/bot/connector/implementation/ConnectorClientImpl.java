@@ -21,6 +21,9 @@ import java.io.InputStream;
 import java.util.Properties;
 import java.util.stream.Stream;
 
+import okhttp3.OkHttpClient;
+import retrofit2.Retrofit;
+
 /**
  * Initializes a new instance of the ConnectorClientImpl class.
  */
@@ -167,6 +170,19 @@ public class ConnectorClientImpl extends AzureServiceClient implements Connector
         initialize();
     }
 
+    /**
+     * Initializes an instance of ConnectorClient client.
+     *
+     * @param baseUrl the base URL of the host
+     * @param credentials the management credentials for Azure
+	 * @param clientBuilder
+	 * 
+     */
+    public ConnectorClientImpl(String baseUrl, ServiceClientCredentials credentials, OkHttpClient.Builder clientBuilder) {
+        super(baseUrl, credentials, clientBuilder, new Retrofit.Builder());
+        initialize();
+    }
+    
     /**
      * Initializes an instance of ConnectorClient client.
      *
