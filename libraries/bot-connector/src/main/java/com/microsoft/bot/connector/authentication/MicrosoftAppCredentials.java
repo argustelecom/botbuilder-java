@@ -49,6 +49,13 @@ public class MicrosoftAppCredentials implements ServiceClientCredentials {
         this.mapper = new ObjectMapper().findAndRegisterModules();
     }
 
+    public MicrosoftAppCredentials(String appId, String appPassword, OkHttpClient httpClient) {
+        this.appId = appId;
+        this.appPassword = appPassword;
+        this.client = httpClient;
+        this.mapper = new ObjectMapper().findAndRegisterModules();
+    }	
+    
     public static final MicrosoftAppCredentials Empty = new MicrosoftAppCredentials(null, null);
 
     public String microsoftAppId() {
